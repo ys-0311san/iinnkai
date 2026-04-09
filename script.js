@@ -392,6 +392,13 @@ function renderSidebar(tabId) {
     if (!sidebar) return;
 
     const items = sidebarData[tabId] || [];
+
+    // サブセクションが1つ以下の場合はタブバー不要（hidden属性で非表示）
+    if (items.length <= 1) {
+        sidebar.hidden = true;
+        return;
+    }
+    sidebar.hidden = false;
     sidebar.innerHTML = '';
 
     const nav = document.createElement('nav');
