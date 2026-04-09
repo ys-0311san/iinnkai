@@ -19,6 +19,7 @@ const castData = [
     {
         id: 1,
         name: 'takaniso',
+        role: 'オーナー',
         image: 'images/cast/takaniso.png',
         description: 'ここに挨拶文や紹介を入れてください。',
     },
@@ -146,6 +147,14 @@ function renderCastGrid(casts) {
         nameEl.className = 'cast-name';
         nameEl.textContent = cast.name;
 
+        // 役職がある場合はバッジを追加
+        if (cast.role) {
+            const roleEl = document.createElement('div');
+            roleEl.className = 'cast-role';
+            roleEl.textContent = cast.role;
+            card.appendChild(roleEl);
+        }
+
         card.appendChild(img);
         card.appendChild(nameEl);
 
@@ -184,6 +193,17 @@ function openCastDetail(cast) {
     detailImage.alt = cast.name;
     detailImage.onerror = () => { detailImage.src = placeholderDetail; };
     detailName.textContent = cast.name;
+    // 既存の役職バッジを削除してから再生成
+    const existingRole = detailName.nextElementSibling;
+    if (existingRole && existingRole.classList.contains('detail-role')) {
+        existingRole.remove();
+    }
+    if (cast.role) {
+        const roleEl = document.createElement('div');
+        roleEl.className = 'detail-role';
+        roleEl.textContent = cast.role;
+        detailName.after(roleEl);
+    }
     detailDesc.textContent = cast.description;
 
     // 木札グリッドを非表示 → 詳細ビューを表示

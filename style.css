@@ -395,6 +395,13 @@ main {
     margin-bottom: var(--spacing-sm);
 }
 
+.poster-schedule {
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: var(--wood-brown);
+    letter-spacing: 0.05em;
+}
+
 /* スマホは1カラムに */
 @media (max-width: 768px) {
     .event-posters {
@@ -605,6 +612,36 @@ main {
     z-index: 1;
 }
 
+/* 木札カードの役職バッジ */
+.cast-role {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--paper-white);
+    background: rgba(212, 175, 55, 0.85);
+    border-radius: 4px;
+    padding: 2px 8px;
+    text-align: center;
+    margin-top: 4px;
+    position: relative;
+    z-index: 1;
+    letter-spacing: 0.05em;
+}
+
+/* 詳細ビューの役職バッジ */
+.detail-role {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--ink-black);
+    background: var(--gold-accent);
+    border-radius: 4px;
+    padding: 2px 10px;
+    display: inline-block;
+    margin-bottom: var(--spacing-sm);
+    letter-spacing: 0.05em;
+}
+
 /* ===== キャスト詳細ビュー（木札非表示・背景の上に重ねる） ===== */
 
 /* hidden属性がついているときは必ず非表示 */
@@ -643,10 +680,10 @@ main {
 .cast-detail-info {
     position: absolute;
     top: 50%;
-    transform: translateY(-50%);
     right: 55%;
     left: auto;
     z-index: 1;
+    animation: slideInLeftCenter 0.4s ease forwards;
     max-width: 320px;
     background: rgba(10, 6, 4, 0.78);
     border: 2px solid rgba(212, 175, 55, 0.6);
@@ -654,8 +691,7 @@ main {
     padding: var(--spacing-md) var(--spacing-md);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(8px);
-    animation: slideInLeft 0.4s ease;
-    /* 吹き出しの尻尾（左下向き） */
+    /* 吹き出しの尻尾（右向き） */
 }
 
 /* 吹き出し尻尾（右向き） */
@@ -765,7 +801,9 @@ main {
 /* ===== 公式リンク ===== */
 .official-links {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
     padding: var(--spacing-xl) 0;
 }
 
@@ -789,6 +827,21 @@ main {
     transform: translateY(-4px);
     box-shadow: 0 8px 24px var(--shadow);
     background: linear-gradient(135deg, var(--charcoal) 0%, var(--wood-brown) 100%);
+}
+
+/* リンクボタン内のアイコン画像 */
+.official-icon {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* BOOTHアイコンは白ロゴなので暗い背景を追加 */
+.official-icon--booth {
+    background: #333;
+    padding: 2px;
 }
 
 .official-link:focus-visible {
@@ -839,6 +892,18 @@ main {
     }
     to {
         transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* 縦中央固定＋左スライドを両立するアニメーション */
+@keyframes slideInLeftCenter {
+    from {
+        transform: translateY(-50%) translateX(-40px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(-50%) translateX(0);
         opacity: 1;
     }
 }
