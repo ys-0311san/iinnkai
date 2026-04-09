@@ -96,7 +96,7 @@ const sidebarData = {
 /* ===========================
    DOM要素の取得
    =========================== */
-const tabButtons   = document.querySelectorAll('.tab-button');
+const tabButtons   = document.querySelectorAll('.drawer-item'); // サイドメニューのナビアイテム
 const tabContents  = document.querySelectorAll('.tab-content');
 const castGrid     = document.getElementById('castGrid');
 const searchInput  = document.getElementById('castSearch');
@@ -168,10 +168,51 @@ function activateTab(targetId) {
     window.scrollTo({ top: 0, behavior: 'instant' });
     // キャストグリッドのスクロールもリセット
     castCard.scrollTop = 0;
+
+    // メニューを閉じる
+    closeDrawer();
 }
 
 tabButtons.forEach((btn) => {
     btn.addEventListener('click', () => activateTab(btn.dataset.tab));
+});
+
+/* ===========================
+   サイドメニュー（ドロワー）開閉制御
+   =========================== */
+const sideDrawer    = document.getElementById('sideDrawer');
+const drawerOverlay = document.getElementById('drawerOverlay');
+const menuToggle    = document.getElementById('menuToggle');
+const drawerClose   = document.getElementById('drawerClose');
+
+/** ドロワーを開く */
+function openDrawer() {
+    sideDrawer.classList.add('open');
+    drawerOverlay.classList.add('open');
+    menuToggle.setAttribute('aria-expanded', 'true');
+    sideDrawer.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    drawerClose.focus();
+}
+
+/** ドロワーを閉じる */
+function closeDrawer() {
+    sideDrawer.classList.remove('open');
+    drawerOverlay.classList.remove('open');
+    menuToggle.setAttribute('aria-expanded', 'false');
+    sideDrawer.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+}
+
+menuToggle.addEventListener('click', openDrawer);
+drawerClose.addEventListener('click', closeDrawer);
+drawerOverlay.addEventListener('click', closeDrawer);
+
+// ESCキーでもドロワーを閉じる
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sideDrawer.classList.contains('open')) {
+        closeDrawer();
+    }
 });
 
 /* ===========================
