@@ -56,49 +56,21 @@ body {
     border: 0;
 }
 
-/* ===== 背景画像（固定・タブ切り替えで変化） ===== */
-.background-image {
+/* ===== 背景画像（クロスフェード用2レイヤー） ===== */
+/* JSでbackground-imageをセットし、opacityでクロスフェードする */
+.bg-layer {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     z-index: -1;
-    /* タブ切り替え時にふわっと背景が変わる */
-    transition: background-image 0.6s ease;
+    transition: opacity 0.6s ease;
 }
 
-/* イベントについてタブの背景（PC: 横画面） */
-body.tab-about .background-image {
-    background-image: url('images/bg-about-pc.png');
-}
-
-/* キャストタブの背景（PC: 横画面） */
-body.tab-cast .background-image {
-    background-image: url('images/bg-cast-pc.png');
-}
-
-/* 公式サイトタブの背景（PC: 横画面） */
-body.tab-official .background-image {
-    background-image: url('images/bg-official-pc.png');
-}
-
-/* スマホ縦画面では縦長画像に切り替え */
-@media (max-width: 768px) {
-    body.tab-about .background-image {
-        background-image: url('images/bg-about-sp.png');
-    }
-
-    body.tab-cast .background-image {
-        background-image: url('images/bg-cast-sp.png');
-    }
-
-    body.tab-official .background-image {
-        background-image: url('images/bg-official-sp.png');
-    }
+/* bgNextは常に透明から始まる（JSで制御） */
+#bgNext {
+    opacity: 0;
 }
 
 /* ===== ローディング画面（黒・最前面） ===== */
@@ -329,6 +301,127 @@ main {
 /* キャストタブは1秒かけてふわっと表示 */
 #cast.active .content-card {
     animation: fadeInContent 1s ease;
+}
+
+/* ===== セクションレイアウト（サイドバー＋メイン横並び） ===== */
+.section-layout {
+    display: flex;
+    gap: var(--spacing-lg);
+    align-items: flex-start;
+}
+
+/* サイドバー本体 */
+.section-sidebar {
+    width: 160px;
+    flex-shrink: 0;
+    background: rgba(10, 6, 4, 0.72);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    padding: var(--spacing-sm);
+    /* ヘッダー高さ分オフセットして固定 */
+    position: sticky;
+    top: calc(90px + var(--spacing-md));
+}
+
+/* サイドバーナビゲーション */
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* サイドバー各アイテム */
+.sidebar-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 10px 12px;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: rgba(245, 243, 237, 0.65);
+    background: transparent;
+    border: none;
+    border-left: 3px solid transparent;
+    border-radius: 0 6px 6px 0;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    line-height: 1.4;
+}
+
+.sidebar-item:hover {
+    background: rgba(212, 175, 55, 0.12);
+    color: var(--paper-white);
+}
+
+/* アクティブ状態: 左ボーダーと金色テキスト */
+.sidebar-item.active {
+    background: rgba(212, 175, 55, 0.18);
+    color: var(--gold-accent);
+    border-left-color: var(--gold-accent);
+}
+
+/* メインコンテンツ領域 */
+.section-body {
+    flex: 1;
+    min-width: 0;
+}
+
+/* サブセクションの表示切替 */
+.sub-section {
+    display: none;
+}
+
+.sub-section.active {
+    display: block;
+}
+
+/* スマホ: サイドバーを上部横スクロールタブバーに変更 */
+@media (max-width: 768px) {
+    .section-layout {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .section-sidebar {
+        width: 100%;
+        position: static;
+        background: rgba(10, 6, 4, 0.72);
+        border-radius: 8px;
+        padding: var(--spacing-xs) var(--spacing-sm);
+        /* 横スクロール対応 */
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .section-sidebar::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* スマホではナビを横並びに */
+    .sidebar-nav {
+        flex-direction: row;
+        gap: 6px;
+        white-space: nowrap;
+    }
+
+    .sidebar-item {
+        display: inline-block;
+        width: auto;
+        border-left: none;
+        border-bottom: 3px solid transparent;
+        border-radius: 6px 6px 0 0;
+        padding: 8px 14px;
+        font-size: 0.82rem;
+        white-space: nowrap;
+    }
+
+    .sidebar-item.active {
+        border-left-color: transparent;
+        border-bottom-color: var(--gold-accent);
+    }
 }
 
 /* キャストカードはヘッダー下から全体が見えるよう高さ固定・スクロール */

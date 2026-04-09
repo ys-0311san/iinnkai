@@ -34,6 +34,66 @@ const castData = [
 ];
 
 /* ===========================
+   背景画像マップ（タブID → PC/SP画像パス）
+   =========================== */
+const bgImages = {
+    about:    { pc: 'images/bg-about-pc.png',    sp: 'images/bg-about-sp.png'    },
+    cast:     { pc: 'images/bg-cast-pc.png',     sp: 'images/bg-cast-sp.png'     },
+    official: { pc: 'images/bg-official-pc.png', sp: 'images/bg-official-sp.png' },
+};
+
+/** 背景クロスフェードのタイマーID（連打対策） */
+let bgFadeTimer = null;
+
+/**
+ * 背景画像を0.6秒かけてクロスフェードで切り替える
+ * @param {string} targetId - 切り替え先タブID
+ */
+function crossfadeBackground(targetId) {
+    const isSP    = window.matchMedia('(max-width: 768px)').matches;
+    const newSrc  = bgImages[targetId]?.[isSP ? 'sp' : 'pc'];
+    if (!newSrc) return;
+
+    const bgCurrent = document.getElementById('bgCurrent');
+    const bgNext    = document.getElementById('bgNext');
+
+    // 連打時は前回のタイマーをキャンセル
+    if (bgFadeTimer) clearTimeout(bgFadeTimer);
+
+    // bgNextに新しい背景をセットして不透明にする
+    bgNext.style.backgroundImage = `url('${newSrc}')`;
+    bgNext.style.opacity = '1';
+    bgCurrent.style.opacity = '0';
+
+    // フェード完了後にレイヤーを入れ替えてリセット
+    bgFadeTimer = setTimeout(() => {
+        bgCurrent.style.backgroundImage = `url('${newSrc}')`;
+        bgCurrent.style.opacity = '1';
+        bgNext.style.opacity = '0';
+        bgFadeTimer = null;
+    }, 650);
+}
+
+/* ===========================
+   サイドバーデータ定義
+   各タブのサブセクションをここに追加する
+   =========================== */
+const sidebarData = {
+    about: [
+        { id: 'about-main', label: 'イベントについて' },
+        // 追加例: { id: 'about-schedule', label: 'スケジュール' },
+    ],
+    cast: [
+        { id: 'cast-main', label: 'キャスト一覧' },
+        // 追加例: { id: 'cast-schedule', label: 'シフト表' },
+    ],
+    official: [
+        { id: 'official-main', label: '公式リンク' },
+        // 追加例: { id: 'official-rules', label: 'ルール' },
+    ],
+};
+
+/* ===========================
    DOM要素の取得
    =========================== */
 const tabButtons   = document.querySelectorAll('.tab-button');
@@ -96,9 +156,8 @@ function activateTab(targetId) {
         section.classList.toggle('active', section.id === targetId);
     });
 
-    // bodyのタブクラスを切り替えて背景画像を変更
-    document.body.classList.remove('tab-about', 'tab-cast', 'tab-official');
-    document.body.classList.add(`tab-${targetId}`);
+    // 背景画像をクロスフェードで切り替え
+    crossfadeBackground(targetId);
 
     // キャスト以外のタブに切り替えた場合、詳細ビューが開いていたら閉じる
     if (targetId !== 'cast') {
@@ -321,10 +380,77 @@ function startWithLoading() {
 }
 
 /* ===========================
+   サイドバー制御
+   =========================== */
+
+/**
+ * 指定タブのサイドバーを生成する
+ * @param {string} tabId - タブID（'about' | 'cast' | 'official'）
+ */
+function renderSidebar(tabId) {
+    const sidebar = document.getElementById(`sidebar-${tabId}`);
+    if (!sidebar) return;
+
+    const items = sidebarData[tabId] || [];
+    sidebar.innerHTML = '';
+
+    const nav = document.createElement('nav');
+    nav.className = 'sidebar-nav';
+
+    items.forEach((item, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'sidebar-item' + (index === 0 ? ' active' : '');
+        btn.textContent = item.label;
+        btn.dataset.sectionId = item.id;
+        btn.setAttribute('aria-current', index === 0 ? 'page' : 'false');
+        btn.addEventListener('click', () => activateSubSection(tabId, item.id));
+        nav.appendChild(btn);
+    });
+
+    sidebar.appendChild(nav);
+}
+
+/**
+ * サブセクションを切り替える
+ * @param {string} tabId     - 親タブID
+ * @param {string} sectionId - 表示するサブセクションID
+ */
+function activateSubSection(tabId, sectionId) {
+    // サブセクションの表示切替
+    const section = document.getElementById(tabId);
+    if (!section) return;
+    section.querySelectorAll('.sub-section').forEach((el) => {
+        el.classList.remove('active');
+    });
+    const target = document.getElementById(sectionId);
+    if (target) target.classList.add('active');
+
+    // サイドバーのアクティブ状態を更新
+    const sidebar = document.getElementById(`sidebar-${tabId}`);
+    if (sidebar) {
+        sidebar.querySelectorAll('.sidebar-item').forEach((btn) => {
+            const isActive = btn.dataset.sectionId === sectionId;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-current', isActive ? 'page' : 'false');
+        });
+    }
+
+    // サブセクション切替時にスクロールをトップへ
+    window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+/* ===========================
    初期化
    =========================== */
 document.addEventListener('DOMContentLoaded', () => {
-    document.body.classList.add('tab-about');
+    // 初期背景（aboutタブ）を即座にセット
+    const isSPInit = window.matchMedia('(max-width: 768px)').matches;
+    const initBg = bgImages.about[isSPInit ? 'sp' : 'pc'];
+    const bgCurrent = document.getElementById('bgCurrent');
+    if (bgCurrent) bgCurrent.style.backgroundImage = `url('${initBg}')`;
+
+    // 全タブのサイドバーを生成
+    Object.keys(sidebarData).forEach(renderSidebar);
     renderCastGrid(castData);
     startWithLoading();
 });
