@@ -26,9 +26,10 @@ const castData = [
     // 以降は実際のキャストデータに差し替えてください
     ...Array.from({ length: 59 }, (_, i) => ({
         id: i + 2,
-        name: `キャスト名${i + 2}`,
-        image: `images/cast/cast${i + 2}.jpg`,
-        description: `キャスト${i + 2}の紹介文です。`,
+        name: 'Coming Soon',
+        image: '',
+        description: '',
+        comingSoon: true,
     })),
 ];
 
@@ -103,6 +104,11 @@ function activateTab(targetId) {
     if (targetId !== 'cast') {
         closeCastDetail();
     }
+
+    // タブ切り替え時にスクロール位置をトップに戻す
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    // キャストグリッドのスクロールもリセット
+    castCard.scrollTop = 0;
 }
 
 tabButtons.forEach((btn) => {
@@ -131,41 +137,60 @@ function renderCastGrid(casts) {
 
     casts.forEach((cast) => {
         const card = document.createElement('div');
-        card.className = 'cast-card';
-        card.setAttribute('role', 'button');
-        card.setAttribute('tabindex', '0');
-        card.setAttribute('aria-label', `${cast.name}の詳細を見る`);
 
-        const img = document.createElement('img');
-        img.src = cast.image;
-        img.alt = cast.name;
-        img.className = 'cast-image';
-        img.loading = 'lazy';
-        img.addEventListener('error', () => { img.src = placeholderCard; });
+        if (cast.comingSoon) {
+            // Coming Soon カード（クリック不可・グレーアウト）
+            card.className = 'cast-card coming-soon';
 
-        const nameEl = document.createElement('div');
-        nameEl.className = 'cast-name';
-        nameEl.textContent = cast.name;
+            const img = document.createElement('img');
+            img.src = placeholderCard;
+            img.alt = 'Coming Soon';
+            img.className = 'cast-image';
 
-        // 役職がある場合はバッジを追加
-        if (cast.role) {
-            const roleEl = document.createElement('div');
-            roleEl.className = 'cast-role';
-            roleEl.textContent = cast.role;
-            card.appendChild(roleEl);
-        }
+            const label = document.createElement('div');
+            label.className = 'coming-soon-label';
+            label.textContent = 'Coming Soon';
 
-        card.appendChild(img);
-        card.appendChild(nameEl);
+            card.appendChild(img);
+            card.appendChild(label);
+        } else {
+            // 通常キャストカード（クリック可能）
+            card.className = 'cast-card';
+            card.setAttribute('role', 'button');
+            card.setAttribute('tabindex', '0');
+            card.setAttribute('aria-label', `${cast.name}の詳細を見る`);
 
-        // クリックで詳細ビューを開く
-        card.addEventListener('click', () => openCastDetail(cast));
-        card.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                openCastDetail(cast);
+            const img = document.createElement('img');
+            img.src = cast.image;
+            img.alt = cast.name;
+            img.className = 'cast-image';
+            img.loading = 'lazy';
+            img.addEventListener('error', () => { img.src = placeholderCard; });
+
+            const nameEl = document.createElement('div');
+            nameEl.className = 'cast-name';
+            nameEl.textContent = cast.name;
+
+            // 役職がある場合はバッジを追加
+            if (cast.role) {
+                const roleEl = document.createElement('div');
+                roleEl.className = 'cast-role';
+                roleEl.textContent = cast.role;
+                card.appendChild(roleEl);
             }
-        });
+
+            card.appendChild(img);
+            card.appendChild(nameEl);
+
+            // クリックで詳細ビューを開く
+            card.addEventListener('click', () => openCastDetail(cast));
+            card.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openCastDetail(cast);
+                }
+            });
+        }
 
         fragment.appendChild(card);
     });

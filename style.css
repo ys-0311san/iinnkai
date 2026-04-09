@@ -331,6 +331,12 @@ main {
     animation: fadeInContent 1s ease;
 }
 
+/* キャストカードはヘッダー下から全体が見えるよう高さ固定・スクロール */
+#castCard {
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
 /* ===== コンテンツカード ===== */
 .content-card {
     background: rgba(245, 243, 237, 0.6);
@@ -591,10 +597,11 @@ main {
 .cast-image {
     width: 100%;
     aspect-ratio: 3 / 4;
-    object-fit: cover;
+    object-fit: contain;
+    object-position: center bottom;
     border-radius: 4px;
     margin-bottom: var(--spacing-sm);
-    background: rgba(245, 243, 237, 0.2);
+    background: transparent;
     border: 2px solid rgba(212, 175, 55, 0.3);
     display: block;
     position: relative;
@@ -640,6 +647,35 @@ main {
     display: inline-block;
     margin-bottom: var(--spacing-sm);
     letter-spacing: 0.05em;
+}
+
+/* Coming Soon カード（クリック不可・グレーアウト） */
+.cast-card.coming-soon {
+    cursor: default;
+    opacity: 0.6;
+    filter: grayscale(60%);
+}
+
+.cast-card.coming-soon:hover {
+    transform: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border-color: var(--cedar);
+}
+
+.cast-card.coming-soon::before {
+    display: none;
+}
+
+.coming-soon-label {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: rgba(245, 243, 237, 0.7);
+    text-align: center;
+    margin-top: 4px;
+    letter-spacing: 0.1em;
+    position: relative;
+    z-index: 1;
 }
 
 /* ===== キャスト詳細ビュー（木札非表示・背景の上に重ねる） ===== */
@@ -767,7 +803,7 @@ main {
     outline-offset: 2px;
 }
 
-/* スマホ: 吹き出しを下中央に */
+/* スマホ: 画像を上・吹き出しを下中央に */
 @media (max-width: 768px) {
     .cast-detail {
         top: 140px;
@@ -779,12 +815,16 @@ main {
         object-position: center top;
     }
 
+    /* top/right をリセットして下部中央に固定 */
     .cast-detail-info {
-        bottom: var(--spacing-lg);
+        top: auto;
+        right: auto;
+        bottom: var(--spacing-md);
         left: 50%;
         transform: translateX(-50%);
-        max-width: calc(100% - var(--spacing-lg) * 2);
-        animation: slideInTop 0.4s ease;
+        width: calc(100% - var(--spacing-md) * 2);
+        max-width: 480px;
+        animation: slideInBottom 0.4s ease forwards;
     }
 
     /* スマホでは尻尾を非表示 */
@@ -915,6 +955,18 @@ main {
     }
     to {
         transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* スマホ詳細吹き出し: translateX(-50%)を維持しながら下からスライドイン */
+@keyframes slideInBottom {
+    from {
+        transform: translateX(-50%) translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(-50%) translateY(0);
         opacity: 1;
     }
 }
