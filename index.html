@@ -10,13 +10,14 @@
     <link rel="preload" as="image" href="images/bg-about-sp.png" media="(max-width: 768px)">
 </head>
 <body>
+    <!-- ローディング画面（黒・読み込み完了まで表示） -->
+    <div class="loading-screen" id="loadingScreen"></div>
+
     <!-- 背景画像（固定） -->
     <div class="background-image"></div>
 
-    <!-- 初期表示: ロゴとタイトル -->
+    <!-- 初期表示: タイトルのみ -->
     <div class="intro-screen" id="introScreen">
-        <!-- 社長キャラクター画像（右中央固定） -->
-        <div class="character-logo" id="characterLogo"></div>
         <div class="intro-text">
             <h1 class="main-title">なでなで茶屋</h1>
             <p class="schedule">毎週土曜日 22:55~</p>
@@ -88,6 +89,15 @@
                             <img src="images/poster-mesukemo.png" alt="なでなで倶楽部 MESUKEMO ポスター" class="poster-image">
                             <div class="poster-description">
                                 <h3 class="poster-title">なでなで倶楽部 MESUKEMO</h3>
+                                <p>ここに説明文が入ります。</p>
+                            </div>
+                        </div>
+
+                        <!-- ポスター3: KEMONO写真館 -->
+                        <div class="poster-block">
+                            <img src="images/poster-kemono.png" alt="KEMONO写真館 ポスター" class="poster-image">
+                            <div class="poster-description">
+                                <h3 class="poster-title">KEMONO写真館</h3>
                                 <p>ここに説明文が入ります。</p>
                             </div>
                         </div>

@@ -231,17 +231,46 @@ searchInput.addEventListener('input', () => {
 });
 
 /* ===========================
-   背景画像のプリロード
-   オープニング（2.5秒）の間に全背景画像を先読みしておく
+   ローディング制御
+   必要な画像を全て読み込んでからイントロを開始する
    =========================== */
-function preloadBackgrounds() {
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
-    const images = isMobile
-        ? ['images/bg-about-sp.png', 'images/bg-cast-sp.png', 'images/bg-official-sp.png']
-        : ['images/bg-about-pc.png', 'images/bg-cast-pc.png', 'images/bg-official-pc.png'];
+function startWithLoading() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    const introScreen   = document.getElementById('introScreen');
+    const isMobile      = window.matchMedia('(max-width: 768px)').matches;
 
-    images.forEach((src) => {
+    // 読み込む画像リスト（背景3枚 + ヘッダー画像）
+    const srcs = isMobile
+        ? ['images/bg-about-sp.png', 'images/bg-cast-sp.png', 'images/bg-official-sp.png',
+           'images/header-banner.png', 'images/header-logo.png']
+        : ['images/bg-about-pc.png', 'images/bg-cast-pc.png', 'images/bg-official-pc.png',
+           'images/header-banner.png', 'images/header-logo.png'];
+
+    let loaded = 0;
+
+    function onImageLoad() {
+        loaded++;
+        if (loaded < srcs.length) return;
+
+        // 全画像読み込み完了 → ローディング画面をフェードアウト
+        loadingScreen.classList.add('hidden');
+
+        // フェードアウト完了後にイントロアニメーション開始
+        setTimeout(() => {
+            loadingScreen.style.display = 'none';
+            introScreen.classList.add('ready');
+
+            // イントロ終了（2.5秒表示 + 1秒フェードアウト）後にメインをフェードイン
+            setTimeout(() => {
+                document.getElementById('mainContent').classList.add('visible');
+            }, 3500);
+        }, 800);
+    }
+
+    srcs.forEach((src) => {
         const img = new Image();
+        img.onload  = onImageLoad;
+        img.onerror = onImageLoad; // 読み込み失敗でも止まらないよう続行
         img.src = src;
     });
 }
@@ -250,7 +279,7 @@ function preloadBackgrounds() {
    初期化
    =========================== */
 document.addEventListener('DOMContentLoaded', () => {
-    preloadBackgrounds();
     document.body.classList.add('tab-about');
     renderCastGrid(castData);
+    startWithLoading();
 });

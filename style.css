@@ -101,7 +101,24 @@ body.tab-official .background-image {
     }
 }
 
+/* ===== ローディング画面（黒・最前面） ===== */
+.loading-screen {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.8s ease;
+    pointer-events: none;
+}
+
+.loading-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
 /* ===== オープニング画面 ===== */
+/* 読み込み完了前はアニメーションを止めておく */
 .intro-screen {
     position: fixed;
     top: 0;
@@ -112,9 +129,27 @@ body.tab-official .background-image {
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    /* 2.5秒後に1秒かけてフェードアウト */
-    animation: fadeOut 1s ease-in-out 2.5s forwards;
     pointer-events: none;
+    /* デフォルトは非表示・アニメーションなし */
+    opacity: 0;
+}
+
+/* JS側でこのクラスを付与してアニメーション開始 */
+.intro-screen.ready {
+    opacity: 1;
+    animation: fadeOut 1s ease-in-out 2.5s forwards;
+}
+
+.intro-screen.ready .intro-text {
+    animation: slideUp 1s ease-out 0.3s backwards;
+}
+
+.intro-screen.ready .character-logo {
+    animation: scaleIn 1s ease-out;
+}
+
+.intro-screen.ready .schedule {
+    animation: slideUp 1s ease-out 0.5s backwards;
 }
 
 /* 社長キャラクター画像（右中央固定） */
@@ -131,14 +166,12 @@ body.tab-official .background-image {
     border-radius: 50%;
     background-size: cover;
     background-position: center;
-    animation: scaleIn 1s ease-out;
     box-shadow: 0 0 40px rgba(212, 175, 55, 0.3);
 }
 
 /* タイトル・開催情報のまとまり（中央寄せ） */
 .intro-text {
     text-align: center;
-    animation: slideUp 1s ease-out 0.3s backwards;
 }
 
 .main-title {
@@ -155,17 +188,19 @@ body.tab-official .background-image {
     font-family: var(--font-display);
     font-size: clamp(1rem, 2.5vw, 1.5rem);
     color: var(--gold-accent);
-    animation: slideUp 1s ease-out 0.5s backwards;
     letter-spacing: 0.05em;
 }
 
 /* ===== メインコンテンツ ===== */
 .main-content {
     opacity: 0;
-    /* オープニング終了後（3秒後）にフェードイン */
-    animation: fadeIn 1s ease-in-out 3s forwards;
-    /* 固定ヘッダーの高さ分だけ上部に余白を確保 */
     padding-top: 90px;
+    transition: opacity 1s ease;
+}
+
+/* JSからこのクラスを付与してフェードイン */
+.main-content.visible {
+    opacity: 1;
 }
 
 /* ===== 固定ヘッダー ===== */
