@@ -153,8 +153,13 @@ function activateTab(targetId) {
         btn.setAttribute('aria-selected', String(isActive));
     });
 
-    // 旧コンテンツを即座に非表示にする
-    tabContents.forEach((section) => section.classList.remove('active'));
+    // コンテンツと背景を同時に切り替え（遅延なし）
+    tabContents.forEach((section) => {
+        section.classList.toggle('active', section.id === targetId);
+    });
+
+    // 背景クロスフェード開始
+    crossfadeBackground(targetId);
 
     // キャスト以外に切り替えた場合は詳細ビューを閉じる
     if (targetId !== 'cast') {
@@ -167,15 +172,6 @@ function activateTab(targetId) {
     // スクロールをトップに戻す
     window.scrollTo({ top: 0, behavior: 'instant' });
     castCard.scrollTop = 0;
-
-    // 背景クロスフェード開始
-    crossfadeBackground(targetId);
-
-    // 背景が切り替わり始めてから新コンテンツをフェードイン（背景遷移と重ならないよう遅延）
-    setTimeout(() => {
-        const target = document.getElementById(targetId);
-        if (target) target.classList.add('active');
-    }, 350);
 }
 
 tabButtons.forEach((btn) => {
