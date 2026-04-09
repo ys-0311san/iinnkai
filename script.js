@@ -42,36 +42,17 @@ const bgImages = {
     official: { pc: 'images/bg-official-pc.png', sp: 'images/bg-official-sp.png' },
 };
 
-/** 背景クロスフェードのタイマーID（連打対策） */
-let bgFadeTimer = null;
-
 /**
- * 背景画像を0.6秒かけてクロスフェードで切り替える
+ * 背景画像を即時切り替える
  * @param {string} targetId - 切り替え先タブID
  */
 function crossfadeBackground(targetId) {
-    const isSP    = window.matchMedia('(max-width: 768px)').matches;
-    const newSrc  = bgImages[targetId]?.[isSP ? 'sp' : 'pc'];
+    const isSP  = window.matchMedia('(max-width: 768px)').matches;
+    const newSrc = bgImages[targetId]?.[isSP ? 'sp' : 'pc'];
     if (!newSrc) return;
 
     const bgCurrent = document.getElementById('bgCurrent');
-    const bgNext    = document.getElementById('bgNext');
-
-    // 連打時は前回のタイマーをキャンセル
-    if (bgFadeTimer) clearTimeout(bgFadeTimer);
-
-    // bgNextに新しい背景をセットして不透明にする
-    bgNext.style.backgroundImage = `url('${newSrc}')`;
-    bgNext.style.opacity = '1';
-    bgCurrent.style.opacity = '0';
-
-    // フェード完了後にレイヤーを入れ替えてリセット
-    bgFadeTimer = setTimeout(() => {
-        bgCurrent.style.backgroundImage = `url('${newSrc}')`;
-        bgCurrent.style.opacity = '1';
-        bgNext.style.opacity = '0';
-        bgFadeTimer = null;
-    }, 650);
+    bgCurrent.style.backgroundImage = `url('${newSrc}')`;
 }
 
 /* ===========================
