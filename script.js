@@ -96,7 +96,7 @@ const sidebarData = {
 /* ===========================
    DOM要素の取得
    =========================== */
-const tabButtons   = document.querySelectorAll('.drawer-item'); // サイドメニューのナビアイテム
+const tabButtons   = document.querySelectorAll('.tab-button, .drawer-item'); // PC用タブ＋スマホ用ドロワーアイテム
 const tabContents  = document.querySelectorAll('.tab-content');
 const castGrid     = document.getElementById('castGrid');
 const searchInput  = document.getElementById('castSearch');

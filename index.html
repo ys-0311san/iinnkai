@@ -55,14 +55,26 @@
 
     <!-- メインコンテンツ（フェードイン） -->
     <div class="main-content" id="mainContent">
-        <!-- 固定ヘッダー: タイトル + ハンバーガーボタン -->
+        <!-- 固定ヘッダー: タイトル + ナビ -->
         <header class="site-header">
             <div class="header-inner">
                 <div class="header-title">
                     <img src="images/header-banner.png" alt="メスケモ推進委員会" class="header-banner">
                     <img src="images/header-logo.png" alt="なでなで茶屋 ロゴ" class="header-logo">
                 </div>
-                <!-- ハンバーガーメニューボタン -->
+                <!-- PC用タブ（スマホでは非表示） -->
+                <nav class="tabs" role="tablist" aria-label="コンテンツナビゲーション">
+                    <button class="tab-button active" data-tab="about" role="tab" aria-selected="true" aria-controls="about">
+                        イベントについて
+                    </button>
+                    <button class="tab-button" data-tab="cast" role="tab" aria-selected="false" aria-controls="cast">
+                        キャスト
+                    </button>
+                    <button class="tab-button" data-tab="official" role="tab" aria-selected="false" aria-controls="official">
+                        公式サイト
+                    </button>
+                </nav>
+                <!-- スマホ用ハンバーガーボタン（PCでは非表示） -->
                 <button class="menu-toggle" id="menuToggle" aria-label="メニューを開く" aria-expanded="false" aria-controls="sideDrawer">
                     <span></span>
                     <span></span>
