@@ -146,31 +146,36 @@ const placeholderDetail = [
  * @param {string} targetId - 表示するタブのID（'about' | 'cast' | 'official'）
  */
 function activateTab(targetId) {
+    // ドロワーアイテムのアクティブ状態を更新
     tabButtons.forEach((btn) => {
         const isActive = btn.dataset.tab === targetId;
         btn.classList.toggle('active', isActive);
         btn.setAttribute('aria-selected', String(isActive));
     });
 
-    tabContents.forEach((section) => {
-        section.classList.toggle('active', section.id === targetId);
-    });
+    // 旧コンテンツを即座に非表示にする
+    tabContents.forEach((section) => section.classList.remove('active'));
 
-    // 背景画像をクロスフェードで切り替え
-    crossfadeBackground(targetId);
-
-    // キャスト以外のタブに切り替えた場合、詳細ビューが開いていたら閉じる
+    // キャスト以外に切り替えた場合は詳細ビューを閉じる
     if (targetId !== 'cast') {
         closeCastDetail();
     }
 
-    // タブ切り替え時にスクロール位置をトップに戻す
-    window.scrollTo({ top: 0, behavior: 'instant' });
-    // キャストグリッドのスクロールもリセット
-    castCard.scrollTop = 0;
-
     // メニューを閉じる
     closeDrawer();
+
+    // スクロールをトップに戻す
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    castCard.scrollTop = 0;
+
+    // 背景クロスフェード開始
+    crossfadeBackground(targetId);
+
+    // 背景が切り替わり始めてから新コンテンツをフェードイン（背景遷移と重ならないよう遅延）
+    setTimeout(() => {
+        const target = document.getElementById(targetId);
+        if (target) target.classList.add('active');
+    }, 350);
 }
 
 tabButtons.forEach((btn) => {
