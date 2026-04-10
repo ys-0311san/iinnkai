@@ -130,7 +130,6 @@ function crossfadeBackground(targetId) {
    =========================== */
 const sidebarData = {
     about: [
-        { id: 'about-news', label: 'お知らせ' },
         { id: 'about-main', label: 'イベントについて' },
     ],
     cast: [

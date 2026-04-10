@@ -1281,6 +1281,13 @@ main {
 
 /* ===== お知らせセクション ===== */
 
+/* イベントについての先頭に統合されたお知らせブロック */
+.news-block {
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-xl);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
 .news-list {
     display: flex;
     flex-direction: column;
