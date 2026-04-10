@@ -20,11 +20,33 @@ const castData = [
         id: 1,
         name: 'takaniso',
         role: 'オーナー',
-        image: 'images/cast/takaniso.png',
+        image: 'images/cast/takaniso.png',               // 木札グリッド用（焼き木調）
+        detailImage: 'images/cast/takaniso_original.png', // 詳細ビュー用（オリジナル）
         description: 'ここに挨拶文や紹介を入れてください。',
     },
+    {
+        id: 2,
+        name: '狐乃さまあ',
+        image: 'images/cast/samaa.png',
+        detailImage: 'images/cast/samaa_original.png',
+        description: '趣味はアニメ！漫画！\nやれることは全力で！\n今日もご主人様を癒していきます♡',
+    },
+    {
+        id: 3,
+        name: 'ぬの',
+        image: 'images/cast/nuno.png',
+        detailImage: 'images/cast/nuno_original.png',
+        description: '',
+    },
+    {
+        id: 4,
+        name: 'Cute Nukko',
+        image: 'images/cast/cute-nukko.png',
+        detailImage: 'images/cast/cute-nukko_original.png',
+        description: '',
+    },
     // 以降は実際のキャストデータに差し替えてください
-    ...Array.from({ length: 59 }, (_, i) => ({
+    ...Array.from({ length: 56 }, (_, i) => ({
         id: i + 2,
         name: 'Coming Soon',
         image: '',
@@ -82,12 +104,13 @@ const tabContents  = document.querySelectorAll('.tab-content');
 const castGrid     = document.getElementById('castGrid');
 const searchInput  = document.getElementById('castSearch');
 const noResults    = document.getElementById('noResults');
-const castCard     = document.getElementById('castCard');     // 木札グリッドのカード
-const castDetail   = document.getElementById('castDetail');   // 詳細ビュー
-const detailImage  = document.getElementById('detailImage');
-const detailName   = document.getElementById('detailName');
-const detailDesc   = document.getElementById('detailDescription');
-const detailClose  = document.getElementById('detailClose');
+const castCard        = document.getElementById('castCard');     // 木札グリッドのカード
+const castDetail      = document.getElementById('castDetail');   // 詳細ビュー
+const castDetailVisual = castDetail.querySelector('.cast-detail-visual'); // キャラ画像エリア
+const detailImage     = document.getElementById('detailImage');
+const detailName      = document.getElementById('detailName');
+const detailDesc      = document.getElementById('detailDescription');
+const detailClose     = document.getElementById('detailClose');
 
 /* ===========================
    画像が読み込めなかった場合のSVGプレースホルダー
@@ -100,7 +123,7 @@ const placeholderCard = [
         '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400" viewBox="0 0 300 400">' +
         '<rect fill="#e8dcc8" width="300" height="400"/>' +
         '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"' +
-        ' font-family="sans-serif" font-size="18" fill="#8b6f47">画像未設定</text>' +
+        ' font-family="sans-serif" font-size="18" fill="#8b6f47">📸 写真撮影中</text>' +
         '</svg>'
     ),
 ].join('');
@@ -112,7 +135,7 @@ const placeholderDetail = [
         '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">' +
         '<rect fill="#2d2d2d" width="600" height="800"/>' +
         '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"' +
-        ' font-family="sans-serif" font-size="24" fill="#8b6f47">画像未設定</text>' +
+        ' font-family="sans-serif" font-size="24" fill="#8b6f47">📸 写真撮影中</text>' +
         '</svg>'
     ),
 ].join('');
@@ -295,8 +318,8 @@ let previousFocus = null;
 function openCastDetail(cast) {
     previousFocus = document.activeElement;
 
-    // 詳細情報をセット
-    detailImage.src = cast.image;
+    // 詳細情報をセット（detailImageがあればオリジナル画像を使用）
+    detailImage.src = cast.detailImage || cast.image;
     detailImage.alt = cast.name;
     detailImage.onerror = () => { detailImage.src = placeholderDetail; };
     detailName.textContent = cast.name;
@@ -312,6 +335,15 @@ function openCastDetail(cast) {
         detailName.after(roleEl);
     }
     detailDesc.textContent = cast.description;
+
+    // サイズクラスをリセットして再適用（大:デフォルト、中:size-medium、小:size-small）
+    castDetailVisual.classList.remove('size-medium', 'size-small');
+    if (cast.size === 'medium') castDetailVisual.classList.add('size-medium');
+    if (cast.size === 'small')  castDetailVisual.classList.add('size-small');
+
+    // サイズパネルを閉じてアクティブ状態をリセット
+    sizePanel.hidden = true;
+    sizePanel.querySelectorAll('.size-option').forEach((o) => o.classList.remove('active'));
 
     // 木札グリッドを非表示 → 詳細ビューを表示
     castCard.hidden = true;
@@ -338,6 +370,33 @@ function closeCastDetail() {
 }
 
 detailClose.addEventListener('click', closeCastDetail);
+
+/* ===========================
+   サイズ確認パネル制御
+   =========================== */
+const sizeCheckBtn = document.getElementById('sizeCheckBtn');
+const sizePanel    = document.getElementById('sizePanel');
+
+/** サイズ確認パネルの開閉 */
+sizeCheckBtn.addEventListener('click', () => {
+    sizePanel.hidden = !sizePanel.hidden;
+});
+
+/** サイズ選択肢をクリックしてプレビュー適用 */
+sizePanel.querySelectorAll('.size-option').forEach((option) => {
+    option.addEventListener('click', () => {
+        const size = option.dataset.size;
+
+        // アクティブ状態を更新
+        sizePanel.querySelectorAll('.size-option').forEach((o) => o.classList.remove('active'));
+        option.classList.add('active');
+
+        // 詳細ビューのサイズを切り替え
+        castDetailVisual.classList.remove('size-medium', 'size-small');
+        if (size === 'medium') castDetailVisual.classList.add('size-medium');
+        if (size === 'small')  castDetailVisual.classList.add('size-small');
+    });
+});
 
 // ESCキーで詳細ビューを閉じる
 document.addEventListener('keydown', (e) => {
@@ -390,6 +449,9 @@ function startWithLoading() {
             // イントロ終了（2.5秒表示 + 1秒フェードアウト）後にメインをフェードイン
             setTimeout(() => {
                 document.getElementById('mainContent').classList.add('visible');
+                // アニメーション終了後にスクロールを解除（overflow-xは横スクロール防止のため残す）
+                document.body.style.overflowX = 'hidden';
+                document.body.style.overflowY = 'auto';
             }, 3500);
         }, 800);
     }

@@ -39,9 +39,12 @@ body {
     font-family: var(--font-body);
     color: var(--ink-black);
     background: rgba(0, 0, 0, 0.4); /* フラッシュ防止：半透明の暗幕 */
-    overflow-x: hidden;
+    /* 初期状態はスクロール無効（アニメーション終了後JSで解除） */
+    overflow: hidden;
     min-height: 100vh;
     position: relative;
+    /* スマホのバウンススクロールによる背景ズレを防止 */
+    overscroll-behavior: none;
 }
 
 /* スクリーンリーダー専用テキスト（視覚的に非表示） */
@@ -78,7 +81,9 @@ body {
     z-index: 9999;
     opacity: 1;
     transition: opacity 0.8s ease;
-    pointer-events: none;
+    /* ローディング中はタッチ・スクロール操作を全てブロック */
+    pointer-events: all;
+    touch-action: none;
 }
 
 .loading-screen.hidden {
@@ -603,6 +608,15 @@ main {
     letter-spacing: 0.05em;
 }
 
+/* 開催情報の補足注記（小さめ・斜体） */
+.poster-schedule-note {
+    font-size: 0.85em;
+    color: var(--cedar);
+    font-style: italic;
+    margin-top: -0.4rem;
+    margin-bottom: var(--spacing-sm);
+}
+
 /* スマホは1カラムに */
 @media (max-width: 768px) {
     .event-posters {
@@ -899,15 +913,28 @@ main {
     z-index: 0;
 }
 
+/* デフォルト（大: 100%） */
 .detail-image {
     width: 100%;
     height: 100%;
     object-fit: contain;
     object-position: 60% bottom;
     display: block;
+    /* 元の位置（右寄り下端）を起点にスケールする */
+    transform-origin: 60% bottom;
 }
 
-/* 吹き出し風カード: キャラ画像のすぐ左に配置（キャラ画像より前面に） */
+/* 中: 元の位置を起点に80%縮小 */
+.cast-detail-visual.size-medium .detail-image {
+    transform: scale(0.8);
+}
+
+/* 小: 元の位置を起点に60%縮小 */
+.cast-detail-visual.size-small .detail-image {
+    transform: scale(0.6);
+}
+
+/* キャスト詳細情報エリア: 背景・枠なし、背景画像が透けて見える */
 .cast-detail-info {
     position: absolute;
     top: 50%;
@@ -916,39 +943,20 @@ main {
     z-index: 1;
     animation: slideInLeftCenter 0.4s ease forwards;
     max-width: 320px;
-    background: rgba(10, 6, 4, 0.78);
-    border: 2px solid rgba(212, 175, 55, 0.6);
-    border-radius: 16px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
     padding: var(--spacing-md) var(--spacing-md);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-    /* 吹き出しの尻尾（右向き） */
+    box-shadow: none;
 }
 
-/* 吹き出し尻尾（右向き） */
-.cast-detail-info::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    right: -14px;
-    transform: translateY(-50%);
-    border-width: 10px 0 10px 14px;
-    border-style: solid;
-    border-color: transparent transparent transparent rgba(212, 175, 55, 0.6);
-}
-
+/* 吹き出し尻尾は不要なので非表示 */
+.cast-detail-info::after,
 .cast-detail-info::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    right: -11px;
-    transform: translateY(-50%);
-    border-width: 8px 0 8px 12px;
-    border-style: solid;
-    border-color: transparent transparent transparent rgba(10, 6, 4, 0.78);
-    z-index: 1;
+    display: none;
 }
 
-/* 名前（大きめ） */
+/* 名前（大きめ）・名前と説明の間の線のみ残す */
 .detail-name {
     font-family: var(--font-display);
     font-size: clamp(1.2rem, 1.8vw, 1.6rem);
@@ -956,18 +964,27 @@ main {
     color: var(--paper-white);
     margin-bottom: var(--spacing-xs);
     padding-bottom: var(--spacing-xs);
-    border-bottom: 1px solid rgba(212, 175, 55, 0.5);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.7);
     letter-spacing: 0.08em;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
+    text-shadow:
+        -1px -1px 3px rgba(0, 0, 0, 0.9),
+        1px -1px 3px rgba(0, 0, 0, 0.9),
+        -1px 1px 3px rgba(0, 0, 0, 0.9),
+        1px 1px 3px rgba(0, 0, 0, 0.9);
 }
 
 /* 説明文（2〜3行） */
 .detail-description {
     font-size: 0.9rem;
     line-height: 1.7;
-    color: rgba(245, 243, 237, 0.85);
+    color: rgba(245, 243, 237, 0.95);
     white-space: pre-line;
     margin-bottom: var(--spacing-sm);
+    text-shadow:
+        -1px -1px 3px rgba(0, 0, 0, 0.9),
+        1px -1px 3px rgba(0, 0, 0, 0.9),
+        -1px 1px 3px rgba(0, 0, 0, 0.9),
+        1px 1px 3px rgba(0, 0, 0, 0.9);
 }
 
 /* 閉じるボタン */
@@ -997,6 +1014,103 @@ main {
     outline-offset: 2px;
 }
 
+/* ===== サイズ確認ボタン＆パネル ===== */
+
+/* 右下に固定表示される📐ボタン */
+.size-check-btn {
+    position: absolute;
+    bottom: var(--spacing-md);
+    right: var(--spacing-md);
+    z-index: 2;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    background: rgba(10, 6, 4, 0.6);
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s;
+}
+
+.size-check-btn:hover {
+    background: rgba(212, 175, 55, 0.2);
+}
+
+/* サイズ比較パネル */
+.size-panel {
+    position: absolute;
+    bottom: calc(var(--spacing-md) + 44px);
+    right: var(--spacing-md);
+    z-index: 2;
+    background: rgba(10, 6, 4, 0.82);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    min-width: 140px;
+}
+
+.size-panel[hidden] { display: none; }
+
+.size-panel-title {
+    font-size: 0.72rem;
+    color: rgba(212, 175, 55, 0.7);
+    text-align: center;
+    margin-bottom: 0.6rem;
+    letter-spacing: 0.05em;
+}
+
+.size-panel-grid {
+    display: flex;
+    gap: 0.8rem;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+/* 各サイズの棒グラフ風プレビュー */
+.size-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+    padding: 0.3rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.size-option:hover {
+    border-color: rgba(212, 175, 55, 0.5);
+    background: rgba(212, 175, 55, 0.08);
+}
+
+.size-option.active {
+    border-color: var(--gold-accent);
+    background: rgba(212, 175, 55, 0.12);
+}
+
+.size-bar-wrap {
+    width: 24px;
+    height: 60px;
+    display: flex;
+    align-items: flex-end;
+}
+
+.size-bar {
+    width: 100%;
+    background: linear-gradient(to top, var(--gold-accent), rgba(212, 175, 55, 0.4));
+    border-radius: 3px 3px 0 0;
+}
+
+.size-option span {
+    font-size: 0.72rem;
+    color: var(--paper-white);
+}
+
 /* スマホ: 画像を上・吹き出しを下中央に */
 @media (max-width: 768px) {
     .cast-detail {
@@ -1009,7 +1123,7 @@ main {
         object-position: center top;
     }
 
-    /* top/right をリセットして下部中央に固定 */
+    /* top/right をリセットして下部中央に固定・スマホでは背景透明化して背景画像が透けるようにする */
     .cast-detail-info {
         top: auto;
         right: auto;
@@ -1019,6 +1133,27 @@ main {
         width: calc(100% - var(--spacing-md) * 2);
         max-width: 480px;
         animation: slideInBottom 0.4s ease forwards;
+        /* 背景・枠線・影を透明化 */
+        background: transparent;
+        border: none;
+        box-shadow: none;
+    }
+
+    /* スマホでは名前・説明文に文字影をつけて読みやすくする */
+    .cast-detail-info .detail-name,
+    .cast-detail-info .detail-description {
+        text-shadow:
+            -1px -1px 3px rgba(0, 0, 0, 0.9),
+            1px -1px 3px rgba(0, 0, 0, 0.9),
+            -1px 1px 3px rgba(0, 0, 0, 0.9),
+            1px 1px 3px rgba(0, 0, 0, 0.9);
+    }
+
+    /* 名前下の区切り線は残す */
+    .cast-detail-info .detail-name {
+        border-bottom: 1px solid rgba(212, 175, 55, 0.7);
+        padding-bottom: var(--spacing-xs);
+        margin-bottom: var(--spacing-xs);
     }
 
     /* スマホでは尻尾を非表示 */

@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>キャスト画像変換ツール</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: sans-serif;
+            background: #1a1a1a;
+            color: #f0e8d8;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.4rem;
+            color: #d4af37;
+            margin-bottom: 0.3rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 0.82rem;
+            color: #888;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        /* ドロップゾーン */
+        .drop-zone {
+            border: 2px dashed #d4af37;
+            border-radius: 12px;
+            padding: 2.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 1.5rem;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragover { background: rgba(212,175,55,0.08); }
+
+        .drop-zone p { color: #aaa; font-size: 0.95rem; }
+        .drop-zone span { color: #d4af37; font-weight: bold; }
+
+        #fileInput { display: none; }
+
+        /* 設定パネル */
+        .settings {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 1.2rem 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .setting-block {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .setting-block h3 {
+            font-size: 0.8rem;
+            color: #d4af37;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.8rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 0.4rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .control-group label {
+            font-size: 0.8rem;
+            color: #aaa;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .control-group label span { color: #d4af37; font-weight: bold; }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: #d4af37;
+            cursor: pointer;
+        }
+
+        /* ボタン */
+        .btn-row {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn {
+            padding: 0.55rem 1.2rem;
+            border-radius: 6px;
+            border: 1px solid #d4af37;
+            background: rgba(212,175,55,0.12);
+            color: #d4af37;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+
+        .btn:hover { background: rgba(212,175,55,0.28); }
+
+        .btn-primary {
+            background: #d4af37;
+            color: #1a1a1a;
+            font-weight: bold;
+            border: none;
+        }
+
+        .btn-primary:hover { background: #e8c84a; }
+
+        .btn-ghost {
+            border-color: #555;
+            color: #888;
+            background: transparent;
+        }
+
+        .btn-ghost:hover { background: rgba(255,255,255,0.05); }
+
+        /* バッチバー */
+        .batch-bar {
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(212,175,55,0.08);
+            border: 1px solid rgba(212,175,55,0.25);
+            border-radius: 8px;
+            padding: 0.8rem 1.2rem;
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+        }
+
+        .batch-bar.visible { display: flex; }
+        .batch-bar p { font-size: 0.9rem; color: #ccc; }
+
+        .batch-btn-group { display: flex; gap: 0.6rem; }
+
+        /* グリッド */
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .image-card {
+            background: #242424;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        /* 3列プレビュー: 元・FHD・木札 */
+        .preview-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .preview-cell {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-cell::after {
+            content: attr(data-label);
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.6rem;
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 2px 5px;
+            border-radius: 3px;
+            white-space: nowrap;
+        }
+
+        .preview-cell img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .card-footer {
+            padding: 0.6rem 0.8rem;
+        }
+
+        .card-filename {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 0.5rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .card-info {
+            font-size: 0.7rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-dl-row {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .btn-dl {
+            flex: 1;
+            padding: 0.35rem 0.5rem;
+            border-radius: 5px;
+            border: 1px solid;
+            cursor: pointer;
+            font-size: 0.72rem;
+            text-align: center;
+            transition: background 0.2s;
+        }
+
+        .btn-dl-orig {
+            border-color: #5b9bd5;
+            color: #5b9bd5;
+            background: transparent;
+        }
+
+        .btn-dl-orig:hover { background: rgba(91,155,213,0.15); }
+
+        .btn-dl-burn {
+            border-color: #d4af37;
+            color: #d4af37;
+            background: transparent;
+        }
+
+        .btn-dl-burn:hover { background: rgba(212,175,55,0.15); }
+
+        .btn-dl-both {
+            border-color: #8b7355;
+            color: #c4a870;
+            background: transparent;
+        }
+
+        .btn-dl-both:hover { background: rgba(139,115,85,0.2); }
+
+        canvas { display: none; }
+    </style>
+</head>
+<body>
+
+<h1>🔥 キャスト画像変換ツール</h1>
+<p class="subtitle">
+    元画像 → <span style="color:#5b9bd5">FHD圧縮（長辺1920px）</span> + <span style="color:#d4af37">木札用（焼き木フィルター+リサイズ）</span><br>
+    ドロップするだけで両方まとめて出力します
+</p>
+
+<!-- ドロップゾーン -->
+<div class="drop-zone" id="dropZone">
+    <p>画像をここにドラッグ＆ドロップ</p>
+    <p style="margin-top:0.5rem"><span>クリックして選択</span>（複数選択可）</p>
+    <input type="file" id="fileInput" multiple accept="image/*">
+</div>
+
+<!-- 設定 -->
+<div class="settings">
+    <!-- FHD設定 -->
+    <div class="setting-block">
+        <h3>📁 original（FHD圧縮）</h3>
+        <div class="control-group">
+            <label>最大サイズ（長辺 px） <span id="valOrigSize">1920</span></label>
+            <input type="range" id="sldOrigSize" min="480" max="3840" step="80" value="1920">
+        </div>
+    </div>
+
+    <!-- 木札設定 -->
+    <div class="setting-block">
+        <h3>🔥 木札用（焼き木フィルター）</h3>
+        <div class="control-group">
+            <label>最大サイズ（長辺 px） <span id="valBurnSize">600</span></label>
+            <input type="range" id="sldBurnSize" min="100" max="1200" step="50" value="600">
+        </div>
+        <div class="control-group">
+            <label>グレースケール <span id="valGrayscale">100%</span></label>
+            <input type="range" id="sldGrayscale" min="0" max="100" value="100">
+        </div>
+        <div class="control-group">
+            <label>セピア <span id="valSepia">100%</span></label>
+            <input type="range" id="sldSepia" min="0" max="100" value="100">
+        </div>
+        <div class="control-group">
+            <label>明るさ <span id="valBrightness">70%</span></label>
+            <input type="range" id="sldBrightness" min="10" max="150" value="70">
+        </div>
+        <div class="control-group">
+            <label>コントラスト <span id="valContrast">200%</span></label>
+            <input type="range" id="sldContrast" min="50" max="300" value="200">
+        </div>
+    </div>
+</div>
+
+<!-- ボタン -->
+<div class="btn-row">
+    <button class="btn" id="btnReapply">🔄 フィルター再適用</button>
+    <button class="btn btn-ghost" id="btnReset">リセット</button>
+</div>
+
+<!-- バッチバー -->
+<div class="batch-bar" id="batchBar">
+    <p id="batchCount"></p>
+    <div class="batch-btn-group">
+        <button class="btn" id="btnDlAllOrig" style="border-color:#5b9bd5;color:#5b9bd5">📦 original全部</button>
+        <button class="btn" id="btnDlAllBurn">📦 木札用全部</button>
+        <button class="btn btn-primary" id="btnDlAll">📦 全部まとめて</button>
+    </div>
+</div>
+
+<!-- 画像グリッド -->
+<div class="image-grid" id="imageGrid"></div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+    const dropZone  = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const imageGrid = document.getElementById('imageGrid');
+    const batchBar  = document.getElementById('batchBar');
+    const batchCount = document.getElementById('batchCount');
+    const canvas    = document.getElementById('canvas');
+    const ctx       = canvas.getContext('2d');
+
+    /* スライダー同期 */
+    const sliderDefs = [
+        { id: 'sldOrigSize',   valId: 'valOrigSize',   suffix: '' },
+        { id: 'sldBurnSize',   valId: 'valBurnSize',   suffix: '' },
+        { id: 'sldGrayscale',  valId: 'valGrayscale',  suffix: '%' },
+        { id: 'sldSepia',      valId: 'valSepia',       suffix: '%' },
+        { id: 'sldBrightness', valId: 'valBrightness',  suffix: '%' },
+        { id: 'sldContrast',   valId: 'valContrast',    suffix: '%' },
+    ];
+    sliderDefs.forEach(({ id, valId, suffix }) => {
+        document.getElementById(id).addEventListener('input', function () {
+            document.getElementById(valId).textContent = this.value + suffix;
+        });
+    });
+
+    /* フィルター文字列 */
+    function buildBurnFilter() {
+        const g = document.getElementById('sldGrayscale').value;
+        const s = document.getElementById('sldSepia').value;
+        const b = document.getElementById('sldBrightness').value;
+        const c = document.getElementById('sldContrast').value;
+        return `grayscale(${g}%) sepia(${s}%) brightness(${b / 100}) contrast(${c / 100})`;
+    }
+
+    /* Canvasでリサイズ（フィルターなし） */
+    function resizeImage(img, maxPx) {
+        const scale = Math.min(1, maxPx / Math.max(img.naturalWidth, img.naturalHeight));
+        canvas.width  = Math.round(img.naturalWidth  * scale);
+        canvas.height = Math.round(img.naturalHeight * scale);
+        ctx.filter = 'none';
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        return canvas.toDataURL('image/png');
+    }
+
+    /* Canvasで焼き木フィルター+リサイズ */
+    function burnImage(img, maxPx) {
+        const scale = Math.min(1, maxPx / Math.max(img.naturalWidth, img.naturalHeight));
+        canvas.width  = Math.round(img.naturalWidth  * scale);
+        canvas.height = Math.round(img.naturalHeight * scale);
+        ctx.filter = buildBurnFilter();
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        ctx.filter = 'none';
+        return canvas.toDataURL('image/png');
+    }
+
+    /* 変換済みデータを保持（一括DL用） */
+    const resultMap = new Map();
+
+    function updateBatchBar() {
+        const count = resultMap.size;
+        batchBar.classList.toggle('visible', count > 0);
+        batchCount.textContent = `${count}枚処理済み`;
+    }
+
+    /* カードを作成してグリッドへ追加 */
+    function addCard(file, originalSrc) {
+        const img = new Image();
+        img.src = originalSrc;
+        img.onload = () => {
+            const origMaxPx = parseInt(document.getElementById('sldOrigSize').value);
+            const burnMaxPx = parseInt(document.getElementById('sldBurnSize').value);
+
+            const origW = img.naturalWidth;
+            const origH = img.naturalHeight;
+
+            const origSrc = resizeImage(img, origMaxPx);
+            const burnSrc = burnImage(img, burnMaxPx);
+
+            /* サイズ表示用 */
+            const origScale = Math.min(1, origMaxPx / Math.max(origW, origH));
+            const burnScale = Math.min(1, burnMaxPx / Math.max(origW, origH));
+            const origDim = `${Math.round(origW*origScale)}×${Math.round(origH*origScale)}px`;
+            const burnDim = `${Math.round(origW*burnScale)}×${Math.round(origH*burnScale)}px`;
+
+            const baseName = file.name.replace(/\.[^.]+$/, '');
+            resultMap.set(file.name, { origSrc, burnSrc, baseName });
+            updateBatchBar();
+
+            /* カードDOM */
+            const card = document.createElement('div');
+            card.className = 'image-card';
+            card.dataset.filename = file.name;
+
+            /* 3列プレビュー */
+            const preview = document.createElement('div');
+            preview.className = 'preview-row';
+
+            [
+                { src: originalSrc, label: '元画像' },
+                { src: origSrc,     label: 'original' },
+                { src: burnSrc,     label: '木札用' },
+            ].forEach(({ src, label }) => {
+                const cell = document.createElement('div');
+                cell.className = 'preview-cell';
+                cell.setAttribute('data-label', label);
+                const i = document.createElement('img');
+                i.src = src;
+                cell.appendChild(i);
+                preview.appendChild(cell);
+            });
+
+            /* フッター */
+            const footer = document.createElement('div');
+            footer.className = 'card-footer';
+
+            const fname = document.createElement('div');
+            fname.className = 'card-filename';
+            fname.textContent = file.name;
+            fname.title = file.name;
+
+            const info = document.createElement('div');
+            info.className = 'card-info';
+            info.textContent = `元: ${origW}×${origH}px → original: ${origDim} / 木札: ${burnDim}`;
+
+            const dlRow = document.createElement('div');
+            dlRow.className = 'card-dl-row';
+
+            const dlOrig = document.createElement('button');
+            dlOrig.className = 'btn-dl btn-dl-orig';
+            dlOrig.textContent = 'original';
+            dlOrig.addEventListener('click', () => download(origSrc, `${baseName}_original.png`));
+
+            const dlBurn = document.createElement('button');
+            dlBurn.className = 'btn-dl btn-dl-burn';
+            dlBurn.textContent = '木札用';
+            dlBurn.addEventListener('click', () => download(burnSrc, `${baseName}.png`));
+
+            const dlBoth = document.createElement('button');
+            dlBoth.className = 'btn-dl btn-dl-both';
+            dlBoth.textContent = '両方';
+            dlBoth.addEventListener('click', () => {
+                download(origSrc, `${baseName}_original.png`);
+                setTimeout(() => download(burnSrc, `${baseName}.png`), 200);
+            });
+
+            dlRow.appendChild(dlOrig);
+            dlRow.appendChild(dlBurn);
+            dlRow.appendChild(dlBoth);
+
+            footer.appendChild(fname);
+            footer.appendChild(info);
+            footer.appendChild(dlRow);
+
+            card.appendChild(preview);
+            card.appendChild(footer);
+
+            /* 既存カードがあれば差し替え、なければ追加 */
+            const existing = imageGrid.querySelector(`[data-filename="${file.name}"]`);
+            if (existing) existing.replaceWith(card);
+            else imageGrid.appendChild(card);
+        };
+    }
+
+    /* ダウンロード */
+    function download(src, filename) {
+        const a = document.createElement('a');
+        a.href = src;
+        a.download = filename;
+        a.click();
+    }
+
+    /* 一括DL */
+    document.getElementById('btnDlAllOrig').addEventListener('click', () => {
+        let i = 0;
+        resultMap.forEach(({ origSrc, baseName }) => {
+            setTimeout(() => download(origSrc, `${baseName}_original.png`), i * 200);
+            i++;
+        });
+    });
+
+    document.getElementById('btnDlAllBurn').addEventListener('click', () => {
+        let i = 0;
+        resultMap.forEach(({ burnSrc, baseName }) => {
+            setTimeout(() => download(burnSrc, `${baseName}.png`), i * 200);
+            i++;
+        });
+    });
+
+    document.getElementById('btnDlAll').addEventListener('click', () => {
+        let i = 0;
+        resultMap.forEach(({ origSrc, burnSrc, baseName }) => {
+            setTimeout(() => download(origSrc, `${baseName}_original.png`), i * 200);
+            setTimeout(() => download(burnSrc, `${baseName}.png`), i * 200 + 100);
+            i++;
+        });
+    });
+
+    /* フィルター再適用 */
+    document.getElementById('btnReapply').addEventListener('click', () => {
+        resultMap.clear();
+        imageGrid.querySelectorAll('.image-card').forEach(card => {
+            const origImg = card.querySelector('.preview-cell:first-child img');
+            const fname = card.dataset.filename;
+            const fakeFile = { name: fname };
+            addCard(fakeFile, origImg.src);
+        });
+    });
+
+    /* リセット */
+    document.getElementById('btnReset').addEventListener('click', () => {
+        const defaults = {
+            sldOrigSize: 1920, valOrigSize: '',
+            sldBurnSize: 600,  valBurnSize: '',
+            sldGrayscale: 100, valGrayscale: '%',
+            sldSepia: 100,     valSepia: '%',
+            sldBrightness: 70, valBrightness: '%',
+            sldContrast: 200,  valContrast: '%',
+        };
+        sliderDefs.forEach(({ id, valId, suffix }) => {
+            const def = { sldOrigSize:1920, sldBurnSize:600, sldGrayscale:100, sldSepia:100, sldBrightness:70, sldContrast:200 };
+            document.getElementById(id).value = def[id];
+            document.getElementById(valId).textContent = def[id] + suffix;
+        });
+    });
+
+    /* ファイル処理 */
+    function handleFiles(files) {
+        [...files].forEach(file => {
+            if (!file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = e => addCard(file, e.target.result);
+            reader.readAsDataURL(file);
+        });
+    }
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+    dropZone.addEventListener('dragover', e => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+    });
+</script>
+</body>
+</html>
