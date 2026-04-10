@@ -130,8 +130,8 @@ function crossfadeBackground(targetId) {
    =========================== */
 const sidebarData = {
     about: [
+        { id: 'about-news', label: 'お知らせ' },
         { id: 'about-main', label: 'イベントについて' },
-        // 追加例: { id: 'about-schedule', label: 'スケジュール' },
     ],
     cast: [
         { id: 'cast-main', label: 'キャスト一覧' },
@@ -142,6 +142,57 @@ const sidebarData = {
         // 追加例: { id: 'official-rules', label: 'ルール' },
     ],
 };
+
+/* ===========================
+   お知らせデータ定義
+   新しいお知らせを追加する際はここに追記する
+   =========================== */
+const newsData = [
+    {
+        id: 1,
+        date: '2026.04.10',
+        isNew: true,
+        title: 'メスケモ推進委員会 公式サイトオープン！',
+        body: '公式ウェブサイトをオープンしました。キャスト情報やイベントスケジュールをご確認いただけます。',
+        link: null,
+        linkText: null,
+        isExternal: false,
+    },
+];
+
+/**
+ * お知らせ一覧を描画する
+ * newsData が空の場合は「お知らせはありません」を表示する
+ */
+function renderNewsList() {
+    const newsList = document.getElementById('newsList');
+    if (!newsList) return;
+
+    if (newsData.length === 0) {
+        newsList.innerHTML = '<p class="news-empty">現在お知らせはありません。</p>';
+        return;
+    }
+
+    newsList.innerHTML = newsData.map((item) => {
+        const badgeHtml = item.isNew
+            ? '<span class="news-badge">NEW</span>'
+            : '';
+        const linkHtml = item.link
+            ? `<a href="${item.link}" class="news-link"${item.isExternal ? ' target="_blank" rel="noopener noreferrer"' : ''}>${item.linkText || '詳しくはこちら →'}</a>`
+            : '';
+
+        return `
+        <div class="news-item${item.isNew ? ' is-new' : ''}">
+            <div class="news-item-header">
+                ${badgeHtml}
+                <span class="news-date">${item.date}</span>
+            </div>
+            <h3 class="news-title">${item.title}</h3>
+            <p class="news-body">${item.body}</p>
+            ${linkHtml}
+        </div>`;
+    }).join('');
+}
 
 /* ===========================
    DOM要素の取得
@@ -586,6 +637,42 @@ function activateSubSection(tabId, sectionId) {
 }
 
 /* ===========================
+   隠しページトリガー（ロゴを29回クリックでカードジェネレーターへ）
+   =========================== */
+
+/** ロゴクリック回数カウンター */
+let secretClickCount = 0;
+/** カウントリセット用タイマー */
+let secretClickTimer = null;
+
+/**
+ * ヘッダーバナーへのクリックを監視し、29回達成で隠しページへ遷移する
+ * 3秒以内にクリックが続かなかった場合はカウントをリセットする
+ */
+function setupSecretTrigger() {
+    const headerBanner = document.querySelector('.header-banner');
+    if (!headerBanner) return;
+
+    // クリックしやすいようにカーソルをデフォルトのまま（変えない）
+    headerBanner.addEventListener('click', () => {
+        secretClickCount++;
+
+        // 3秒間クリックがなければリセット
+        clearTimeout(secretClickTimer);
+        secretClickTimer = setTimeout(() => {
+            secretClickCount = 0;
+        }, 3000);
+
+        // 29回達成で隠しページへ
+        if (secretClickCount >= 29) {
+            secretClickCount = 0;
+            clearTimeout(secretClickTimer);
+            window.location.href = 'secret-card.html';
+        }
+    });
+}
+
+/* ===========================
    初期化
    =========================== */
 document.addEventListener('DOMContentLoaded', () => {
@@ -598,5 +685,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 全タブのサイドバーを生成
     Object.keys(sidebarData).forEach(renderSidebar);
     renderCastGrid(castData);
+    renderNewsList();
     startWithLoading();
+
+    // 隠しページトリガーを設定
+    setupSecretTrigger();
 });

@@ -1,0 +1,309 @@
+/* ===== フォント読み込み ===== */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Zen+Maru+Gothic:wght@400;500;700&display=swap');
+
+/* ===== CSS カスタムプロパティ（メインサイトと共通） ===== */
+:root {
+    --ink-black: #1a1a1a;
+    --charcoal: #2d2d2d;
+    --wood-brown: #5c4033;
+    --cedar: #8b6f47;
+    --gold-accent: #d4af37;
+    --paper-white: #f5f3ed;
+    --cream: #ebe6d9;
+    --shadow: rgba(0, 0, 0, 0.3);
+    --shadow-deep: rgba(0, 0, 0, 0.5);
+
+    --font-display: 'Noto Serif JP', serif;
+    --font-body: 'Zen Maru Gothic', sans-serif;
+
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 1rem;
+    --spacing-md: 1.5rem;
+    --spacing-lg: 2rem;
+    --spacing-xl: 3rem;
+}
+
+/* ===== リセット & ベース ===== */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    color: var(--paper-white);
+    background: var(--charcoal);
+    min-height: 100vh;
+    padding: var(--spacing-lg) var(--spacing-sm);
+}
+
+/* ===== コンテナ ===== */
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* ===== ページヘッダー ===== */
+.page-header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 2px solid var(--gold-accent);
+}
+
+.title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    color: var(--gold-accent);
+    margin-bottom: var(--spacing-xs);
+}
+
+.subtitle {
+    font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+    color: var(--cream);
+    margin-bottom: var(--spacing-sm);
+}
+
+.congratulations {
+    display: inline-block;
+    background: rgba(212, 175, 55, 0.15);
+    border: 1px solid var(--gold-accent);
+    color: var(--gold-accent);
+    font-size: clamp(0.8rem, 2vw, 0.95rem);
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+}
+
+/* ===== ジェネレーターレイアウト ===== */
+.generator-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+    align-items: start;
+}
+
+@media (max-width: 768px) {
+    .generator-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===== フォームセクション ===== */
+.form-section {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 8px;
+    padding: var(--spacing-lg);
+}
+
+.form-section h2,
+.preview-section h2 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    color: var(--gold-accent);
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-xs);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+/* ===== フォームグループ ===== */
+.form-group {
+    margin-bottom: var(--spacing-md);
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--cream);
+    margin-bottom: var(--spacing-xs);
+    font-weight: 500;
+}
+
+.form-group input[type="text"],
+.form-group input[type="file"],
+.form-group select {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 4px;
+    color: var(--paper-white);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+
+.form-group input[type="text"]:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--gold-accent);
+}
+
+.form-group input[readonly] {
+    opacity: 0.7;
+    cursor: default;
+}
+
+.form-group select option {
+    background: var(--charcoal);
+    color: var(--paper-white);
+}
+
+.help-text {
+    font-size: 0.75rem;
+    color: rgba(245, 243, 237, 0.5);
+    margin-top: 0.3rem;
+}
+
+/* ===== 写真プレビューエリア ===== */
+.photo-preview-container {
+    margin-bottom: var(--spacing-md);
+}
+
+.photo-preview-container label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--cream);
+    margin-bottom: var(--spacing-xs);
+}
+
+.photo-preview {
+    border: 2px solid rgba(212, 175, 55, 0.4);
+    border-radius: 4px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.3);
+    cursor: grab;
+    display: inline-block;
+}
+
+.photo-preview:active {
+    cursor: grabbing;
+}
+
+.photo-preview canvas {
+    display: block;
+    max-width: 100%;
+}
+
+.photo-controls {
+    margin-top: var(--spacing-sm);
+}
+
+.photo-controls label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--cream);
+    margin-bottom: 0.3rem;
+}
+
+.photo-controls input[type="range"] {
+    width: 100%;
+    margin-bottom: var(--spacing-sm);
+    accent-color: var(--gold-accent);
+}
+
+/* ===== ボタン共通 ===== */
+button {
+    cursor: pointer;
+    font-family: var(--font-body);
+    border: none;
+    border-radius: 4px;
+    transition: opacity 0.2s, transform 0.1s;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* メインボタン */
+.btn-primary {
+    width: 100%;
+    padding: 0.8rem;
+    background: var(--gold-accent);
+    color: var(--ink-black);
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-sm);
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+}
+
+/* セカンダリボタン */
+.btn-secondary {
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--paper-white);
+    font-size: 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: var(--spacing-xs);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* ダウンロードボタン */
+.btn-download {
+    width: 100%;
+    padding: 0.8rem;
+    background: linear-gradient(135deg, var(--wood-brown), var(--cedar));
+    color: var(--gold-accent);
+    font-size: 1rem;
+    font-weight: 700;
+    border: 2px solid var(--gold-accent);
+    margin-bottom: var(--spacing-sm);
+}
+
+.btn-download:hover {
+    opacity: 0.9;
+}
+
+/* 戻るボタン */
+.btn-back {
+    width: 100%;
+    padding: 0.6rem;
+    background: transparent;
+    color: rgba(245, 243, 237, 0.5);
+    font-size: 0.85rem;
+    border: 1px solid rgba(245, 243, 237, 0.2);
+}
+
+.btn-back:hover {
+    color: var(--paper-white);
+    border-color: rgba(245, 243, 237, 0.4);
+}
+
+/* ===== プレビューセクション ===== */
+.preview-section {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 8px;
+    padding: var(--spacing-lg);
+    position: sticky;
+    top: var(--spacing-lg);
+}
+
+.card-preview-container {
+    border: 2px solid rgba(212, 175, 55, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+    background: #3a2a1e;
+    margin-bottom: var(--spacing-md);
+}
+
+.card-preview-container canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* ===== ダウンロードエリア ===== */
+.download-section {
+    margin-top: var(--spacing-sm);
+}
