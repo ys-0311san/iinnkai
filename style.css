@@ -1298,7 +1298,38 @@ main {
     }
 
     .cast-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-sm);
+    }
+
+    /* スマホ2列に合わせてカードをコンパクト化 */
+    .cast-card {
+        padding: var(--spacing-xs);
+        border-width: 2px;
+        /* タップ時のホバーエフェクトを軽減 */
+        transition: none;
+    }
+
+    .cast-card:hover {
+        transform: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .cast-name {
+        font-size: 0.75rem;
+        padding: 0.2rem var(--spacing-xs);
+        margin-bottom: 0.2rem;
+    }
+
+    .cast-role {
+        font-size: 0.65rem;
+        padding: 0.15rem 0.4rem;
+        top: 4px;
+        right: 4px;
+    }
+
+    .coming-soon-label {
+        font-size: 0.65rem;
     }
 
     .content-card {
@@ -1328,5 +1359,13 @@ main {
 
     .content-card {
         padding: var(--spacing-md);
+    }
+
+    .cast-grid {
+        gap: 0.4rem;
+    }
+
+    .cast-name {
+        font-size: 0.65rem;
     }
 }
