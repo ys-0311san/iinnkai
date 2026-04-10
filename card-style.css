@@ -307,6 +307,34 @@ button:active {
     height: auto;
 }
 
+/* ===== Xシェアボタン ===== */
+.btn-share-x {
+    display: none; /* JS側で inline-flex に切り替え */
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: var(--spacing-sm);
+    padding: 0.55rem 1rem;
+    background: #000;
+    color: #fff;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background 0.2s, opacity 0.2s;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-share-x:hover {
+    background: #1a1a1a;
+}
+
+.btn-share-x:active {
+    opacity: 0.85;
+}
+
 /* ===== ダウンロードエリア ===== */
 .download-section {
     margin-top: var(--spacing-sm);

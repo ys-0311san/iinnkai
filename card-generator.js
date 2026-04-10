@@ -106,9 +106,11 @@ function checkVipUnlock() {
     opt.textContent = '★ VIP';
     select.appendChild(opt);
 
-    // ヒントテキストを表示して自動選択
+    // ヒントテキストとXシェアボタンを表示して自動選択
     const hint = document.getElementById('vipHint');
     if (hint) hint.style.display = 'block';
+    const shareBtn = document.getElementById('vipShareBtn');
+    if (shareBtn) shareBtn.style.display = 'inline-flex';
     select.value = 'vip';
     drawPreviewCard();
 }
