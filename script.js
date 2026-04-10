@@ -341,9 +341,12 @@ function openCastDetail(cast) {
     if (cast.size === 'medium') castDetailVisual.classList.add('size-medium');
     if (cast.size === 'small')  castDetailVisual.classList.add('size-small');
 
-    // サイズパネルを閉じてアクティブ状態をリセット
+    // サイズパネルを閉じて現在のサイズをアクティブ表示
     sizePanel.hidden = true;
-    sizePanel.querySelectorAll('.size-option').forEach((o) => o.classList.remove('active'));
+    const currentSize = cast.size || 'large';
+    sizePanel.querySelectorAll('.size-option').forEach((o) => {
+        o.classList.toggle('active', o.dataset.size === currentSize);
+    });
 
     // 木札グリッドを非表示 → 詳細ビューを表示
     castCard.hidden = true;
