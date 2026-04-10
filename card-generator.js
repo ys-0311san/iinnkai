@@ -67,13 +67,13 @@ const THEMES = {
     },
     vip: {
         label:   'VIP',
-        // VIPは多色グラデーションアクセント。描画時に特別処理
-        accent:  '#e8d5ff',
-        bgTop:   '#0a0a14',
-        bgBot:   '#040408',
-        leftBg:  '#080810',
-        stripBg: '#04040c',
-        badgeBg: 'rgba(232, 213, 255, 0.1)',
+        // 黒×金基調。描画時にメタリックゴールドグラデーションを使用
+        accent:  '#d4af37',
+        bgTop:   '#0e0b04',
+        bgBot:   '#000000',
+        leftBg:  '#0a0800',
+        stripBg: '#060500',
+        badgeBg: 'rgba(212, 175, 55, 0.1)',
         vip:     true,
     },
 };
@@ -86,48 +86,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // フォントの読み込みを待ってから初回描画
     document.fonts.ready.then(() => drawPreviewCard());
     setupEventListeners();
-    setupVipUnlock();
+    // localStorageのVIPフラグを確認して解放済みなら自動アンロック
+    checkVipUnlock();
 });
 
 /* ===========================
-   VIP解放ロジック
-   「おめでとうございます！」テキストを5回クリックで
-   ドロップダウンにVIPオプションを追加する
+   VIP解放チェック（localStorageベース）
+   メインサイトで最後のComing Soonをクリックするとフラグが立つ
    =========================== */
-function setupVipUnlock() {
-    const trigger = document.getElementById('secretTrigger');
-    if (!trigger) return;
+function checkVipUnlock() {
+    if (localStorage.getItem('mesukemo_vip_unlocked') !== '1') return;
+    if (document.getElementById('vipOption')) return;
 
-    let count = 0;
-    let timer = null;
+    // VIPオプションをドロップダウンに追加
+    const select = document.getElementById('cardType');
+    const opt    = document.createElement('option');
+    opt.value       = 'vip';
+    opt.id          = 'vipOption';
+    opt.textContent = '★ VIP';
+    select.appendChild(opt);
 
-    trigger.addEventListener('click', () => {
-        // すでに解放済みなら何もしない
-        if (document.getElementById('vipOption')) return;
-
-        count++;
-        clearTimeout(timer);
-        timer = setTimeout(() => { count = 0; }, 3000);
-
-        if (count >= 5) {
-            count = 0;
-            clearTimeout(timer);
-
-            // VIPオプションをドロップダウンに追加
-            const select = document.getElementById('cardType');
-            const opt    = document.createElement('option');
-            opt.value    = 'vip';
-            opt.id       = 'vipOption';
-            opt.textContent = '✨ VIP';
-            select.appendChild(opt);
-
-            // ヒントテキストを表示してから自動選択
-            const hint = document.getElementById('vipHint');
-            if (hint) hint.style.display = 'block';
-            select.value = 'vip';
-            drawPreviewCard();
-        }
-    });
+    // ヒントテキストを表示して自動選択
+    const hint = document.getElementById('vipHint');
+    if (hint) hint.style.display = 'block';
+    select.value = 'vip';
+    drawPreviewCard();
 }
 
 /* ===========================
@@ -385,7 +368,7 @@ function drawPreviewCard() {
     // --- 左パネル右側の縦線（アクセント） ---
     {
         const lineGrad = theme.vip
-            ? makeRainbowGrad(ctx, LEFT_W, 0, LEFT_W, CARD_H, 'vertical')
+            ? makeGoldGrad(ctx, LEFT_W, 0, LEFT_W, CARD_H)
             : (() => {
                 const g = ctx.createLinearGradient(LEFT_W, 0, LEFT_W, CARD_H);
                 g.addColorStop(0,   'transparent');
@@ -406,12 +389,9 @@ function drawPreviewCard() {
     drawPhotoClipped(ctx, PHOTO_X, PHOTO_Y, theme.leftBg);
 
     // --- 写真コーナーブラケット装飾 ---
-    if (theme.vip) {
-        // VIPは各コーナーを虹グラデーションで描く
-        drawPhotoCornersVip(ctx, PHOTO_X, PHOTO_Y, PHOTO_W, PHOTO_H);
-    } else {
-        drawPhotoCorners(ctx, PHOTO_X, PHOTO_Y, PHOTO_W, PHOTO_H, theme.accent);
-    }
+    // VIPはゴールドグラデーション、それ以外はアクセントカラー単色
+    drawPhotoCorners(ctx, PHOTO_X, PHOTO_Y, PHOTO_W, PHOTO_H,
+        theme.vip ? makeGoldGrad(ctx, PHOTO_X, PHOTO_Y, PHOTO_X + PHOTO_W, PHOTO_Y + PHOTO_H) : theme.accent);
 
     // --- ボトムストリップ ---
     ctx.fillStyle = theme.stripBg;
@@ -420,7 +400,7 @@ function drawPreviewCard() {
     // ストリップ上端線
     {
         const stripLine = theme.vip
-            ? makeRainbowGrad(ctx, 0, STRIP_Y, CARD_W, STRIP_Y, 'horizontal')
+            ? makeGoldGrad(ctx, 0, STRIP_Y, CARD_W, STRIP_Y)
             : (() => {
                 const g = ctx.createLinearGradient(0, STRIP_Y, CARD_W, STRIP_Y);
                 g.addColorStop(0,   'transparent');
@@ -493,9 +473,8 @@ function drawCardInfo(ctx, theme, cardType) {
     // 組織名
     ctx.save();
     if (theme.vip) {
-        // VIPは組織名を虹グラデーションで塗る
-        const orgGrad = makeRainbowGrad(ctx, x, 0, x + INFO_W, 0, 'horizontal');
-        ctx.fillStyle = orgGrad;
+        // VIPは組織名をメタリックゴールドグラデーションで塗る
+        ctx.fillStyle = makeGoldGrad(ctx, x, 0, x + INFO_W, 0);
     } else {
         ctx.fillStyle = accent;
     }
@@ -589,7 +568,7 @@ function drawSeparator(ctx, x, y, width, color, opacity = 0.6, isVip = false) {
     ctx.save();
     ctx.globalAlpha = opacity;
     if (isVip) {
-        ctx.strokeStyle = makeRainbowGrad(ctx, x, y, x + width, y, 'horizontal');
+        ctx.strokeStyle = makeGoldGrad(ctx, x, y, x + width, y);
     } else {
         const grad = ctx.createLinearGradient(x, y, x + width, y);
         grad.addColorStop(0,   color);
@@ -630,7 +609,7 @@ function drawBadge(ctx, text, rightX, centerY, accent, bgColor, isVip = false) {
     ctx.lineWidth   = 1;
     ctx.globalAlpha = 0.7;
     if (isVip) {
-        ctx.strokeStyle = makeRainbowGrad(ctx, bx, by, bx + bw, by, 'horizontal');
+        ctx.strokeStyle = makeGoldGrad(ctx, bx, by, bx + bw, by);
         ctx.lineWidth   = 1.5;
     } else {
         ctx.strokeStyle = accent;
@@ -641,7 +620,7 @@ function drawBadge(ctx, text, rightX, centerY, accent, bgColor, isVip = false) {
 
     // バッジテキスト
     if (isVip) {
-        ctx.fillStyle = makeRainbowGrad(ctx, bx, by, bx + bw, by + bh, 'horizontal');
+        ctx.fillStyle = makeGoldGrad(ctx, bx, by, bx + bw, by);
     } else {
         ctx.fillStyle = accent;
     }
@@ -651,58 +630,17 @@ function drawBadge(ctx, text, rightX, centerY, accent, bgColor, isVip = false) {
 }
 
 /* ===========================
-   虹グラデーション生成ヘルパー（VIP専用）
-   direction: 'horizontal' | 'vertical'
+   メタリックゴールドグラデーション生成ヘルパー（VIP専用）
+   水平方向に光沢感のある金属的なゴールドを生成する
    =========================== */
-function makeRainbowGrad(ctx, x1, y1, x2, y2, direction) {
-    const g = direction === 'vertical'
-        ? ctx.createLinearGradient(x1, y1, x2, y2)
-        : ctx.createLinearGradient(x1, y1, x2, y1);
-    g.addColorStop(0,    '#ff8888');
-    g.addColorStop(0.17, '#ffcc88');
-    g.addColorStop(0.33, '#ffffaa');
-    g.addColorStop(0.5,  '#aaffcc');
-    g.addColorStop(0.67, '#aaddff');
-    g.addColorStop(0.83, '#ccaaff');
-    g.addColorStop(1,    '#ffaaee');
+function makeGoldGrad(ctx, x1, y1, x2, y2) {
+    const g = ctx.createLinearGradient(x1, y1, x2, y2);
+    g.addColorStop(0,    '#7a5a10');
+    g.addColorStop(0.25, '#d4af37');
+    g.addColorStop(0.5,  '#f5e070');
+    g.addColorStop(0.75, '#d4af37');
+    g.addColorStop(1,    '#7a5a10');
     return g;
-}
-
-/* ===========================
-   VIP用写真コーナーブラケット（各コーナーを虹色で描く）
-   =========================== */
-function drawPhotoCornersVip(ctx, x, y, w, h) {
-    const size = 18;
-    const gap  = 4;
-    ctx.save();
-    ctx.lineWidth = 2.5;
-    ctx.lineCap   = 'square';
-
-    // 左上: 赤→橙
-    const g1 = ctx.createLinearGradient(x-gap, y-gap, x-gap+size, y-gap+size);
-    g1.addColorStop(0, '#ff8888'); g1.addColorStop(1, '#ffcc88');
-    ctx.strokeStyle = g1;
-    ctx.beginPath(); ctx.moveTo(x-gap+size, y-gap); ctx.lineTo(x-gap, y-gap); ctx.lineTo(x-gap, y-gap+size); ctx.stroke();
-
-    // 右上: 黄→緑
-    const g2 = ctx.createLinearGradient(x+w+gap, y-gap, x+w+gap-size, y-gap+size);
-    g2.addColorStop(0, '#ffffaa'); g2.addColorStop(1, '#aaffcc');
-    ctx.strokeStyle = g2;
-    ctx.beginPath(); ctx.moveTo(x+w+gap-size, y-gap); ctx.lineTo(x+w+gap, y-gap); ctx.lineTo(x+w+gap, y-gap+size); ctx.stroke();
-
-    // 左下: 青→紫
-    const g3 = ctx.createLinearGradient(x-gap, y+h+gap, x-gap+size, y+h+gap-size);
-    g3.addColorStop(0, '#aaddff'); g3.addColorStop(1, '#ccaaff');
-    ctx.strokeStyle = g3;
-    ctx.beginPath(); ctx.moveTo(x-gap+size, y+h+gap); ctx.lineTo(x-gap, y+h+gap); ctx.lineTo(x-gap, y+h+gap-size); ctx.stroke();
-
-    // 右下: ピンク→赤
-    const g4 = ctx.createLinearGradient(x+w+gap, y+h+gap, x+w+gap-size, y+h+gap-size);
-    g4.addColorStop(0, '#ffaaee'); g4.addColorStop(1, '#ff8888');
-    ctx.strokeStyle = g4;
-    ctx.beginPath(); ctx.moveTo(x+w+gap-size, y+h+gap); ctx.lineTo(x+w+gap, y+h+gap); ctx.lineTo(x+w+gap, y+h+gap-size); ctx.stroke();
-
-    ctx.restore();
 }
 
 /* ===========================
@@ -719,7 +657,7 @@ function drawCardFooter(ctx, theme) {
     ctx.save();
     ctx.fillStyle   = 'rgba(255,255,255,0.08)';
     ctx.strokeStyle = theme.vip
-        ? makeRainbowGrad(ctx, qrX, qrY, qrX+qrSize, qrY+qrSize, 'horizontal')
+        ? makeGoldGrad(ctx, qrX, qrY, qrX+qrSize, qrY)
         : theme.accent;
     ctx.lineWidth   = 1.5;
     roundRect(ctx, qrX, qrY, qrSize, qrSize, 4);
@@ -747,8 +685,8 @@ function drawCardFooter(ctx, theme) {
     // モットーテキスト（中央）
     ctx.save();
     if (theme.vip) {
-        ctx.fillStyle = makeRainbowGrad(ctx, CARD_W*0.25, cy, CARD_W*0.75, cy, 'horizontal');
-        ctx.globalAlpha = 0.8;
+        ctx.fillStyle   = makeGoldGrad(ctx, CARD_W*0.25, cy, CARD_W*0.75, cy);
+        ctx.globalAlpha = 0.9;
     } else {
         ctx.fillStyle = 'rgba(255,255,255,0.5)';
     }
@@ -760,7 +698,7 @@ function drawCardFooter(ctx, theme) {
     // 右側装飾（ひし形ドット）
     ctx.save();
     ctx.fillStyle   = theme.vip
-        ? makeRainbowGrad(ctx, CARD_W-140, cy, CARD_W-30, cy, 'horizontal')
+        ? makeGoldGrad(ctx, CARD_W-140, cy, CARD_W-30, cy)
         : theme.accent;
     ctx.globalAlpha = 0.5;
     for (let i = 0; i < 5; i++) {

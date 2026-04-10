@@ -883,6 +883,21 @@ main {
     display: none;
 }
 
+/* 最後のComing Soon枠（VIP解放トリガー）
+   パッと見は他と変わらないが、よく見ると金色の枠線がうっすら光る */
+.cast-card.vip-slot {
+    cursor: pointer;
+    border-color: rgba(212, 175, 55, 0.25);
+    transition: border-color 0.4s, box-shadow 0.4s, opacity 0.4s;
+}
+
+.cast-card.vip-slot:hover {
+    transform: translateY(-2px);
+    opacity: 0.85;
+    border-color: rgba(212, 175, 55, 0.7);
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.2);
+}
+
 .coming-soon-label {
     font-family: var(--font-display);
     font-size: 0.75rem;

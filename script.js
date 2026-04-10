@@ -342,8 +342,11 @@ function renderCastGrid(casts) {
         const card = document.createElement('div');
 
         if (cast.comingSoon) {
-            // Coming Soon カード（クリック不可・グレーアウト）
-            card.className = 'cast-card coming-soon';
+            // Coming Soon カード
+            // ★ castData内で最後のComingSoonは隠しVIP解放トリガー
+            const isLastSlot = cast === castData[castData.length - 1];
+
+            card.className = 'cast-card coming-soon' + (isLastSlot ? ' vip-slot' : '');
 
             const img = document.createElement('img');
             img.src = placeholderCard;
@@ -356,6 +359,20 @@ function renderCastGrid(casts) {
 
             card.appendChild(img);
             card.appendChild(label);
+
+            if (isLastSlot) {
+                // 最後の枠だけクリック可能にしてVIPを解放
+                card.setAttribute('role', 'button');
+                card.setAttribute('tabindex', '0');
+                card.setAttribute('aria-label', '???');
+                card.addEventListener('click', unlockVipAndNavigate);
+                card.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        unlockVipAndNavigate();
+                    }
+                });
+            }
         } else {
             // 通常キャストカード（クリック可能）
             card.className = 'cast-card';
@@ -634,6 +651,19 @@ function activateSubSection(tabId, sectionId) {
 
     // サブセクション切替時にスクロールをトップへ
     window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+/* ===========================
+   VIP解放トリガー
+   最後のComing Soonカードをクリックするとフラグを保存して隠しページへ遷移
+   =========================== */
+
+/**
+ * VIPフラグをlocalStorageに保存してカードジェネレーターへ遷移する
+ */
+function unlockVipAndNavigate() {
+    localStorage.setItem('mesukemo_vip_unlocked', '1');
+    window.location.href = 'secret-card.html';
 }
 
 /* ===========================
