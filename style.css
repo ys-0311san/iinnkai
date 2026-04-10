@@ -35,6 +35,14 @@
     box-sizing: border-box;
 }
 
+/* 画像のドラッグ移動を無効化 */
+img {
+    -webkit-user-drag: none;
+    user-drag: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
 body {
     font-family: var(--font-body);
     color: var(--ink-black);
@@ -1040,77 +1048,10 @@ main {
     background: rgba(212, 175, 55, 0.25);
 }
 
-/* サイズ比較パネル */
-.size-panel {
-    position: absolute;
-    bottom: calc(var(--spacing-md) + 54px);
-    right: var(--spacing-md);
-    z-index: 2;
-    background: rgba(10, 6, 4, 0.88);
-    border: 1px solid rgba(212, 175, 55, 0.5);
-    border-radius: 12px;
-    padding: 1rem 1.2rem;
-    min-width: 180px;
-}
-
-.size-panel[hidden] { display: none; }
-
-.size-panel-title {
-    font-size: 0.8rem;
-    color: rgba(212, 175, 55, 0.8);
-    text-align: center;
-    margin-bottom: 0.8rem;
-    letter-spacing: 0.05em;
-}
-
-.size-panel-grid {
-    display: flex;
-    gap: 1rem;
-    align-items: flex-end;
-    justify-content: center;
-}
-
-/* 各サイズの棒グラフ風プレビュー */
-.size-option {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.4rem;
-    cursor: pointer;
-    padding: 0.5rem 0.6rem;
-    border-radius: 8px;
-    border: 1px solid transparent;
-    transition: border-color 0.2s, background 0.2s;
-    min-width: 44px;
-}
-
-.size-option:hover {
-    border-color: rgba(212, 175, 55, 0.5);
-    background: rgba(212, 175, 55, 0.08);
-}
-
-.size-option.active {
+/* ボタンがアクティブ（割り当てサイズ表示中）のスタイル */
+.size-check-btn.active {
+    background: rgba(212, 175, 55, 0.3);
     border-color: var(--gold-accent);
-    background: rgba(212, 175, 55, 0.15);
-}
-
-.size-bar-wrap {
-    width: 28px;
-    height: 72px;
-    display: flex;
-    align-items: flex-end;
-}
-
-.size-bar {
-    width: 100%;
-    background: linear-gradient(to top, var(--gold-accent), rgba(212, 175, 55, 0.35));
-    border-radius: 3px 3px 0 0;
-}
-
-.size-option span {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--paper-white);
 }
 
 /* スマホ: 画像を上・吹き出しを下中央に */
@@ -1166,6 +1107,16 @@ main {
 
     .detail-name {
         font-size: clamp(1.1rem, 4vw, 1.4rem);
+    }
+
+    /* スマホ: サイズ確認ボタンを右上に移動（下部のinfo panelと被らないように） */
+    .size-check-btn {
+        bottom: auto;
+        top: var(--spacing-sm);
+        right: var(--spacing-sm);
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
     }
 }
 

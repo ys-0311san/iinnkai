@@ -23,6 +23,7 @@ const castData = [
         image: 'images/cast/takaniso.png',               // 木札グリッド用（焼き木調）
         detailImage: 'images/cast/takaniso_original.png', // 詳細ビュー用（オリジナル）
         description: 'ここに挨拶文や紹介を入れてください。',
+        size: 'medium',
     },
     {
         id: 2,
@@ -30,6 +31,7 @@ const castData = [
         image: 'images/cast/samaa.png',
         detailImage: 'images/cast/samaa_original.png',
         description: '趣味はアニメ！漫画！\nやれることは全力で！\n今日もご主人様を癒していきます♡',
+        size: 'small',
     },
     {
         id: 3,
@@ -44,9 +46,31 @@ const castData = [
         image: 'images/cast/cute-nukko.png',
         detailImage: 'images/cast/cute-nukko_original.png',
         description: '',
+        size: 'medium',
+    },
+    {
+        id: 5,
+        name: 'ウルフィー',
+        image: 'images/cast/uryfi.png',
+        detailImage: 'images/cast/uryfi_original.png',
+        description: '',
+    },
+    {
+        id: 6,
+        name: 'うどん君',
+        image: 'images/cast/udon_a.png',
+        detailImage: 'images/cast/udon_a_original.png',
+        description: '',
+    },
+    {
+        id: 7,
+        name: '天塚マウル',
+        image: 'images/cast/amatuka-mauru.png',
+        detailImage: 'images/cast/amatuka-mauru_original.png',
+        description: '',
     },
     // 以降は実際のキャストデータに差し替えてください
-    ...Array.from({ length: 56 }, (_, i) => ({
+    ...Array.from({ length: 53 }, (_, i) => ({
         id: i + 2,
         name: 'Coming Soon',
         image: '',
@@ -206,7 +230,7 @@ function closeDrawer() {
     drawerOverlay.classList.remove('open');
     menuToggle.setAttribute('aria-expanded', 'false');
     sideDrawer.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
+    document.body.style.overflowY = 'auto';
 }
 
 menuToggle.addEventListener('click', openDrawer);
@@ -341,12 +365,13 @@ function openCastDetail(cast) {
     if (cast.size === 'medium') castDetailVisual.classList.add('size-medium');
     if (cast.size === 'small')  castDetailVisual.classList.add('size-small');
 
-    // サイズパネルを閉じて現在のサイズをアクティブ表示
-    sizePanel.hidden = true;
-    const currentSize = cast.size || 'large';
-    sizePanel.querySelectorAll('.size-option').forEach((o) => {
-        o.classList.toggle('active', o.dataset.size === currentSize);
-    });
+    // トグル状態をリセットして大（デフォルト）表示に戻す
+    sizeToggled = false;
+    sizeCheckBtn.classList.remove('active');
+
+    // 割り当てサイズを保持・大の子はボタン非表示
+    currentCastSize = cast.size || 'large';
+    sizeCheckBtn.hidden = currentCastSize === 'large';
 
     // 木札グリッドを非表示 → 詳細ビューを表示
     castCard.hidden = true;
@@ -364,7 +389,7 @@ function closeCastDetail() {
     if (castDetail.hidden) return;
     castDetail.hidden = true;
     castCard.hidden = false;
-    document.body.style.overflow = '';
+    document.body.style.overflowY = 'auto';
 
     if (previousFocus) {
         previousFocus.focus();
@@ -375,30 +400,29 @@ function closeCastDetail() {
 detailClose.addEventListener('click', closeCastDetail);
 
 /* ===========================
-   サイズ確認パネル制御
+   サイズ確認ボタン制御
+   割り当てサイズ ↔ 大（デフォルト）をトグルする
    =========================== */
 const sizeCheckBtn = document.getElementById('sizeCheckBtn');
-const sizePanel    = document.getElementById('sizePanel');
 
-/** サイズ確認パネルの開閉 */
+/** 現在表示中のキャストの割り当てサイズを保持 */
+let currentCastSize = 'large';
+/** トグル状態（true=割り当てサイズ表示中、false=大表示中） */
+let sizeToggled = false;
+
 sizeCheckBtn.addEventListener('click', () => {
-    sizePanel.hidden = !sizePanel.hidden;
-});
+    sizeToggled = !sizeToggled;
+    castDetailVisual.classList.remove('size-medium', 'size-small');
 
-/** サイズ選択肢をクリックしてプレビュー適用 */
-sizePanel.querySelectorAll('.size-option').forEach((option) => {
-    option.addEventListener('click', () => {
-        const size = option.dataset.size;
-
-        // アクティブ状態を更新
-        sizePanel.querySelectorAll('.size-option').forEach((o) => o.classList.remove('active'));
-        option.classList.add('active');
-
-        // 詳細ビューのサイズを切り替え
-        castDetailVisual.classList.remove('size-medium', 'size-small');
-        if (size === 'medium') castDetailVisual.classList.add('size-medium');
-        if (size === 'small')  castDetailVisual.classList.add('size-small');
-    });
+    if (sizeToggled) {
+        // 割り当てサイズに切り替え
+        if (currentCastSize === 'medium') castDetailVisual.classList.add('size-medium');
+        if (currentCastSize === 'small')  castDetailVisual.classList.add('size-small');
+        sizeCheckBtn.classList.add('active');
+    } else {
+        // 大（デフォルト）に戻す
+        sizeCheckBtn.classList.remove('active');
+    }
 });
 
 // ESCキーで詳細ビューを閉じる
