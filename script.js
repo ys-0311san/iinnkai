@@ -69,8 +69,16 @@ const castData = [
         detailImage: 'images/cast/amatuka-mauru_original.png',
         description: '',
     },
+    {
+        id: 8,
+        name: 'yuki__san',
+        image: 'images/cast/yuki-san.png',
+        detailImage: 'images/cast/yuki-san_original.png',
+        description: 'いつもの子は過激すぎたのでクールに、ぜひお越しください。',
+        size: 'medium',
+    },
     // 以降は実際のキャストデータに差し替えてください
-    ...Array.from({ length: 53 }, (_, i) => ({
+    ...Array.from({ length: 52 }, (_, i) => ({
         id: i + 2,
         name: 'Coming Soon',
         image: '',
@@ -342,10 +350,11 @@ let previousFocus = null;
 function openCastDetail(cast) {
     previousFocus = document.activeElement;
 
-    // 詳細情報をセット（detailImageがあればオリジナル画像を使用）
-    detailImage.src = cast.detailImage || cast.image;
+    // 前の画像をクリアしてから新しい画像をセット（前のキャストが一瞬表示されるのを防ぐ）
+    detailImage.src = '';
     detailImage.alt = cast.name;
     detailImage.onerror = () => { detailImage.src = placeholderDetail; };
+    detailImage.src = cast.detailImage || cast.image;
     detailName.textContent = cast.name;
     // 既存の役職バッジを削除してから再生成
     const existingRole = detailName.nextElementSibling;
@@ -360,10 +369,8 @@ function openCastDetail(cast) {
     }
     detailDesc.textContent = cast.description;
 
-    // サイズクラスをリセットして再適用（大:デフォルト、中:size-medium、小:size-small）
+    // 常に大（デフォルト）で開く・ボタンで割り当てサイズに切り替え
     castDetailVisual.classList.remove('size-medium', 'size-small');
-    if (cast.size === 'medium') castDetailVisual.classList.add('size-medium');
-    if (cast.size === 'small')  castDetailVisual.classList.add('size-small');
 
     // トグル状態をリセットして大（デフォルト）表示に戻す
     sizeToggled = false;
@@ -390,6 +397,11 @@ function closeCastDetail() {
     castDetail.hidden = true;
     castCard.hidden = false;
     document.body.style.overflowY = 'auto';
+
+    // サイズトグルをリセット
+    sizeToggled = false;
+    sizeCheckBtn.classList.remove('active');
+    castDetailVisual.classList.remove('size-medium', 'size-small');
 
     if (previousFocus) {
         previousFocus.focus();

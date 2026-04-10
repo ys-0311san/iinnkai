@@ -910,7 +910,7 @@ main {
     width: 100%;
     height: calc(100vh - 90px);
     z-index: 100;
-    animation: fadeIn 1s ease;
+    animation: fadeIn 1.5s ease;
 }
 
 /* キャラ画像: 全面表示（吹き出しより背面に） */
