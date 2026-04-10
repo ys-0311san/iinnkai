@@ -77,8 +77,23 @@ const castData = [
         description: 'いつもの子は過激すぎたのでクールに、ぜひお越しください。',
         size: 'medium',
     },
+    {
+        id: 9,
+        name: '銀天のウェイン',
+        image: 'images/cast/ginten-wayne.png',
+        detailImage: 'images/cast/ginten-wayne_original.png',
+        description: '普段はソロで遊んでばかりですが、\n甘やかすことが大好きなピンクの火竜、\nエルダとして癒しをご提供いたします♡',
+    },
+    {
+        id: 10,
+        name: '蒼天-Souten-',
+        image: 'images/cast/souten.png',
+        detailImage: 'images/cast/souten_original.png',
+        description: '',
+        size: 'medium',
+    },
     // 以降は実際のキャストデータに差し替えてください
-    ...Array.from({ length: 52 }, (_, i) => ({
+    ...Array.from({ length: 50 }, (_, i) => ({
         id: i + 2,
         name: 'Coming Soon',
         image: '',
