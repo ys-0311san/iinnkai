@@ -177,7 +177,10 @@ body {
     overflow: hidden;
     background: rgba(0, 0, 0, 0.3);
     cursor: grab;
-    display: inline-block;
+    /* canvasの実サイズ(280×380)をCSSで収める */
+    width: 100%;
+    max-width: 280px;
+    display: block;
 }
 
 .photo-preview:active {
@@ -186,7 +189,8 @@ body {
 
 .photo-preview canvas {
     display: block;
-    max-width: 100%;
+    width: 100%;
+    height: auto;
 }
 
 .photo-controls {
