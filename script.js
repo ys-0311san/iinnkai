@@ -132,6 +132,14 @@ const castData = [
         description: '',
         size: 'medium',
     },
+    {
+        id: 16,
+        name: 'にっくん',
+        image: 'images/cast/nikkun.png',
+        detailImage: 'images/cast/nikkun_original.png',
+        description: 'やさしくなでなで、癒しの時間いかがですか？',
+        size: 'medium',
+    },
     // 以降は実際のキャストデータに差し替えてください
     ...Array.from({ length: 50 }, (_, i) => ({
         id: i + 2,
