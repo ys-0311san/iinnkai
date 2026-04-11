@@ -15,20 +15,21 @@ const CARD_H = 650;
 // 左パネル幅（写真エリアを含む）
 const LEFT_W = 330;
 
+// ボトムストリップ（先に定義してPHOTO_Yの計算で使う）
+const STRIP_Y  = 510;
+const STRIP_H  = CARD_H - STRIP_Y;  // = 140
+
 // 写真エリア（カード上の実際の位置・サイズ）
 // ★ プレビューcanvasもこのサイズにすることで描画内容を完全一致させる
+// PHOTO_Y: ストリップを除いたコンテンツ領域(0〜STRIP_Y)内で垂直中央
 const PHOTO_W = 280;
 const PHOTO_H = 380;
-const PHOTO_X = Math.round((LEFT_W - PHOTO_W) / 2);        // 左パネル内で水平中央 = 25
-const PHOTO_Y = Math.round((CARD_H - PHOTO_H) / 2);        // カード内で垂直中央 = 135
+const PHOTO_X = Math.round((LEFT_W - PHOTO_W) / 2);               // 左パネル内で水平中央 = 25
+const PHOTO_Y = Math.round((STRIP_Y - PHOTO_H) / 2);              // コンテンツ領域内で垂直中央 = 65
 
 // 右情報エリア
 const INFO_X   = LEFT_W + 35;   // = 365
 const INFO_W   = CARD_W - INFO_X - 30;  // = 629
-
-// ボトムストリップ
-const STRIP_Y  = 510;
-const STRIP_H  = CARD_H - STRIP_Y;  // = 140
 
 /* ===========================
    写真状態管理
@@ -617,9 +618,37 @@ function drawCardInfo(ctx, theme, cardType) {
     ];
 
     rows.forEach((row, i) => {
-        const ry = 218 + i * 58;
+        const ry = 225 + i * 68;
         drawInfoRow(ctx, x, ry, row.label, row.value, accent, textColor, theme.vip);
     });
+
+    // ボトム装飾テキスト（余白を埋めるタグライン）
+    const tagY = STRIP_Y - 22;
+    ctx.save();
+
+    // 左右フェードのグラデーションライン
+    {
+        const g = ctx.createLinearGradient(x, tagY - 10, x + INFO_W, tagY - 10);
+        g.addColorStop(0,   'transparent');
+        g.addColorStop(0.1, theme.vip ? 'rgba(212,175,55,0.25)' : 'rgba(255,255,255,0.09)');
+        g.addColorStop(0.9, theme.vip ? 'rgba(212,175,55,0.25)' : 'rgba(255,255,255,0.09)');
+        g.addColorStop(1,   'transparent');
+        ctx.strokeStyle = g;
+        ctx.lineWidth   = 0.75;
+        ctx.beginPath();
+        ctx.moveTo(x, tagY - 10);
+        ctx.lineTo(x + INFO_W, tagY - 10);
+        ctx.stroke();
+    }
+
+    // タグライン文字列
+    ctx.font      = `400 11px 'Zen Maru Gothic', sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = theme.vip
+        ? 'rgba(212,175,55,0.55)'
+        : 'rgba(255,255,255,0.22)';
+    ctx.fillText('MESUKEMO SUISHIN IINKAI', x + INFO_W / 2, tagY);
+    ctx.restore();
 }
 
 /* ===========================
