@@ -1607,8 +1607,45 @@ main {
     letter-spacing: 0.06em;
 }
 
+/* index.htmlではcard-style.cssを読み込まないためここでベーススタイルを定義 */
+.btn-share-x {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 1.15rem;
+    background: #000;
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 9999px;
+    text-decoration: none;
+    transition: background 0.18s ease, transform 0.12s ease, box-shadow 0.18s ease;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-share-x:hover {
+    background: #111;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+
+.btn-share-x:active {
+    transform: scale(0.97);
+    box-shadow: none;
+}
+
+/* VIP発見モーダル内のポストボタン：ゴールドボーダー */
 .vip-discover-share {
     margin: var(--spacing-sm) auto 0;
+    border-color: rgba(212, 175, 55, 0.45);
+}
+
+.vip-discover-share:hover {
+    border-color: var(--gold-accent);
+    box-shadow: 0 0 16px rgba(212, 175, 55, 0.2), 0 4px 14px rgba(0, 0, 0, 0.45);
 }
 
 .vip-discover-close {
