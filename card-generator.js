@@ -33,7 +33,9 @@ const STRIP_H  = CARD_H - STRIP_Y;  // = 140
 /* ===========================
    写真状態管理
    =========================== */
-let photoImage = null;
+let photoImage  = null;
+/** カードフッターに表示するロゴ画像 */
+let cardLogoImage = null;
 let photoScale = 1.0;
 let photoX     = 0;
 let photoY     = 0;
@@ -83,6 +85,10 @@ const THEMES = {
    =========================== */
 document.addEventListener('DOMContentLoaded', () => {
     generateMemberId();
+    // カードロゴを事前ロード
+    cardLogoImage = new Image();
+    cardLogoImage.src = 'images/card-logo.png';
+    cardLogoImage.onload = () => drawPreviewCard();
     // フォントの読み込みを待ってから初回描画
     document.fonts.ready.then(() => drawPreviewCard());
     setupEventListeners();
@@ -786,57 +792,26 @@ function makeGoldGrad(ctx, x1, y1, x2, y2) {
 function drawCardFooter(ctx, theme) {
     const cy = STRIP_Y + STRIP_H / 2;  // ストリップ垂直中央
 
-    // --- QRコード風プレースホルダー（本物らしいファインダーパターン付き） ---
-    const qrSize = 76;
-    const qrX    = PHOTO_X - 2;
-    const qrY    = cy - qrSize / 2;
-    const bgCol  = theme.vip ? 'rgba(10,8,0,0.92)' : 'rgba(14,21,32,0.92)';
+    // --- ロゴ（左側） ---
+    const logoSize = 76;
+    const logoX    = PHOTO_X - 2;
+    const logoY    = cy - logoSize / 2;
 
     ctx.save();
-
-    // QR外枠・背景
-    ctx.fillStyle = 'rgba(255,255,255,0.07)';
-    roundRect(ctx, qrX, qrY, qrSize, qrSize, 3);
-    ctx.fill();
-    ctx.globalAlpha = 0.55;
-    ctx.strokeStyle = theme.vip
-        ? makeGoldGrad(ctx, qrX, qrY, qrX + qrSize, qrY)
-        : theme.accent;
-    ctx.lineWidth = 1.5;
-    roundRect(ctx, qrX, qrY, qrSize, qrSize, 3);
-    ctx.stroke();
-    ctx.globalAlpha = 1;
-
-    // ファインダーパターン（QRの3角マーカー）
-    const fpSize = 17;
-    const fpPad  = 5;
-    const fpModColor = 'rgba(255,255,255,0.52)';
-    [
-        [qrX + fpPad,                    qrY + fpPad],                     // 左上
-        [qrX + qrSize - fpSize - fpPad,  qrY + fpPad],                     // 右上
-        [qrX + fpPad,                    qrY + qrSize - fpSize - fpPad],   // 左下
-    ].forEach(([fx, fy]) => {
-        ctx.fillStyle = fpModColor;
-        ctx.fillRect(fx, fy, fpSize, fpSize);       // 外枠
-        ctx.fillStyle = bgCol;
-        ctx.fillRect(fx + 3, fy + 3, fpSize - 6, fpSize - 6);  // 内クリア
-        ctx.fillStyle = fpModColor;
-        ctx.fillRect(fx + 6, fy + 6, fpSize - 12, fpSize - 12); // 中心ドット
-    });
-
-    // データモジュール（右下エリアのランダムパターン）
-    ctx.fillStyle = 'rgba(255,255,255,0.22)';
-    const cells  = 5;
-    const cSize  = (qrSize - fpPad * 2 - fpSize - 5) / cells;
-    const dsX    = qrX + fpPad + fpSize + 5;
-    const dsY    = qrY + fpPad + fpSize + 5;
-    [[0,0],[1,0],[3,0],[4,0],[0,1],[2,1],[4,1],[1,2],[2,2],[3,2],[0,3],[2,3],[4,3],[1,4],[3,4],[4,4]]
-        .forEach(([px, py]) => {
-            if (px < cells && py < cells) {
-                ctx.fillRect(dsX + px * cSize, dsY + py * cSize, cSize - 1, cSize - 1);
-            }
-        });
-
+    if (cardLogoImage && cardLogoImage.complete) {
+        // ロゴをlogoSizeの正方形に収めてアスペクト比を維持
+        const lw = cardLogoImage.naturalWidth  || cardLogoImage.width;
+        const lh = cardLogoImage.naturalHeight || cardLogoImage.height;
+        const ls = Math.min(logoSize / lw, logoSize / lh);
+        const dw = lw * ls;
+        const dh = lh * ls;
+        const dx = logoX + (logoSize - dw) / 2;
+        const dy = logoY + (logoSize - dh) / 2;
+        // VIPはゴールドtint（composite multiply → globalAlpha + カラー重ね）
+        ctx.globalAlpha = theme.vip ? 0.88 : 0.72;
+        ctx.drawImage(cardLogoImage, dx, dy, dw, dh);
+        ctx.globalAlpha = 1;
+    }
     ctx.restore();
 
     // --- モットーテキスト（中央） ---
