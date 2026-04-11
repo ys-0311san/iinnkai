@@ -829,14 +829,14 @@ function setupSecretTrigger() {
             secretClickCount = 0;
         }, 3000);
 
-        // 29回達成 かつ VIPスロット発見済みの場合のみVIPを解放してジェネレーターへ
+        // 29回達成でジェネレーターへ遷移（VIPスロット発見済みの場合はVIPも解放）
         if (secretClickCount >= 29) {
             secretClickCount = 0;
             clearTimeout(secretClickTimer);
             if (vipDiscovered) {
                 localStorage.setItem('mesukemo_vip_unlocked', '1');
-                window.location.href = 'secret-card.html';
             }
+            window.location.href = 'secret-card.html';
         }
     });
 }
