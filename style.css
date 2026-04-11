@@ -1145,6 +1145,28 @@ main {
         height: 40px;
         font-size: 1.1rem;
     }
+
+    /* スマホ: サイズ確認ボタンは右上に固定（元の位置を維持） */
+    .size-check-btn {
+        bottom: auto;
+        top: var(--spacing-sm);
+        right: var(--spacing-sm);
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+
+    /* スマホ: 閉じるボタンを左上に固定して常に見えるようにする（右上のサイズ確認ボタンと被らない） */
+    .detail-close {
+        position: fixed;
+        top: 78px;
+        left: var(--spacing-sm);
+        right: auto;
+        width: auto;
+        padding: 0.35rem 0.85rem;
+        font-size: 0.82rem;
+        z-index: 200;
+    }
 }
 
 /* ===== 公式リンク ===== */
