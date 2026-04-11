@@ -645,6 +645,8 @@ document.addEventListener('keydown', (e) => {
    =========================== */
 function normalizeSearch(str) {
     return (str || '')
+        // 全角英数字・記号→半角変換（ａ-ｚ、Ａ-Ｚ、０-９ など）
+        .replace(/[\uFF01-\uFF5E]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
         .toLowerCase()
         // カタカナ→ひらがな変換（ァ-ヶ → ぁ-ん）
         .replace(/[\u30A1-\u30F6]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60));
