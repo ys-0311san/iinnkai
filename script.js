@@ -477,11 +477,11 @@ function renderCastGrid(casts) {
                 card.setAttribute('role', 'button');
                 card.setAttribute('tabindex', '0');
                 card.setAttribute('aria-label', '???');
-                card.addEventListener('click', unlockVipAndNavigate);
+                card.addEventListener('click', discoverVipSlot);
                 card.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        unlockVipAndNavigate();
+                        discoverVipSlot();
                     }
                 });
             }
@@ -788,11 +788,14 @@ function activateSubSection(tabId, sectionId) {
    =========================== */
 
 /**
- * VIPフラグをlocalStorageに保存してカードジェネレーターへ遷移する
+ * VIPスロット発見時に呼ばれる
+ * - VIP発見モーダルを表示してXシェアできるようにする
+ * - localStorageへの保存・ページ遷移はしない（29回クリックで初めて解放）
  */
-function unlockVipAndNavigate() {
-    localStorage.setItem('mesukemo_vip_unlocked', '1');
-    window.location.href = 'secret-card.html';
+function discoverVipSlot() {
+    vipDiscovered = true;
+    const modal = document.getElementById('vipDiscoverModal');
+    if (modal) modal.hidden = false;
 }
 
 /* ===========================
@@ -803,6 +806,8 @@ function unlockVipAndNavigate() {
 let secretClickCount = 0;
 /** カウントリセット用タイマー */
 let secretClickTimer = null;
+/** VIPスロット発見済みフラグ（セッション中のみ有効） */
+let vipDiscovered = false;
 
 /**
  * ヘッダーバナーへのクリックを監視し、29回達成で隠しページへ遷移する
@@ -822,11 +827,14 @@ function setupSecretTrigger() {
             secretClickCount = 0;
         }, 3000);
 
-        // 29回達成で隠しページへ
+        // 29回達成 かつ VIPスロット発見済みの場合のみVIPを解放してジェネレーターへ
         if (secretClickCount >= 29) {
             secretClickCount = 0;
             clearTimeout(secretClickTimer);
-            window.location.href = 'secret-card.html';
+            if (vipDiscovered) {
+                localStorage.setItem('mesukemo_vip_unlocked', '1');
+                window.location.href = 'secret-card.html';
+            }
         }
     });
 }
@@ -849,4 +857,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 隠しページトリガーを設定
     setupSecretTrigger();
+
+    // VIP発見モーダルの閉じるボタン
+    const vipDiscoverClose = document.getElementById('vipDiscoverClose');
+    if (vipDiscoverClose) {
+        vipDiscoverClose.addEventListener('click', () => {
+            document.getElementById('vipDiscoverModal').hidden = true;
+        });
+    }
+    // モーダル背景クリックでも閉じる
+    const vipDiscoverModal = document.getElementById('vipDiscoverModal');
+    if (vipDiscoverModal) {
+        vipDiscoverModal.addEventListener('click', (e) => {
+            if (e.target === vipDiscoverModal) vipDiscoverModal.hidden = true;
+        });
+    }
 });
