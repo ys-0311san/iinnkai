@@ -116,6 +116,14 @@ const castData = [
         description: '趣味は音楽と着ぐるみ？\nえっと…甘やかしたい派\n私"は"可愛くない',
         size: 'medium',
     },
+    {
+        id: 14,
+        name: 'エクリクシス',
+        image: 'images/cast/eclixis.png',
+        detailImage: 'images/cast/eclixis_original.png',
+        description: 'デカいメスケモがお待ちしてます。',
+        size: 'medium',
+    },
     // 以降は実際のキャストデータに差し替えてください
     ...Array.from({ length: 50 }, (_, i) => ({
         id: i + 2,
