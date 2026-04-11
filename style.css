@@ -71,7 +71,7 @@ body {
 /* ===== 背景画像（クロスフェード用2レイヤー） ===== */
 /* JSでbackground-imageをセットし、opacityでクロスフェードする */
 .bg-layer {
-    position: absolute;
+    position: fixed;
     inset: 0;
     background-size: cover;
     background-position: center;
