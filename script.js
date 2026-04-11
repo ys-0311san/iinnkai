@@ -154,7 +154,6 @@ const castData = [
         image: 'images/cast/konatsu.png',
         detailImage: 'images/cast/konatsu_original.png',
         description: 'なでテクは持たず…。だけどデカさで圧倒します',
-        size: 'medium',
     },
     // 以降は実際のキャストデータに差し替えてください
     ...Array.from({ length: 50 }, (_, i) => ({
