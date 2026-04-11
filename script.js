@@ -140,6 +140,14 @@ const castData = [
         description: 'やさしくなでなで、癒しの時間いかがですか？',
         size: 'medium',
     },
+    {
+        id: 17,
+        name: '？？？',
+        image: 'images/cast/mystery17.png',
+        detailImage: 'images/cast/mystery17_original.png',
+        description: 'パイナップルにピザを載せるのが趣味です',
+        size: 'medium',
+    },
     // 以降は実際のキャストデータに差し替えてください
     ...Array.from({ length: 50 }, (_, i) => ({
         id: i + 2,
