@@ -181,7 +181,7 @@ const castData = [
         name: 'ななみ',
         image: 'images/cast/nanami.png',
         detailImage: 'images/cast/nanami_original.png',
-        description: '',
+        description: 'なでなでとか色々やるよ〜\n楽しんでいってね(ˊᵕˋ)੭ ੈ❤︎',
     },
     // 以降は実際のキャストデータに差し替えてください
     ...Array.from({ length: 50 }, (_, i) => ({
