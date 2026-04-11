@@ -131,8 +131,8 @@ const castData = [
     },
     {
         id: 14,
-        name: 'エクリクシス',
-        yomi: 'えくりくしす eclixis ekurikushisu',
+        name: 'Esupishia',
+        yomi: 'えすぴしあ esupishia',
         image: 'images/cast/eclixis.png',
         detailImage: 'images/cast/eclixis_original.png',
         description: 'デカいメスケモがお待ちしてます。',
