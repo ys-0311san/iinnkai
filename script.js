@@ -162,6 +162,13 @@ const castData = [
         detailImage: 'images/cast/narga_original.png',
         description: '',
     },
+    {
+        id: 20,
+        name: 'エルビィ',
+        image: 'images/cast/elvie.png',
+        detailImage: 'images/cast/elvie_original.png',
+        description: 'デッカいメスケモは最高ですよネ!!',
+    },
     // 以降は実際のキャストデータに差し替えてください
     ...Array.from({ length: 50 }, (_, i) => ({
         id: i + 2,
