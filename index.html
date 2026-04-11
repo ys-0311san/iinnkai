@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>メスケモ推進委員会 - VRChatメスケモイベント</title>
     <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+    <!-- OGP / Twitter Card -->
+    <meta property="og:type"        content="website">
+    <meta property="og:title"       content="メスケモ推進委員会">
+    <meta property="og:description" content="VRChatメスケモイベント「なでなで茶屋」「なでなで倶楽部 MESUKEMO」などを主催するコミュニティ">
+    <meta property="og:url"         content="https://ys-0311san.github.io/iinnkai/">
+    <meta property="og:image"       content="https://ys-0311san.github.io/iinnkai/images/bg-about-pc.png">
+    <meta name="twitter:card"       content="summary_large_image">
+    <meta name="twitter:site"       content="@mesukemo_ya">
     <link rel="stylesheet" href="style.css">
     <!-- 最初に表示される背景画像を最優先で先読み -->
     <link rel="preload" as="image" href="images/bg-about-pc.png" media="(min-width: 769px)">
@@ -259,18 +267,35 @@
     <!-- VIP発見モーダル（VIPスロットクリック時に表示） -->
     <div class="vip-discover-modal" id="vipDiscoverModal" hidden aria-modal="true" role="dialog" aria-labelledby="vipDiscoverTitle">
         <div class="vip-discover-inner">
-            <p class="vip-discover-title" id="vipDiscoverTitle">こんなところを見るなんて！</p>
+            <!-- 装飾ライン上 -->
+            <div class="vip-discover-ornament" aria-hidden="true">
+                <span class="vip-discover-line"></span>
+                <span class="vip-discover-diamond">◆</span>
+                <span class="vip-discover-line"></span>
+            </div>
+
+            <p class="vip-discover-eyebrow">SECRET</p>
+            <h2 class="vip-discover-title" id="vipDiscoverTitle">こんなところを見るなんて！</h2>
             <p class="vip-discover-sub">あなたはVIP会員です！</p>
+
+            <!-- 装飾ライン下 -->
+            <div class="vip-discover-ornament" aria-hidden="true">
+                <span class="vip-discover-line"></span>
+                <span class="vip-discover-diamond">◆</span>
+                <span class="vip-discover-line"></span>
+            </div>
+
             <a class="btn-share-x vip-discover-share"
-               href="https://twitter.com/intent/tweet?text=%E3%81%93%E3%82%93%E3%81%AA%E3%81%A8%E3%81%93%E3%82%8D%E3%82%92%E8%A6%8B%E3%82%8B%E3%81%AA%E3%82%93%E3%81%A6%EF%BC%81%E3%81%82%E3%81%AA%E3%81%9F%E3%81%AFVIP%E4%BC%9A%E5%93%A1%E3%81%A7%E3%81%99%EF%BC%81%20%23%E3%81%AA%E3%81%A7%E3%81%AA%E3%81%A7%E8%8C%B6%E5%B1%8B%20%23%E3%83%A1%E3%82%B9%E3%82%B1%E3%83%A2%E6%8E%A8%E9%80%B2%E5%A7%94%E5%93%A1%E4%BC%9A"
+               href="https://twitter.com/intent/tweet?text=%E3%81%93%E3%82%93%E3%81%AA%E3%81%A8%E3%81%93%E3%82%8D%E3%82%92%E8%A6%8B%E3%82%8B%E3%81%AA%E3%82%93%E3%81%A6%EF%BC%81%E3%81%82%E3%81%AA%E3%81%9F%E3%81%AFVIP%E4%BC%9A%E5%93%A1%E3%81%A7%E3%81%99%EF%BC%81%20%23%E3%81%AA%E3%81%A7%E3%81%AA%E3%81%A7%E8%8C%B6%E5%B1%8B%20%23%E3%83%A1%E3%82%B9%E3%82%B1%E3%83%A2%E6%8E%A8%E9%80%B2%E5%A7%94%E5%93%A1%E4%BC%9A&url=https%3A%2F%2Fys-0311san.github.io%2Fiinnkai%2F"
                target="_blank"
                rel="noopener noreferrer"
                style="display: inline-flex;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                 </svg>
                 ポストする
             </a>
+
             <button class="vip-discover-close" id="vipDiscoverClose" aria-label="閉じる">✕</button>
         </div>
     </div>

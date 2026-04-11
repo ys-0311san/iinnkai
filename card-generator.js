@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* ===========================
    VIP解放チェック（localStorageベース）
-   メインサイトで最後のComing Soonをクリックするとフラグが立つ
+   メインサイトでVIPスロット発見後 + 29回クリックでフラグが立つ
    =========================== */
 function checkVipUnlock() {
     if (localStorage.getItem('mesukemo_vip_unlocked') !== '1') return;
@@ -106,11 +106,9 @@ function checkVipUnlock() {
     opt.textContent = '★ VIP';
     select.appendChild(opt);
 
-    // ヒントテキストとXシェアボタンを表示して自動選択
-    const hint = document.getElementById('vipHint');
-    if (hint) hint.style.display = 'block';
-    const shareBtn = document.getElementById('vipShareBtn');
-    if (shareBtn) shareBtn.style.display = 'inline-flex';
+    // VIP解放バナーを表示して自動選択
+    const banner = document.getElementById('vipUnlockBanner');
+    if (banner) banner.hidden = false;
     select.value = 'vip';
     drawPreviewCard();
 }
@@ -119,15 +117,39 @@ function checkVipUnlock() {
    イベントリスナーのセットアップ
    =========================== */
 function setupEventListeners() {
+    // 画像アップロード
     const photoUpload = document.getElementById('photoUpload');
     if (photoUpload) photoUpload.addEventListener('change', handlePhotoUpload);
 
+    // ファイルアップロードエリアのドラッグ&ドロップ
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    if (fileUploadArea) {
+        fileUploadArea.addEventListener('dragover', e => {
+            e.preventDefault();
+            fileUploadArea.classList.add('drag-over');
+        });
+        fileUploadArea.addEventListener('dragleave', () => {
+            fileUploadArea.classList.remove('drag-over');
+        });
+        fileUploadArea.addEventListener('drop', e => {
+            e.preventDefault();
+            fileUploadArea.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handlePhotoUploadFromFile(file);
+            }
+        });
+    }
+
+    // スケールスライダー
     const scaleSlider = document.getElementById('scaleSlider');
     if (scaleSlider) scaleSlider.addEventListener('input', handleScaleChange);
 
+    // 写真プレビューcanvasのドラッグ
     const photoCanvas = document.getElementById('photoCanvas');
     if (photoCanvas) setupDragEvents(photoCanvas);
 
+    // フォーム入力のリアルタイム反映
     ['userName', 'favoriteCast', 'favoriteSpecies', 'cardType'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -135,6 +157,25 @@ function setupEventListeners() {
             el.addEventListener('change', drawPreviewCard);
         }
     });
+
+    // ボタン類（onclickから移行）
+    const generateBtn = document.getElementById('generateBtn');
+    if (generateBtn) generateBtn.addEventListener('click', generateCard);
+
+    const downloadBtn = document.getElementById('downloadBtn');
+    if (downloadBtn) downloadBtn.addEventListener('click', downloadCard);
+
+    const resetFormBtn = document.getElementById('resetFormBtn');
+    if (resetFormBtn) resetFormBtn.addEventListener('click', resetForm);
+
+    const resetPhotoBtn = document.getElementById('resetPhotoBtn');
+    if (resetPhotoBtn) resetPhotoBtn.addEventListener('click', resetPhotoPosition);
+
+    const regenMemberIdBtn = document.getElementById('regenMemberIdBtn');
+    if (regenMemberIdBtn) regenMemberIdBtn.addEventListener('click', generateMemberId);
+
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) backBtn.addEventListener('click', goBack);
 }
 
 /* ===========================
@@ -151,11 +192,25 @@ function generateMemberId() {
 }
 
 /* ===========================
-   画像アップロード処理
+   画像アップロード処理（inputのchangeイベント用）
    =========================== */
 async function handlePhotoUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
+    // ファイルアップロードエリアのラベルを更新
+    const area = document.getElementById('fileUploadArea');
+    if (area) {
+        area.querySelector('.file-upload-text').textContent = file.name;
+        area.classList.add('has-file');
+    }
+    await handlePhotoUploadFromFile(file);
+}
+
+/* ===========================
+   ファイルオブジェクトから写真を読み込む共通処理
+   （input change / ドラッグ&ドロップ 両方から呼ばれる）
+   =========================== */
+async function handlePhotoUploadFromFile(file) {
     try {
         photoImage = await loadAndResizeImage(file);
         photoX = 0;
