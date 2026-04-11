@@ -289,6 +289,15 @@ function drawPhotoClipped(ctx, originX, originY, bgColor) {
         const h = photoImage.height * photoScale;
         // originX/Y を加算することでプレビューとカードで同じ見た目になる
         ctx.drawImage(photoImage, originX + photoX, originY + photoY, w, h);
+        // 写真にビネット（周辺減光）をかけて深みを出す
+        const vignette = ctx.createRadialGradient(
+            originX + PHOTO_W / 2, originY + PHOTO_H * 0.45, PHOTO_W * 0.3,
+            originX + PHOTO_W / 2, originY + PHOTO_H * 0.5,  PHOTO_W * 0.85
+        );
+        vignette.addColorStop(0, 'rgba(0,0,0,0)');
+        vignette.addColorStop(1, 'rgba(0,0,0,0.42)');
+        ctx.fillStyle = vignette;
+        ctx.fillRect(originX, originY, PHOTO_W, PHOTO_H);
     } else {
         // 写真未選択時のプレースホルダー
         ctx.fillStyle = 'rgba(255,255,255,0.1)';
@@ -442,6 +451,21 @@ function drawPreviewCard() {
         ctx.stroke();
     }
 
+    // --- 右パネルに微細ドットテクスチャ（高級感） ---
+    {
+        ctx.save();
+        ctx.globalAlpha = 0.028;
+        for (let dx = LEFT_W + 28; dx < CARD_W - 15; dx += 22) {
+            for (let dy = 18; dy < STRIP_Y - 10; dy += 22) {
+                ctx.beginPath();
+                ctx.arc(dx, dy, 1.3, 0, Math.PI * 2);
+                ctx.fillStyle = theme.accent;
+                ctx.fill();
+            }
+        }
+        ctx.restore();
+    }
+
     // --- 写真描画（共通関数を使用）---
     drawPhotoClipped(ctx, PHOTO_X, PHOTO_Y, theme.leftBg);
 
@@ -479,6 +503,9 @@ function drawPreviewCard() {
 
     // --- ボトムストリップ：QR + モットー ---
     drawCardFooter(ctx, theme);
+
+    // --- カード内枠線（プレミアム感） ---
+    drawCardFrame(ctx, theme);
 }
 
 /* ===========================
@@ -527,41 +554,53 @@ function drawCardInfo(ctx, theme, cardType) {
     const today         = new Date();
     const dateStr       = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
 
+    // MEMBER CARD サブタイトル（小さく・薄く）
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.font = `400 11px 'Zen Maru Gothic', sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.fillText('M E M B E R   C A R D', x, 44);
+    ctx.restore();
+
     // 組織名
     ctx.save();
     if (theme.vip) {
-        // VIPは組織名をメタリックゴールドグラデーションで塗る
         ctx.fillStyle = makeGoldGrad(ctx, x, 0, x + INFO_W, 0);
+        ctx.shadowColor = 'rgba(212, 175, 55, 0.35)';
+        ctx.shadowBlur  = 10;
     } else {
         ctx.fillStyle = accent;
     }
-    ctx.font = `700 40px 'Noto Serif JP', serif`;
+    ctx.font = `700 38px 'Noto Serif JP', serif`;
     ctx.textAlign = 'left';
-    ctx.fillText('メスケモ推進委員会', x, 80);
+    ctx.fillText('メスケモ推進委員会', x, 82);
     ctx.restore();
 
     // 会員ランクバッジ（組織名の右端に）
-    drawBadge(ctx, theme.label, CARD_W - 30, 58, theme.accent, theme.badgeBg, theme.vip);
+    drawBadge(ctx, theme.label, CARD_W - 28, 60, theme.accent, theme.badgeBg, theme.vip);
 
     // 組織名下セパレーター
-    drawSeparator(ctx, x, 100, INFO_W, accent, 0.6, theme.vip);
+    drawSeparator(ctx, x, 100, INFO_W, accent, 0.55, theme.vip);
 
-    // 会員名（大きく）
+    // 会員名（大きく・VIPはゴールドシャドウ）
     ctx.save();
     ctx.fillStyle = textColor;
-    ctx.font = `700 38px 'Noto Serif JP', serif`;
+    ctx.font = `700 42px 'Noto Serif JP', serif`;
     ctx.textAlign = 'left';
-    // 長い名前をクリップ
+    if (theme.vip) {
+        ctx.shadowColor = 'rgba(212, 175, 55, 0.3)';
+        ctx.shadowBlur  = 14;
+    }
     ctx.save();
     ctx.beginPath();
-    ctx.rect(x, 115, INFO_W, 60);
+    ctx.rect(x, 112, INFO_W, 64);
     ctx.clip();
-    ctx.fillText(userName, x, 155);
+    ctx.fillText(userName, x, 158);
     ctx.restore();
     ctx.restore();
 
     // 会員名下セパレーター
-    drawSeparator(ctx, x, 175, INFO_W, accent, 0.3, theme.vip);
+    drawSeparator(ctx, x, 178, INFO_W, accent, 0.28, theme.vip);
 
     // 情報テーブル
     const rows = [
@@ -572,45 +611,65 @@ function drawCardInfo(ctx, theme, cardType) {
     ];
 
     rows.forEach((row, i) => {
-        const ry = 215 + i * 58;
-        drawInfoRow(ctx, x, ry, row.label, row.value, accent, textColor);
+        const ry = 218 + i * 58;
+        drawInfoRow(ctx, x, ry, row.label, row.value, accent, textColor, theme.vip);
     });
 }
 
 /* ===========================
    情報行1行描画（ラベル + 値）
    =========================== */
-function drawInfoRow(ctx, x, y, label, value, accent, textColor) {
+/* isVip=true の場合はゴールドテーマのピルバッジを描画する */
+function drawInfoRow(ctx, x, y, label, value, accent, textColor, isVip) {
     ctx.save();
 
-    // ラベル
+    // ピル形ラベルバッジ
+    ctx.font = `500 13px 'Zen Maru Gothic', sans-serif`;
+    const lw   = ctx.measureText(label).width;
+    const padX = 11;
+    const bw   = lw + padX * 2;
+    const bh   = 21;
+    const bx   = x;
+    const by   = y - bh + 5;
+    const br   = bh / 2; // 完全な角丸（pill形状）
+
+    // バッジ背景
+    ctx.fillStyle = isVip ? 'rgba(212,175,55,0.1)' : 'rgba(255,255,255,0.055)';
+    roundRect(ctx, bx, by, bw, bh, br);
+    ctx.fill();
+
+    // バッジ枠線
+    ctx.globalAlpha = 0.42;
+    ctx.strokeStyle = isVip ? makeGoldGrad(ctx, bx, by, bx + bw, by) : accent;
+    ctx.lineWidth   = 0.75;
+    roundRect(ctx, bx, by, bw, bh, br);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // ラベルテキスト
     ctx.fillStyle = accent;
-    ctx.font = `400 18px 'Zen Maru Gothic', sans-serif`;
+    ctx.font = `500 13px 'Zen Maru Gothic', sans-serif`;
     ctx.textAlign = 'left';
-    ctx.fillText(label, x, y);
+    ctx.fillText(label, bx + padX, y);
 
-    // コロン
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
-    ctx.fillText('：', x + 110, y);
-
-    // 値
+    // 値テキスト
     ctx.fillStyle = textColor;
-    ctx.font = `500 22px 'Zen Maru Gothic', sans-serif`;
-    // 長い値をクリップ
+    ctx.font = `400 21px 'Zen Maru Gothic', sans-serif`;
+    const valueX = x + bw + 14;
     ctx.save();
     ctx.beginPath();
-    ctx.rect(x + 140, y - 25, INFO_W - 140, 35);
+    ctx.rect(valueX, y - 24, INFO_W - bw - 14, 32);
     ctx.clip();
-    ctx.fillText(value, x + 140, y);
+    ctx.fillText(value, valueX, y);
     ctx.restore();
 
-    // 行の下のドット区切り線
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    // ドット区切り線
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
     ctx.lineWidth = 1;
-    ctx.setLineDash([2, 4]);
+    ctx.setLineDash([2, 5]);
     ctx.beginPath();
-    ctx.moveTo(x, y + 14);
-    ctx.lineTo(x + INFO_W, y + 14);
+    ctx.moveTo(x, y + 17);
+    ctx.lineTo(x + INFO_W, y + 17);
     ctx.stroke();
     ctx.setLineDash([]);
 
@@ -645,44 +704,65 @@ function drawSeparator(ctx, x, y, width, color, opacity = 0.6, isVip = false) {
    カード種類バッジ描画（右端基準で配置）
    isVip=true の場合は虹グラデーションを使用
    =========================== */
+/* pill形バッジ（会員ランク表示） */
 function drawBadge(ctx, text, rightX, centerY, accent, bgColor, isVip = false) {
     ctx.save();
-    ctx.font = `500 16px 'Zen Maru Gothic', sans-serif`;
-    ctx.textAlign = 'right';
+    ctx.font = `600 14px 'Zen Maru Gothic', sans-serif`;
     const textW = ctx.measureText(text).width;
-    const padX  = 14;
-    const padY  = 8;
+    const padX  = 16;
     const bw    = textW + padX * 2;
     const bh    = 28;
     const bx    = rightX - bw;
     const by    = centerY - bh / 2;
+    const br    = bh / 2; // pill形状
 
-    // バッジ背景（角丸矩形）
+    // バッジ背景
     ctx.fillStyle = bgColor;
-    roundRect(ctx, bx, by, bw, bh, 4);
+    roundRect(ctx, bx, by, bw, bh, br);
     ctx.fill();
 
     // バッジ枠線
-    ctx.lineWidth   = 1;
-    ctx.globalAlpha = 0.7;
-    if (isVip) {
-        ctx.strokeStyle = makeGoldGrad(ctx, bx, by, bx + bw, by);
-        ctx.lineWidth   = 1.5;
-    } else {
-        ctx.strokeStyle = accent;
-    }
-    roundRect(ctx, bx, by, bw, bh, 4);
+    ctx.globalAlpha = isVip ? 0.75 : 0.6;
+    ctx.strokeStyle = isVip
+        ? makeGoldGrad(ctx, bx, by, bx + bw, by)
+        : accent;
+    ctx.lineWidth = isVip ? 1.5 : 1;
+    roundRect(ctx, bx, by, bw, bh, br);
     ctx.stroke();
     ctx.globalAlpha = 1;
 
     // バッジテキスト
-    if (isVip) {
-        ctx.fillStyle = makeGoldGrad(ctx, bx, by, bx + bw, by);
-    } else {
-        ctx.fillStyle = accent;
-    }
+    ctx.fillStyle  = isVip ? makeGoldGrad(ctx, bx, by, bx + bw, by) : accent;
     ctx.textAlign  = 'right';
-    ctx.fillText(text, rightX - padX, centerY + 6);
+    ctx.fillText(text, rightX - padX, centerY + 5);
+    ctx.restore();
+}
+
+/* ===========================
+   カード内枠線（プレミアム感を出す細いインセットボーダー）
+   =========================== */
+function drawCardFrame(ctx, theme) {
+    const inset = 7;
+    ctx.save();
+    const g = theme.vip
+        ? (() => {
+            const grad = ctx.createLinearGradient(inset, inset, CARD_W - inset, CARD_H - inset);
+            grad.addColorStop(0,   '#7a5a10');
+            grad.addColorStop(0.5, '#d4af37');
+            grad.addColorStop(1,   '#7a5a10');
+            return grad;
+          })()
+        : (() => {
+            const grad = ctx.createLinearGradient(inset, inset, CARD_W - inset, CARD_H - inset);
+            grad.addColorStop(0,   theme.accent);
+            grad.addColorStop(0.7, theme.accent);
+            grad.addColorStop(1,   'transparent');
+            return grad;
+          })();
+    ctx.strokeStyle  = g;
+    ctx.lineWidth    = 1;
+    ctx.globalAlpha  = theme.vip ? 0.48 : 0.18;
+    ctx.strokeRect(inset, inset, CARD_W - inset * 2, CARD_H - inset * 2);
     ctx.restore();
 }
 
@@ -706,60 +786,80 @@ function makeGoldGrad(ctx, x1, y1, x2, y2) {
 function drawCardFooter(ctx, theme) {
     const cy = STRIP_Y + STRIP_H / 2;  // ストリップ垂直中央
 
-    // QRコード風プレースホルダー（左側）
-    const qrSize = 70;
-    const qrX    = PHOTO_X;
+    // --- QRコード風プレースホルダー（本物らしいファインダーパターン付き） ---
+    const qrSize = 76;
+    const qrX    = PHOTO_X - 2;
     const qrY    = cy - qrSize / 2;
+    const bgCol  = theme.vip ? 'rgba(10,8,0,0.92)' : 'rgba(14,21,32,0.92)';
 
     ctx.save();
-    ctx.fillStyle   = 'rgba(255,255,255,0.08)';
-    ctx.strokeStyle = theme.vip
-        ? makeGoldGrad(ctx, qrX, qrY, qrX+qrSize, qrY)
-        : theme.accent;
-    ctx.lineWidth   = 1.5;
-    roundRect(ctx, qrX, qrY, qrSize, qrSize, 4);
+
+    // QR外枠・背景
+    ctx.fillStyle = 'rgba(255,255,255,0.07)';
+    roundRect(ctx, qrX, qrY, qrSize, qrSize, 3);
     ctx.fill();
-    ctx.globalAlpha = 0.7;
-    roundRect(ctx, qrX, qrY, qrSize, qrSize, 4);
+    ctx.globalAlpha = 0.55;
+    ctx.strokeStyle = theme.vip
+        ? makeGoldGrad(ctx, qrX, qrY, qrX + qrSize, qrY)
+        : theme.accent;
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, qrX, qrY, qrSize, qrSize, 3);
     ctx.stroke();
     ctx.globalAlpha = 1;
 
-    // QR内の簡易グリッド
-    ctx.fillStyle = 'rgba(255,255,255,0.12)';
-    const cell = 10;
-    const grid = [
-        [0,0],[1,0],[2,0],[0,1],[2,1],[0,2],[1,2],[2,2],  // 左上パターン
-        [5,0],[6,0],[5,1],[6,1],                            // 右上小
-        [5,5],[6,5],[5,6],[6,6],                            // 右下小
-        [2,4],[3,4],[3,5],[4,3],[4,4],                      // 中央
-    ];
-    const off = 8;
-    grid.forEach(([gx, gy]) => {
-        ctx.fillRect(qrX + off + gx * cell, qrY + off + gy * cell, cell - 1, cell - 1);
+    // ファインダーパターン（QRの3角マーカー）
+    const fpSize = 17;
+    const fpPad  = 5;
+    const fpModColor = 'rgba(255,255,255,0.52)';
+    [
+        [qrX + fpPad,                    qrY + fpPad],                     // 左上
+        [qrX + qrSize - fpSize - fpPad,  qrY + fpPad],                     // 右上
+        [qrX + fpPad,                    qrY + qrSize - fpSize - fpPad],   // 左下
+    ].forEach(([fx, fy]) => {
+        ctx.fillStyle = fpModColor;
+        ctx.fillRect(fx, fy, fpSize, fpSize);       // 外枠
+        ctx.fillStyle = bgCol;
+        ctx.fillRect(fx + 3, fy + 3, fpSize - 6, fpSize - 6);  // 内クリア
+        ctx.fillStyle = fpModColor;
+        ctx.fillRect(fx + 6, fy + 6, fpSize - 12, fpSize - 12); // 中心ドット
     });
+
+    // データモジュール（右下エリアのランダムパターン）
+    ctx.fillStyle = 'rgba(255,255,255,0.22)';
+    const cells  = 5;
+    const cSize  = (qrSize - fpPad * 2 - fpSize - 5) / cells;
+    const dsX    = qrX + fpPad + fpSize + 5;
+    const dsY    = qrY + fpPad + fpSize + 5;
+    [[0,0],[1,0],[3,0],[4,0],[0,1],[2,1],[4,1],[1,2],[2,2],[3,2],[0,3],[2,3],[4,3],[1,4],[3,4],[4,4]]
+        .forEach(([px, py]) => {
+            if (px < cells && py < cells) {
+                ctx.fillRect(dsX + px * cSize, dsY + py * cSize, cSize - 1, cSize - 1);
+            }
+        });
+
     ctx.restore();
 
-    // モットーテキスト（中央）
+    // --- モットーテキスト（中央） ---
     ctx.save();
     if (theme.vip) {
-        ctx.fillStyle   = makeGoldGrad(ctx, CARD_W*0.25, cy, CARD_W*0.75, cy);
-        ctx.globalAlpha = 0.9;
+        ctx.fillStyle   = makeGoldGrad(ctx, CARD_W * 0.3, cy, CARD_W * 0.7, cy);
+        ctx.globalAlpha = 0.88;
     } else {
-        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.fillStyle = 'rgba(255,255,255,0.42)';
     }
-    ctx.font      = `400 20px 'Noto Serif JP', serif`;
+    ctx.font      = `400 18px 'Noto Serif JP', serif`;
     ctx.textAlign = 'center';
-    ctx.fillText('真正なるメスケモ推進委員会会員', CARD_W / 2, cy + 8);
+    ctx.fillText('真正なるメスケモ推進委員会会員', CARD_W / 2, cy + 7);
     ctx.restore();
 
-    // 右側装飾（ひし形ドット）
+    // --- 右装飾（ひし形ドット） ---
     ctx.save();
     ctx.fillStyle   = theme.vip
-        ? makeGoldGrad(ctx, CARD_W-140, cy, CARD_W-30, cy)
+        ? makeGoldGrad(ctx, CARD_W - 140, cy, CARD_W - 28, cy)
         : theme.accent;
-    ctx.globalAlpha = 0.5;
-    for (let i = 0; i < 5; i++) {
-        const dx = CARD_W - 120 + i * 22;
+    ctx.globalAlpha = 0.42;
+    for (let i = 0; i < 4; i++) {
+        const dx = CARD_W - 110 + i * 22;
         ctx.save();
         ctx.translate(dx, cy);
         ctx.rotate(Math.PI / 4);
