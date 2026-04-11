@@ -169,6 +169,13 @@ const castData = [
         detailImage: 'images/cast/elvie_original.png',
         description: 'デッカいメスケモは最高ですよネ!!',
     },
+    {
+        id: 21,
+        name: 'Shint_Akatohi',
+        image: 'images/cast/shint-akatohi.png',
+        detailImage: 'images/cast/shint-akatohi_original.png',
+        description: '',
+    },
     // 以降は実際のキャストデータに差し替えてください
     ...Array.from({ length: 50 }, (_, i) => ({
         id: i + 2,
