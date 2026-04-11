@@ -155,6 +155,13 @@ const castData = [
         detailImage: 'images/cast/konatsu_original.png',
         description: 'なでテクは持たず…。だけどデカさで圧倒します',
     },
+    {
+        id: 19,
+        name: 'NARGA',
+        image: 'images/cast/narga.png',
+        detailImage: 'images/cast/narga_original.png',
+        description: '',
+    },
     // 以降は実際のキャストデータに差し替えてください
     ...Array.from({ length: 50 }, (_, i) => ({
         id: i + 2,
