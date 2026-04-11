@@ -148,6 +148,14 @@ const castData = [
         description: 'パイナップルにピザを載せるのが趣味です',
         size: 'medium',
     },
+    {
+        id: 18,
+        name: '御神 琥夏',
+        image: 'images/cast/konatsu.png',
+        detailImage: 'images/cast/konatsu_original.png',
+        description: 'なでテクは持たず…。だけどデカさで圧倒します',
+        size: 'medium',
+    },
     // 以降は実際のキャストデータに差し替えてください
     ...Array.from({ length: 50 }, (_, i) => ({
         id: i + 2,
