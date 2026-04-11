@@ -108,6 +108,14 @@ const castData = [
         description: '見た目はちょっと不良ちっくではあるが、無でるのが超大好きなオオカミの子だヨ。さぁ撫でるよ？準備は良いかい・・・？❤',
         size: 'medium',
     },
+    {
+        id: 13,
+        name: 'ギラチー',
+        image: 'images/cast/girachii.png',
+        detailImage: 'images/cast/girachii_original.png',
+        description: '趣味は音楽と着ぐるみ？\nえっと…甘やかしたい派\n私"は"可愛くない',
+        size: 'medium',
+    },
     // 以降は実際のキャストデータに差し替えてください
     ...Array.from({ length: 50 }, (_, i) => ({
         id: i + 2,
