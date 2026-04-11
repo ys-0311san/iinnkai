@@ -124,6 +124,14 @@ const castData = [
         description: 'デカいメスケモがお待ちしてます。',
         size: 'medium',
     },
+    {
+        id: 15,
+        name: '音狐',
+        image: 'images/cast/otokitsune.png',
+        detailImage: 'images/cast/otokitsune_original.png',
+        description: '',
+        size: 'medium',
+    },
     // 以降は実際のキャストデータに差し替えてください
     ...Array.from({ length: 50 }, (_, i) => ({
         id: i + 2,
