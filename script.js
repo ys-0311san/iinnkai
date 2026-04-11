@@ -19,6 +19,7 @@ const castData = [
     {
         id: 1,
         name: 'takaniso',
+        yomi: 'たかにそ takaniso',
         role: 'オーナー',
         image: 'images/cast/takaniso.png',               // 木札グリッド用（焼き木調）
         detailImage: 'images/cast/takaniso_original.png', // 詳細ビュー用（オリジナル）
@@ -28,6 +29,7 @@ const castData = [
     {
         id: 2,
         name: '狐乃さまあ',
+        yomi: 'きつのさまあ kitsuno samaa',
         image: 'images/cast/samaa.png',
         detailImage: 'images/cast/samaa_original.png',
         description: '趣味はアニメ！漫画！\nやれることは全力で！\n今日もご主人様を癒していきます♡',
@@ -36,21 +38,24 @@ const castData = [
     {
         id: 3,
         name: 'ぬの',
+        yomi: 'ぬの nuno',
         image: 'images/cast/nuno.png',
         detailImage: 'images/cast/nuno_original.png',
         description: '',
     },
     {
         id: 4,
-        name: 'Cute Nukko',
+        name: 'きゅーとぬっこ',
+        yomi: 'きゅーとぬっこ cute nukko cutenukko',
         image: 'images/cast/cute-nukko.png',
         detailImage: 'images/cast/cute-nukko_original.png',
-        description: '',
+        description: 'なでと癒しが得意なケモノです。疲れたらおいで！疲れてなくてもおいで！！',
         size: 'medium',
     },
     {
         id: 5,
         name: 'ウルフィー',
+        yomi: 'うるふぃー urufii wolfie',
         image: 'images/cast/uryfi.png',
         detailImage: 'images/cast/uryfi_original.png',
         description: '',
@@ -58,6 +63,7 @@ const castData = [
     {
         id: 6,
         name: 'うどん君',
+        yomi: 'うどんくん udonkun udon',
         image: 'images/cast/udon_a.png',
         detailImage: 'images/cast/udon_a_original.png',
         description: '',
@@ -65,6 +71,7 @@ const castData = [
     {
         id: 7,
         name: '天塚マウル',
+        yomi: 'あまつかまうる amatsuka mauru',
         image: 'images/cast/amatuka-mauru.png',
         detailImage: 'images/cast/amatuka-mauru_original.png',
         description: '',
@@ -72,6 +79,7 @@ const castData = [
     {
         id: 8,
         name: 'yuki__san',
+        yomi: 'ゆきさん yukisan yuki',
         image: 'images/cast/yuki-san.png',
         detailImage: 'images/cast/yuki-san_original.png',
         description: 'いつもの子は過激すぎたのでクールに、ぜひお越しください。',
@@ -80,6 +88,7 @@ const castData = [
     {
         id: 9,
         name: '銀天のウェイン',
+        yomi: 'ぎんてんのうぇいん ginten wayne',
         image: 'images/cast/ginten-wayne.png',
         detailImage: 'images/cast/ginten-wayne_original.png',
         description: '普段はソロで遊んでばかりですが、\n甘やかすことが大好きなピンクの火竜、\nエルダとして癒しをご提供いたします♡',
@@ -87,6 +96,7 @@ const castData = [
     {
         id: 10,
         name: '蒼天-Souten-',
+        yomi: 'そうてん souten',
         image: 'images/cast/souten.png',
         detailImage: 'images/cast/souten_original.png',
         description: '',
@@ -95,6 +105,7 @@ const castData = [
     {
         id: 11,
         name: '6ugca6',
+        yomi: 'ばぐ bagu 6ugca6',
         image: 'images/cast/6ugca6.png',
         detailImage: 'images/cast/6ugca6_original.png',
         description: 'なでなで倶楽部の店長にしてあるときはメスドラ。あるときはメスケモ。\nなでなでと心地よい会話でその日の疲れを癒します',
@@ -103,6 +114,7 @@ const castData = [
     {
         id: 12,
         name: '竜ドラ',
+        yomi: 'りゅうどら ryuudora ryudora',
         image: 'images/cast/ryudora.png',
         detailImage: 'images/cast/ryudora_original.png',
         description: '見た目はちょっと不良ちっくではあるが、無でるのが超大好きなオオカミの子だヨ。さぁ撫でるよ？準備は良いかい・・・？❤',
@@ -111,6 +123,7 @@ const castData = [
     {
         id: 13,
         name: 'ギラチー',
+        yomi: 'ぎらちー girachii girachi',
         image: 'images/cast/girachii.png',
         detailImage: 'images/cast/girachii_original.png',
         description: '趣味は音楽と着ぐるみ？\nえっと…甘やかしたい派\n私"は"可愛くない',
@@ -119,6 +132,7 @@ const castData = [
     {
         id: 14,
         name: 'エクリクシス',
+        yomi: 'えくりくしす eclixis ekurikushisu',
         image: 'images/cast/eclixis.png',
         detailImage: 'images/cast/eclixis_original.png',
         description: 'デカいメスケモがお待ちしてます。',
@@ -127,6 +141,7 @@ const castData = [
     {
         id: 15,
         name: '音狐',
+        yomi: 'おとこさん otokosan',
         image: 'images/cast/otokitsune.png',
         detailImage: 'images/cast/otokitsune_original.png',
         description: '',
@@ -135,6 +150,7 @@ const castData = [
     {
         id: 16,
         name: 'にっくん',
+        yomi: 'にっくん nikkun',
         image: 'images/cast/nikkun.png',
         detailImage: 'images/cast/nikkun_original.png',
         description: 'やさしくなでなで、癒しの時間いかがですか？',
@@ -143,6 +159,7 @@ const castData = [
     {
         id: 17,
         name: '？？？',
+        yomi: 'めりー merii mery mary',
         image: 'images/cast/mystery17.png',
         detailImage: 'images/cast/mystery17_original.png',
         description: 'パイナップルにピザを載せるのが趣味です',
@@ -151,6 +168,7 @@ const castData = [
     {
         id: 18,
         name: '御神 琥夏',
+        yomi: 'みかみこなつ mikami konatsu',
         image: 'images/cast/konatsu.png',
         detailImage: 'images/cast/konatsu_original.png',
         description: 'なでテクは持たず…。だけどデカさで圧倒します',
@@ -158,6 +176,7 @@ const castData = [
     {
         id: 19,
         name: 'NARGA',
+        yomi: 'なーが naaga narga',
         image: 'images/cast/narga.png',
         detailImage: 'images/cast/narga_original.png',
         description: '',
@@ -165,6 +184,7 @@ const castData = [
     {
         id: 20,
         name: 'エルビィ',
+        yomi: 'えるびぃ erubii elvie',
         image: 'images/cast/elvie.png',
         detailImage: 'images/cast/elvie_original.png',
         description: 'デッカいメスケモは最高ですよネ!!',
@@ -172,6 +192,7 @@ const castData = [
     {
         id: 21,
         name: 'Shint_Akatohi',
+        yomi: 'しんとあかとひ shint akatohi',
         image: 'images/cast/shint-akatohi.png',
         detailImage: 'images/cast/shint-akatohi_original.png',
         description: '',
@@ -179,6 +200,7 @@ const castData = [
     {
         id: 22,
         name: 'ななみ',
+        yomi: 'ななみ nanami',
         image: 'images/cast/nanami.png',
         detailImage: 'images/cast/nanami_original.png',
         description: 'なでなでとか色々やるよ〜\n楽しんでいってね(ˊᵕˋ)੭ ੈ❤︎',
@@ -619,13 +641,30 @@ document.addEventListener('keydown', (e) => {
 
 /* ===========================
    リアルタイム検索
+   カタカナ→ひらがな変換 + 小文字化で統一比較
    =========================== */
+function normalizeSearch(str) {
+    return (str || '')
+        .toLowerCase()
+        // カタカナ→ひらがな変換（ァ-ヶ → ぁ-ん）
+        .replace(/[\u30A1-\u30F6]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60));
+}
+
 searchInput.addEventListener('input', () => {
-    const term = searchInput.value.trim().toLowerCase();
-    const filtered = castData.filter((cast) =>
-        cast.name.toLowerCase().includes(term)
-    );
+    const term = normalizeSearch(searchInput.value.trim());
+    if (!term) {
+        renderCastGrid(castData);
+        noResults.hidden = true;
+        return;
+    }
+    const filtered = castData.filter((cast) => {
+        return (
+            normalizeSearch(cast.name).includes(term) ||
+            normalizeSearch(cast.yomi || '').includes(term)
+        );
+    });
     renderCastGrid(filtered);
+    noResults.hidden = filtered.length > 0;
 });
 
 /* ===========================
