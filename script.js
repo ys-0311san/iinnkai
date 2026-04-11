@@ -92,6 +92,14 @@ const castData = [
         description: '',
         size: 'medium',
     },
+    {
+        id: 11,
+        name: '6ugca6',
+        image: 'images/cast/6ugca6.png',
+        detailImage: 'images/cast/6ugca6_original.png',
+        description: 'なでなで倶楽部の店長にしてあるときはメスドラ。あるときはメスケモ。\nなでなでと心地よい会話でその日の疲れを癒します',
+        size: 'medium',
+    },
     // 以降は実際のキャストデータに差し替えてください
     ...Array.from({ length: 50 }, (_, i) => ({
         id: i + 2,
