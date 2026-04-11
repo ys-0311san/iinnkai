@@ -38,9 +38,9 @@
 /* 画像のドラッグ移動を無効化 */
 img {
     -webkit-user-drag: none;
-    user-drag: none;
     -webkit-user-select: none;
     user-select: none;
+    pointer-events: none;
 }
 
 body {
@@ -71,7 +71,7 @@ body {
 /* ===== 背景画像（クロスフェード用2レイヤー） ===== */
 /* JSでbackground-imageをセットし、opacityでクロスフェードする */
 .bg-layer {
-    position: fixed;
+    position: absolute;
     inset: 0;
     background-size: cover;
     background-position: center;
@@ -252,7 +252,12 @@ body {
     cursor: pointer;
     border-radius: 4px;
     -webkit-tap-highlight-color: transparent;
-    /* エフェクトなし */
+}
+
+/* 非アクティブタブのホバーエフェクト */
+.tab-button:hover:not(.active) {
+    background: rgba(245, 243, 237, 0.15);
+    border-color: rgba(212, 175, 55, 0.5);
 }
 
 .tab-button.active {
@@ -424,7 +429,13 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* アクティブ（選択中）のみスタイルを変える・ホバーエフェクトなし */
+/* 非アクティブアイテムのホバーエフェクト */
+.drawer-item:hover:not(.active) {
+    background: rgba(212, 175, 55, 0.08);
+    color: rgba(245, 243, 237, 0.9);
+}
+
+/* アクティブ（選択中）のスタイル */
 .drawer-item.active {
     background: rgba(212, 175, 55, 0.18);
     color: var(--gold-accent);
@@ -542,7 +553,7 @@ main {
 
 /* キャストカードはヘッダー下から全体が見えるよう高さ固定・スクロール */
 #castCard {
-    max-height: calc(100vh - 120px);
+    max-height: calc(100vh - 150px);
     overflow-y: auto;
 }
 
@@ -773,6 +784,7 @@ main {
     background: url('images/wood-texture.jpg') center / cover no-repeat;
     border: 3px solid var(--cedar);
     border-radius: 8px;
+    will-change: transform, box-shadow;
     padding: var(--spacing-md);
     cursor: pointer;
     transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
@@ -1421,6 +1433,12 @@ main {
     .cast-card:hover {
         transform: none;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    /* タップ時の軽いフィードバック */
+    .cast-card:active {
+        opacity: 0.9;
+        transform: scale(0.98);
     }
 
     .cast-name {
