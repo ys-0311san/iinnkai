@@ -790,6 +790,9 @@ main {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     position: relative;
     overflow: hidden;
+    /* 名前テキストを常にカード下部に揃えるためflex縦並び */
+    display: flex;
+    flex-direction: column;
 }
 
 /* ホバー時の金色グロー */
@@ -845,6 +848,8 @@ main {
     text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
     position: relative;
     z-index: 1;
+    /* 画像の高さに関わらず名前を下部に固定 */
+    margin-top: auto;
 }
 
 /* 文字数別フォントサイズ調整 */
