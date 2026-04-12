@@ -563,7 +563,10 @@ function renderCastGrid(casts) {
             img.addEventListener('error', () => { img.src = placeholderCard; });
 
             const nameEl = document.createElement('div');
-            nameEl.className = 'cast-name';
+            // 文字数に応じてサイズクラスを付与（短い名前ほど大きく表示）
+            const nameLen = cast.name.length;
+            const nameSizeClass = nameLen <= 4 ? 'name-short' : nameLen <= 7 ? 'name-medium' : 'name-long';
+            nameEl.className = `cast-name ${nameSizeClass}`;
             nameEl.textContent = cast.name;
 
             // 役職がある場合はバッジを追加

@@ -838,7 +838,7 @@ main {
 
 .cast-name {
     font-family: 'Dela Gothic One', sans-serif;
-    font-size: clamp(1rem, 2vw, 1.2rem);
+    font-size: clamp(1rem, 2vw, 1.3rem);
     font-weight: 400;
     color: #3b1f0e;
     text-align: center;
@@ -846,6 +846,11 @@ main {
     position: relative;
     z-index: 1;
 }
+
+/* 文字数別フォントサイズ調整 */
+.cast-name.name-short  { font-size: clamp(1.1rem, 2.4vw, 1.5rem); } /* ≤4文字: ぬの・音狐 など */
+.cast-name.name-medium { font-size: clamp(0.95rem, 2vw, 1.25rem); } /* 5〜7文字: ウルフィー・takaniso など */
+.cast-name.name-long   { font-size: clamp(0.75rem, 1.6vw, 1rem);  } /* 8文字〜: Shint_Akatohi など */
 
 /* 木札カードの役職バッジ */
 .cast-role {
@@ -1467,6 +1472,9 @@ main {
         padding: 0.2rem var(--spacing-xs);
         margin-bottom: 0.2rem;
     }
+    .cast-name.name-short  { font-size: 0.85rem; }
+    .cast-name.name-medium { font-size: 0.75rem; }
+    .cast-name.name-long   { font-size: 0.65rem; }
 
     .cast-role {
         font-size: 0.65rem;
@@ -1515,6 +1523,9 @@ main {
     .cast-name {
         font-size: 0.65rem;
     }
+    .cast-name.name-short  { font-size: 0.75rem; }
+    .cast-name.name-medium { font-size: 0.65rem; }
+    .cast-name.name-long   { font-size: 0.55rem; }
 }
 
 /* ===== VIP発見モーダル ===== */
