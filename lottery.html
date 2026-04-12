@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎁 プレゼント抽選 - メスケモ推進委員会</title>
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+
+    <!-- ============ 抽選専用OGP ============ -->
+    <meta property="og:type"         content="website">
+    <meta property="og:title"        content="🎁 メスケモアバター プレゼント抽選！">
+    <meta property="og:description"  content="抽選で3名様にオリジナルメスケモアバターをプレゼント！応募はこちらから">
+    <meta property="og:url"          content="https://ys-0311san.github.io/iinnkai/lottery.html">
+    <meta property="og:image"        content="https://ys-0311san.github.io/iinnkai/images/ogp-lottery.gif">
+    <meta property="og:image:type"   content="image/gif">
+    <meta property="og:image:width"  content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt"    content="メスケモアバター プレゼント抽選">
+    <meta property="og:site_name"    content="メスケモ推進委員会">
+    <meta name="twitter:card"        content="summary_large_image">
+    <meta name="twitter:site"        content="@mesukemo_ya">
+    <meta name="twitter:title"       content="🎁 メスケモアバター プレゼント抽選！">
+    <meta name="twitter:description" content="抽選で3名様にプレゼント！応募はこちら">
+    <meta name="twitter:image"       content="https://ys-0311san.github.io/iinnkai/images/ogp-lottery.gif">
+    <!-- ====================================== -->
+
+    <!-- メインサイトと共通フォント・変数を流用 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===== CSS カスタムプロパティ（メインサイトと同一） ===== */
+        :root {
+            --ink-black:   #1a1a1a;
+            --charcoal:    #2d2d2d;
+            --wood-brown:  #5c4033;
+            --cedar:       #8b6f47;
+            --gold-accent: #d4af37;
+            --paper-white: #f5f3ed;
+            --cream:       #ebe6d9;
+            --shadow:      rgba(0, 0, 0, 0.3);
+            --shadow-deep: rgba(0, 0, 0, 0.5);
+
+            --font-display: 'Noto Serif JP', serif;
+            --font-body:    'Zen Maru Gothic', sans-serif;
+
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --spacing-xl: 3rem;
+        }
+
+        /* ===== リセット ===== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体：木目背景 ===== */
+        body {
+            font-family: var(--font-body);
+            color: var(--paper-white);
+            background-color: var(--charcoal);
+            background-image: url('images/wood-texture.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-lg) var(--spacing-sm);
+        }
+
+        /* ===== ヘッダー（サイトロゴ） ===== */
+        .lottery-header {
+            width: 100%;
+            max-width: 680px;
+            text-align: center;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .lottery-header a {
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .lottery-header img {
+            max-height: 56px;
+            width: auto;
+            filter: drop-shadow(0 2px 4px var(--shadow-deep));
+        }
+
+        /* ===== カード本体 ===== */
+        .lottery-card {
+            width: 100%;
+            max-width: 680px;
+            background: rgba(245, 243, 237, 0.08);
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            border-radius: 10px;
+            box-shadow: 0 12px 40px var(--shadow-deep);
+            padding: var(--spacing-xl);
+        }
+
+        /* ===== カードタイトル ===== */
+        .lottery-card h1 {
+            font-family: var(--font-display);
+            font-size: clamp(1.4rem, 4vw, 2rem);
+            color: var(--gold-accent);
+            text-align: center;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.4);
+            padding-bottom: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+            letter-spacing: 0.06em;
+        }
+
+        /* ===== 説明文 ===== */
+        .lottery-card p {
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: rgba(245, 243, 237, 0.85);
+            margin-bottom: var(--spacing-md);
+        }
+
+        /* ===== フォーム埋め込みラッパー ===== */
+        .lottery-form-wrap {
+            margin-top: var(--spacing-lg);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .lottery-form-wrap iframe {
+            display: block;
+            width: 100%;
+            border: none;
+        }
+
+        /* ===== エラー表示 ===== */
+        .lottery-error h1 {
+            color: rgba(245, 243, 237, 0.7);
+            font-size: clamp(1.2rem, 3.5vw, 1.6rem);
+        }
+
+        .lottery-error p {
+            text-align: center;
+        }
+
+        /* ===== メインページへ戻るリンク ===== */
+        .back-link {
+            display: inline-block;
+            margin-top: var(--spacing-md);
+            padding: 0.6em 1.6em;
+            border: 1px solid var(--gold-accent);
+            border-radius: 4px;
+            color: var(--gold-accent);
+            text-decoration: none;
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .back-link:hover {
+            background: var(--gold-accent);
+            color: var(--ink-black);
+        }
+
+        .lottery-error .back-link-wrap {
+            text-align: center;
+            margin-top: var(--spacing-lg);
+        }
+
+        /* ===== フッター ===== */
+        .lottery-footer {
+            margin-top: var(--spacing-lg);
+            font-size: 0.75rem;
+            color: rgba(245, 243, 237, 0.35);
+            text-align: center;
+        }
+
+        /* ===== レスポンシブ ===== */
+        @media (max-width: 480px) {
+            .lottery-card {
+                padding: var(--spacing-lg) var(--spacing-md);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- サイトロゴ（クリックでメインページへ） -->
+    <header class="lottery-header">
+        <a href="index.html">
+            <img src="images/header-banner.png" alt="メスケモ推進委員会">
+        </a>
+    </header>
+
+    <!-- コンテンツ（JavaScriptがトークン検証後に生成） -->
+    <main id="lotteryContent" role="main"></main>
+
+    <!-- フッター -->
+    <footer class="lottery-footer">
+        <p>&copy; メスケモ推進委員会</p>
+    </footer>
+
+    <script>
+        /**
+         * URLパラメータのトークンを検証し、正規アクセスかどうかを判定する。
+         * 正規アクセスの場合は応募フォームを、不正アクセスの場合はエラーメッセージを表示する。
+         */
+        (function () {
+            // URLパラメータを取得
+            var params = new URLSearchParams(window.location.search);
+            var token  = params.get('token');
+            var ref    = params.get('ref');
+
+            // 正規トークン（イベントごとに変更）
+            var VALID_TOKEN = 'present2026';
+            var VALID_REF   = 'official';
+
+            var container = document.getElementById('lotteryContent');
+
+            if (token === VALID_TOKEN && ref === VALID_REF) {
+                // ✅ 正規アクセス：応募フォームを表示
+                container.innerHTML = [
+                    '<div class="lottery-card">',
+                    '  <h1>🎁 プレゼント抽選 応募フォーム</h1>',
+                    '  <p>抽選で3名様にオリジナルメスケモアバターをプレゼント！<br>',
+                    '     下記フォームにご記入の上、ご応募ください。</p>',
+                    '  <div class="lottery-form-wrap">',
+                    '    <iframe',
+                    '      src="https://docs.google.com/forms/d/e/XXXXXX/viewform?embedded=true"',
+                    '      height="800"',
+                    '      title="プレゼント抽選 応募フォーム"',
+                    '      loading="lazy">',
+                    '      フォームを読み込んでいます…',
+                    '    </iframe>',
+                    '  </div>',
+                    '</div>'
+                ].join('\n');
+            } else {
+                // ❌ 不正アクセス：エラーメッセージを表示
+                container.innerHTML = [
+                    '<div class="lottery-card lottery-error">',
+                    '  <h1>🚫 アクセスできません</h1>',
+                    '  <p>このページは公式サイトのお知らせリンクからのみアクセスできます。<br>',
+                    '     Xの公式アカウント（<strong>@mesukemo_ya</strong>）のお知らせをご確認ください。</p>',
+                    '  <div class="back-link-wrap">',
+                    '    <a href="index.html" class="back-link">メインページへ戻る →</a>',
+                    '  </div>',
+                    '</div>'
+                ].join('\n');
+            }
+        })();
+    </script>
+
+</body>
+</html>
