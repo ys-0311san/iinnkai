@@ -268,6 +268,33 @@ const castData = [
         description: '主に接客担当です。なかよくしてね。',
         size: 'medium',
     },
+    {
+        id: 30,
+        name: '七色夢狐',
+        yomi: 'なないろゆめこ nanairoyumeko',
+        image: 'images/cast/nanairoyumeko.png',
+        detailImage: 'images/cast/nanairoyumeko_original.png',
+        description: '',
+        size: 'medium',
+    },
+    {
+        id: 31,
+        name: '東洋桜狐',
+        yomi: 'とうようさくらこ toyosakurako',
+        image: 'images/cast/toyosakurako.png',
+        detailImage: 'images/cast/toyosakurako_original.png',
+        description: '',
+        size: 'medium',
+    },
+    {
+        id: 32,
+        name: 'マルコ',
+        yomi: 'まるこ maruko',
+        image: 'images/cast/maruko.png',
+        detailImage: 'images/cast/maruko_original.png',
+        description: '',
+        size: 'large',
+    },
     // 以降は実際のキャストデータに差し替えてください
     ...Array.from({ length: 50 }, (_, i) => ({
         id: i + 2,
