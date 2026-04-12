@@ -259,6 +259,15 @@ const castData = [
         description: 'VRC、キャスト、接客初心者です。撫でる舐めるの接客を提供します。',
         size: 'large',
     },
+    {
+        id: 29,
+        name: 'なおえ。',
+        yomi: 'なおえ naoe',
+        image: 'images/cast/naoe.png',
+        detailImage: 'images/cast/naoe_original.png',
+        description: '主に接客担当です。なかよくしてね。',
+        size: 'medium',
+    },
     // 以降は実際のキャストデータに差し替えてください
     ...Array.from({ length: 50 }, (_, i) => ({
         id: i + 2,
