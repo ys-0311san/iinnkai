@@ -295,6 +295,15 @@ const castData = [
         description: '',
         size: 'large',
     },
+    {
+        id: 33,
+        name: 'かなめり',
+        yomi: 'かなめり kanameri',
+        image: 'images/cast/kanameri.png',
+        detailImage: 'images/cast/kanameri_original.png',
+        description: '不定期出勤で撫でてるよ。のんびりしにおいで～',
+        size: 'medium',
+    },
     // 以降は実際のキャストデータに差し替えてください
     ...Array.from({ length: 50 }, (_, i) => ({
         id: i + 2,
