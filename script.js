@@ -304,6 +304,15 @@ const castData = [
         description: '不定期出勤で撫でてるよ。のんびりしにおいで～',
         size: 'medium',
     },
+    {
+        id: 34,
+        name: 'MamLuua',
+        yomi: 'まむるあ mamluua',
+        image: 'images/cast/mamluua.png',
+        detailImage: 'images/cast/mamluua_original.png',
+        description: '「今、私を見たな。撫で回すから覚悟しな♡（初キャスト頑張ります♡）」',
+        size: 'large',
+    },
     // 以降は実際のキャストデータに差し替えてください
     ...Array.from({ length: 50 }, (_, i) => ({
         id: i + 2,
