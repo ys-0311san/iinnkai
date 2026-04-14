@@ -45,6 +45,25 @@ let dragStartX  = 0;
 let dragStartY  = 0;
 
 /* ===========================
+   背景画像状態管理
+   =========================== */
+/** 現在選択中の背景画像（null = グラデーション） */
+let bgImage      = null;
+/** 現在選択中の背景ID */
+let selectedBgId = 'none';
+
+/* ===========================
+   背景オプション定義
+   画像を追加する場合はここにエントリを追加するだけでよい
+   src: null → グラデーション（デフォルト）
+   src: 'パス' → 画像ファイル
+   =========================== */
+const BG_OPTIONS = [
+    { id: 'none', label: 'グラデーション', src: null },
+    { id: 'bg01', label: '背景①',         src: 'images/card-bg/bg01.jpg' },
+];
+
+/* ===========================
    会員ランクごとのテーマ定義
    =========================== */
 const THEMES = {
@@ -86,6 +105,8 @@ const THEMES = {
    =========================== */
 document.addEventListener('DOMContentLoaded', () => {
     generateMemberId();
+    // 背景セレクターのサムネイルを動的生成
+    buildBgSelector();
     // カードロゴを事前ロード
     cardLogoImage = new Image();
     cardLogoImage.src = 'images/card-logo.png';
@@ -157,13 +178,17 @@ function setupEventListeners() {
     if (photoCanvas) setupDragEvents(photoCanvas);
 
     // フォーム入力のリアルタイム反映
-    ['userName', 'favoriteCast', 'favoriteSpecies', 'cardType'].forEach(id => {
+    ['userName', 'userTitle', 'favoriteSpecies', 'userComment', 'cardType'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
             el.addEventListener('input',  drawPreviewCard);
             el.addEventListener('change', drawPreviewCard);
         }
     });
+
+    // 称号ランダム生成ボタン
+    const regenTitleBtn = document.getElementById('regenTitleBtn');
+    if (regenTitleBtn) regenTitleBtn.addEventListener('click', generateRandomTitle);
 
     // ボタン類（onclickから移行）
     const generateBtn = document.getElementById('generateBtn');
@@ -196,6 +221,106 @@ function generateMemberId() {
     const hh   = String(now.getHours()).padStart(2, '0');
     const min  = String(now.getMinutes()).padStart(2, '0');
     document.getElementById('memberId').value = `${yy}${mm}${dd}${hh}${min}`;
+}
+
+/* ===========================
+   称号ランダム生成（「〇〇の✕✕」形式）
+   前半・後半をそれぞれランダムに組み合わせて称号を生成する
+   =========================== */
+const TITLE_PREFIX = [
+    'ふわふわ', 'もふもふ', 'なでなで', 'きゅんきゅん', 'どきどき',
+    'ぽかぽか', 'ほんわか', 'すやすや', 'ぬくぬく', 'にこにこ',
+    'うとうと', 'とろとろ', 'うきうき', 'わくわく', 'ほわほわ',
+    '永遠', '蒼き天', '黄昏', '夢見る', '甘えん坊',
+    'もこもこ', 'ふかふか', 'むにむに', 'もちもち', 'ぺたぺた',
+    'てろてろ', 'ごろごろ', 'ふにゃふにゃ', 'ぎゅっと', 'ぺろぺろ',
+];
+const TITLE_SUFFIX = [
+    '愛好家', '守護者', '推進者', '番人', '熱狂者',
+    '騎士', '研究者', '案内人', 'メンバー', 'サポーター',
+    '同好者', '愛護者', '観察者', '先駆者', '探求者',
+    '語り部', '応援団長', 'なでなで師', 'もふもふ師', '常連さん',
+    '見守り隊', '推し活民', '溺愛者', '仲間', 'ほっこり担当',
+    'ファン代表', 'お世話係', '癒し担当', 'なかよし', 'お迎え係',
+];
+
+function generateRandomTitle() {
+    const prefix = TITLE_PREFIX[Math.floor(Math.random() * TITLE_PREFIX.length)];
+    const suffix = TITLE_SUFFIX[Math.floor(Math.random() * TITLE_SUFFIX.length)];
+    const titleInput = document.getElementById('userTitle');
+    if (titleInput) {
+        titleInput.value = `${prefix}の${suffix}`;
+        drawPreviewCard();
+    }
+}
+
+/* ===========================
+   背景セレクターのサムネイルをBG_OPTIONSから動的生成する
+   画像を追加するにはBG_OPTIONSにエントリを追加するだけでよい
+   =========================== */
+function buildBgSelector() {
+    const container = document.getElementById('bgSelector');
+    if (!container) return;
+
+    BG_OPTIONS.forEach(opt => {
+        const item = document.createElement('div');
+        item.className = 'bg-option' + (opt.id === 'none' ? ' selected' : '');
+        item.dataset.bgId = opt.id;
+        item.title = opt.label;
+
+        if (opt.src) {
+            // 画像サムネイル
+            const img = document.createElement('img');
+            img.src = opt.src;
+            img.alt = opt.label;
+            img.className = 'bg-option-img';
+            item.appendChild(img);
+        } else {
+            // グラデーションプレビュー
+            const grad = document.createElement('div');
+            grad.className = 'bg-option-gradient';
+            item.appendChild(grad);
+        }
+
+        // ラベル
+        const label = document.createElement('span');
+        label.className = 'bg-option-label';
+        label.textContent = opt.label;
+        item.appendChild(label);
+
+        item.addEventListener('click', () => selectBg(opt));
+        container.appendChild(item);
+    });
+}
+
+/* ===========================
+   背景オプションの選択処理
+   画像がある場合は事前ロードしてからカードを再描画する
+   =========================== */
+function selectBg(opt) {
+    selectedBgId = opt.id;
+
+    // 選択状態を更新
+    document.querySelectorAll('.bg-option').forEach(el => {
+        el.classList.toggle('selected', el.dataset.bgId === opt.id);
+    });
+
+    if (opt.src) {
+        const img = new Image();
+        img.onload = () => {
+            bgImage = img;
+            drawPreviewCard();
+        };
+        img.onerror = () => {
+            // 画像が存在しない場合はグラデーションにフォールバック
+            bgImage = null;
+            drawPreviewCard();
+        };
+        img.src = opt.src;
+    } else {
+        bgImage = null;
+        drawPreviewCard();
+    }
 }
 
 /* ===========================
@@ -415,12 +540,35 @@ function drawPreviewCard() {
     const cardType = document.getElementById('cardType').value;
     const theme    = THEMES[cardType] || THEMES.regular;
 
-    // --- 背景グラデーション ---
-    const bg = ctx.createLinearGradient(0, 0, CARD_W, CARD_H);
-    bg.addColorStop(0, theme.bgTop);
-    bg.addColorStop(1, theme.bgBot);
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, CARD_W, CARD_H);
+    // --- 背景（選択中の画像またはグラデーション） ---
+    if (bgImage) {
+        // カードのアスペクト比に合わせて中央クロップして描画
+        const imgRatio  = bgImage.width / bgImage.height;
+        const cardRatio = CARD_W / CARD_H;
+        let sx, sy, sw, sh;
+        if (imgRatio > cardRatio) {
+            sh = bgImage.height;
+            sw = sh * cardRatio;
+            sx = (bgImage.width - sw) / 2;
+            sy = 0;
+        } else {
+            sw = bgImage.width;
+            sh = sw / cardRatio;
+            sx = 0;
+            sy = (bgImage.height - sh) / 2;
+        }
+        ctx.drawImage(bgImage, sx, sy, sw, sh, 0, 0, CARD_W, CARD_H);
+        // テキスト可読性確保のためダークオーバーレイを重ねる
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(0, 0, CARD_W, CARD_H);
+    } else {
+        // グラデーション背景（デフォルト）
+        const bg = ctx.createLinearGradient(0, 0, CARD_W, CARD_H);
+        bg.addColorStop(0, theme.bgTop);
+        bg.addColorStop(1, theme.bgBot);
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, CARD_W, CARD_H);
+    }
 
     // --- 斜線テクスチャ（微妙な装飾） ---
     ctx.save();
@@ -434,8 +582,8 @@ function drawPreviewCard() {
     }
     ctx.restore();
 
-    // --- 左パネル背景 ---
-    ctx.fillStyle = theme.leftBg;
+    // --- 左パネル背景（背景画像時は半透明で重ねる） ---
+    ctx.fillStyle = bgImage ? 'rgba(0,0,0,0.3)' : theme.leftBg;
     ctx.fillRect(0, 0, LEFT_W, CARD_H);
 
     // --- 左パネル右側の縦線（アクセント） ---
@@ -481,8 +629,8 @@ function drawPreviewCard() {
     drawPhotoCorners(ctx, PHOTO_X, PHOTO_Y, PHOTO_W, PHOTO_H,
         theme.vip ? makeGoldGrad(ctx, PHOTO_X, PHOTO_Y, PHOTO_X + PHOTO_W, PHOTO_Y + PHOTO_H) : theme.accent);
 
-    // --- ボトムストリップ ---
-    ctx.fillStyle = theme.stripBg;
+    // --- ボトムストリップ（背景画像時は半透明で重ねる） ---
+    ctx.fillStyle = bgImage ? 'rgba(0,0,0,0.35)' : theme.stripBg;
     ctx.fillRect(0, STRIP_Y, CARD_W, STRIP_H);
 
     // ストリップ上端線
@@ -554,10 +702,11 @@ function drawCardInfo(ctx, theme, cardType) {
     const accent    = theme.accent;
     const textColor = '#f0ece0';
 
-    const userName      = document.getElementById('userName').value      || '———';
-    const favoriteCast  = document.getElementById('favoriteCast').value  || '未選択';
+    const userName        = document.getElementById('userName').value        || '———';
+    const userTitle       = document.getElementById('userTitle').value       || '———';
     const favoriteSpecies = document.getElementById('favoriteSpecies').value || '———';
-    const memberId      = document.getElementById('memberId').value      || '——————————';
+    const userComment     = document.getElementById('userComment').value     || '———';
+    const memberId        = document.getElementById('memberId').value        || '——————————';
     const today         = new Date();
     const dateStr       = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
 
@@ -609,16 +758,17 @@ function drawCardInfo(ctx, theme, cardType) {
     // 会員名下セパレーター
     drawSeparator(ctx, x, 178, INFO_W, accent, 0.28, theme.vip);
 
-    // 情報テーブル
+    // 情報テーブル（5行・55px間隔でSTRIP_Yに収まるよう調整）
     const rows = [
-        { label: '会員番号',    value: memberId },
-        { label: '推しキャスト', value: favoriteCast },
-        { label: '好きな種族',  value: favoriteSpecies || '———' },
-        { label: '発行日',      value: dateStr },
+        { label: '会員番号',   value: memberId },
+        { label: '称号',       value: userTitle },
+        { label: '好きな種族', value: favoriteSpecies || '———' },
+        { label: 'コメント',   value: userComment },
+        { label: '発行日',     value: dateStr },
     ];
 
     rows.forEach((row, i) => {
-        const ry = 225 + i * 68;
+        const ry = 215 + i * 55;
         drawInfoRow(ctx, x, ry, row.label, row.value, accent, textColor, theme.vip);
     });
 
@@ -920,13 +1070,17 @@ function downloadCard() {
    フォームリセット
    =========================== */
 function resetForm() {
-    document.getElementById('userName').value       = '';
-    document.getElementById('photoUpload').value    = '';
-    document.getElementById('favoriteCast').selectedIndex   = 0;
+    document.getElementById('userName').value        = '';
+    document.getElementById('photoUpload').value     = '';
+    document.getElementById('userTitle').value       = '';
     document.getElementById('favoriteSpecies').value = '';
-    document.getElementById('cardType').selectedIndex       = 0;
+    document.getElementById('userComment').value     = '';
+    document.getElementById('cardType').selectedIndex = 0;
     document.getElementById('photoPreviewContainer').style.display = 'none';
     document.getElementById('downloadSection').style.display       = 'none';
+
+    // 背景を「グラデーション」に戻す
+    selectBg(BG_OPTIONS[0]);
 
     photoImage = null;
     photoX = 0;
