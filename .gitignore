@@ -1,0 +1,10 @@
+# ローカル確認・開発ツール（コミット不要）
+tools/
+
+# OS生成ファイル
+.DS_Store
+Thumbs.db
+
+# エディタ設定
+.vscode/
+.idea/
