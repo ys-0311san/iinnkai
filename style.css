@@ -1837,3 +1837,82 @@ main {
         display: none;
     }
 }
+
+/* ===================================================================
+   画像遅延読み込み（Lazy Load）関連スタイル
+   =================================================================== */
+
+/* ===== ローディングスケルトン ===== */
+/* シマーアニメーション（右から左へ光が流れる） */
+@keyframes skeleton-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.05) 25%,
+        rgba(255, 255, 255, 0.18) 50%,
+        rgba(255, 255, 255, 0.05) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+/* 画像スケルトン：絶対配置で実画像と重ねる */
+.skeleton-image {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: 0;
+    pointer-events: none;
+}
+
+/* ===== 画像ラッパー（スケルトンと実画像の重ね合わせ） ===== */
+/* aspect-ratio で縦横比を維持しながらスケルトンを内包する */
+.cast-image-wrapper {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    margin-bottom: var(--spacing-sm);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 2px solid rgba(212, 175, 55, 0.3);
+    background: rgba(44, 28, 18, 0.5);
+}
+
+/* ラッパー内のpicture要素はブロックで全幅・全高 */
+.cast-image-wrapper picture {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 2;
+}
+
+/* ラッパー内の実画像はラッパーのサイズに合わせる */
+/* （ラッパーが縦横比・ボーダー・マージンを担うため個別指定を上書き） */
+.cast-image-wrapper .cast-image {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+    margin-bottom: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+}
+
+/* ===== 遅延読み込み画像のフェードイン ===== */
+/* 読み込み前は透明（レイアウトスペースは確保） */
+.cast-image.lazy-load {
+    opacity: 0;
+    transition: opacity 0.45s ease;
+}
+
+/* 読み込み完了後にフェードイン */
+.cast-image.lazy-load.loaded {
+    opacity: 1;
+}

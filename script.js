@@ -157,15 +157,6 @@ const castData = [
         size: 'medium',
     },
     {
-        id: 17,
-        name: '？？？',
-        yomi: 'めりー merii mery mary',
-        image: 'images/cast/mystery17.png',
-        detailImage: 'images/cast/mystery17_original.png',
-        description: 'パイナップルにピザを載せるのが趣味です',
-        size: 'medium',
-    },
-    {
         id: 18,
         name: '御神 琥夏',
         yomi: 'みかみこなつ mikami konatsu',
@@ -468,6 +459,121 @@ const placeholderDetail = [
 ].join('');
 
 /* ===========================
+   画像遅延読み込み（Intersection Observer）
+   =========================== */
+
+/** キャスト画像監視用 Intersection Observer インスタンス */
+let castObserver = null;
+
+/**
+ * キャスト画像用の Intersection Observer を初期化する
+ * 画面内（+50px先読み）に入った画像ラッパーを検知し、実画像を読み込む
+ */
+function initLazyLoad() {
+    if (castObserver) return; // 既に初期化済みの場合はスキップ
+
+    castObserver = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+
+                const wrapper = entry.target;
+                const source  = wrapper.querySelector('source[data-srcset]');
+                const img     = wrapper.querySelector('img[data-src]');
+                const skeleton = wrapper.querySelector('.skeleton-image');
+
+                // data-src がない場合は読み込み済み → 監視終了
+                if (!img) {
+                    castObserver.unobserve(wrapper);
+                    return;
+                }
+
+                // WebP ファイルが用意できたら下記コメントを外して有効化する
+                // （WebP非存在時に有効化するとブラウザが404を優先してPNGに戻らないため保留）
+                // if (source) { source.srcset = source.dataset.srcset; }
+
+                // 実画像を読み込む（data-src → src に昇格）
+                img.src = img.dataset.src;
+                img.removeAttribute('data-src');
+
+                img.addEventListener('load', () => {
+                    img.classList.add('loaded');
+                    // フェードイン完了（0.45s）後にスケルトンを非表示
+                    if (skeleton) {
+                        setTimeout(() => { skeleton.style.display = 'none'; }, 450);
+                    }
+                }, { once: true });
+
+                img.addEventListener('error', () => {
+                    // 読み込み失敗時はSVGプレースホルダーを表示
+                    img.src = placeholderCard;
+                    img.classList.add('loaded');
+                    if (skeleton) skeleton.style.display = 'none';
+                }, { once: true });
+
+                // 一度読み込んだら監視終了
+                castObserver.unobserve(wrapper);
+            });
+        },
+        {
+            rootMargin: '50px', // 画面の50px手前から先読み開始
+            threshold: 0,
+        }
+    );
+}
+
+/**
+ * キャストタブ内の未読み込み画像ラッパーを Observer に登録する
+ * すでに読み込み済みの要素（data-src なし）は登録しない
+ */
+function observeCastImages() {
+    if (!castObserver) return;
+
+    const castTab = document.getElementById('cast');
+    if (!castTab) return;
+
+    castTab.querySelectorAll('.lazy-wrapper').forEach((wrapper) => {
+        // img[data-src] がある（未読み込み）ものだけ観察対象に追加
+        if (wrapper.querySelector('img[data-src]')) {
+            castObserver.observe(wrapper);
+        }
+    });
+}
+
+/**
+ * タブ切り替え時に遅延読み込みを開始する
+ * キャストタブのみ対象（他タブは初期読み込みのため不要）
+ * @param {string} tabId - 開いたタブのID
+ */
+function lazyLoadTabImages(tabId) {
+    if (tabId !== 'cast') return;
+    initLazyLoad();
+    observeCastImages();
+}
+
+/**
+ * 指定キャストの前後 count 枚の詳細画像を先読みする
+ * キャスト詳細を開いた際に呼ばれ、次・前のキャストへの操作を高速化する
+ * @param {number} castId - 現在表示中のキャストID
+ * @param {number} count  - 前後何枚先読みするか（デフォルト: 3）
+ */
+function preloadAdjacentImages(castId, count = 3) {
+    // Coming Soon を除く実キャストのみ対象
+    const realCasts = castData.filter((c) => !c.comingSoon);
+    const currentIndex = realCasts.findIndex((c) => c.id === castId);
+    if (currentIndex === -1) return;
+
+    for (let i = 1; i <= count; i++) {
+        [realCasts[currentIndex - i], realCasts[currentIndex + i]]
+            .filter(Boolean)
+            .forEach((cast) => {
+                const preloadImg = new Image();
+                preloadImg.src = cast.detailImage || cast.image;
+            });
+    }
+}
+
+/* ===========================
    タブ切り替え
    =========================== */
 
@@ -509,6 +615,9 @@ function activateTab(targetId) {
     // スクロールをトップに戻す
     window.scrollTo({ top: 0, behavior: 'instant' });
     castCard.scrollTop = 0;
+
+    // キャストタブが開かれた時に遅延読み込みを開始する
+    lazyLoadTabImages(targetId);
 }
 
 tabButtons.forEach((btn) => {
@@ -615,21 +724,14 @@ function renderCastGrid(casts) {
             card.setAttribute('tabindex', '0');
             card.setAttribute('aria-label', `${cast.name}の詳細を見る`);
 
-            const img = document.createElement('img');
-            img.src = cast.image;
-            img.alt = cast.name;
-            img.className = 'cast-image';
-            img.loading = 'lazy';
-            img.addEventListener('error', () => { img.src = placeholderCard; });
-
-            const nameEl = document.createElement('div');
             // 文字数に応じてサイズクラスを付与（短い名前ほど大きく表示）
+            const nameEl = document.createElement('div');
             const nameLen = cast.name.length;
             const nameSizeClass = nameLen <= 4 ? 'name-short' : nameLen <= 7 ? 'name-medium' : 'name-long';
             nameEl.className = `cast-name ${nameSizeClass}`;
             nameEl.textContent = cast.name;
 
-            // 役職がある場合はバッジを追加
+            // 役職バッジ（カード上部に表示）
             if (cast.role) {
                 const roleEl = document.createElement('div');
                 roleEl.className = 'cast-role';
@@ -637,7 +739,47 @@ function renderCastGrid(casts) {
                 card.appendChild(roleEl);
             }
 
-            card.appendChild(img);
+            // 画像ラッパー（スケルトンと実画像を重ねるコンテナ）
+            const imageWrapper = document.createElement('div');
+            imageWrapper.className = 'cast-image-wrapper lazy-wrapper';
+
+            // スケルトン（画像読み込み前のシマーアニメーション）
+            const skeleton = document.createElement('div');
+            skeleton.className = 'skeleton skeleton-image';
+            skeleton.setAttribute('aria-hidden', 'true');
+            imageWrapper.appendChild(skeleton);
+
+            // WebP 対応の picture 要素（WebP → PNG のフォールバック）
+            const picture = document.createElement('picture');
+
+            // WebP ソース（data-srcset で遅延設定）
+            const webpSource = document.createElement('source');
+            webpSource.dataset.srcset = cast.image.replace(/\.[^.]+$/, '.webp');
+            webpSource.type = 'image/webp';
+            picture.appendChild(webpSource);
+
+            // 実画像（data-src で遅延設定・初期状態は透明）
+            const img = document.createElement('img');
+            img.dataset.src = cast.image;
+            img.alt = cast.name;
+            img.className = 'cast-image lazy-load';
+
+            img.addEventListener('load', () => {
+                img.classList.add('loaded');
+                // フェードイン（0.45s）完了後にスケルトンを非表示
+                setTimeout(() => { skeleton.style.display = 'none'; }, 450);
+            });
+            img.addEventListener('error', () => {
+                // 読み込み失敗時はSVGプレースホルダーを表示
+                img.src = placeholderCard;
+                img.classList.add('loaded');
+                skeleton.style.display = 'none';
+            });
+
+            picture.appendChild(img);
+            imageWrapper.appendChild(picture);
+
+            card.appendChild(imageWrapper);
             card.appendChild(nameEl);
 
             // クリックで詳細ビューを開く
@@ -705,6 +847,9 @@ function openCastDetail(cast) {
     castCard.hidden = true;
     castDetail.hidden = false;
     document.body.style.overflow = 'hidden';
+
+    // 前後3枚のキャスト詳細画像を先読み（次・前キャストへの切り替えを高速化）
+    preloadAdjacentImages(cast.id);
 
     // 閉じるボタンにフォーカス
     detailClose.focus();
@@ -783,16 +928,20 @@ searchInput.addEventListener('input', () => {
     if (!term) {
         renderCastGrid(castData);
         noResults.hidden = true;
-        return;
+    } else {
+        const filtered = castData.filter((cast) => {
+            return (
+                normalizeSearch(cast.name).includes(term) ||
+                normalizeSearch(cast.yomi || '').includes(term)
+            );
+        });
+        renderCastGrid(filtered);
+        noResults.hidden = filtered.length > 0;
     }
-    const filtered = castData.filter((cast) => {
-        return (
-            normalizeSearch(cast.name).includes(term) ||
-            normalizeSearch(cast.yomi || '').includes(term)
-        );
-    });
-    renderCastGrid(filtered);
-    noResults.hidden = filtered.length > 0;
+
+    // 再描画後に新しい画像要素をObserverに登録
+    // （キャストタブが既に開かれObserver初期化済みの場合のみ動作）
+    observeCastImages();
 });
 
 /* ===========================
