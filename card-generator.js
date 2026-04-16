@@ -47,8 +47,10 @@ let dragStartY  = 0;
 /* ===========================
    背景画像状態管理
    =========================== */
-/** 現在選択中の背景画像（null = グラデーション） */
+/** 現在選択中の背景画像（null = グラデーション or 単色） */
 let bgImage      = null;
+/** 現在選択中の単色カラー（null = グラデーション or 画像） */
+let bgColor      = null;
 /** 現在選択中の背景ID */
 let selectedBgId = 'none';
 
@@ -59,8 +61,27 @@ let selectedBgId = 'none';
    src: 'パス' → 画像ファイル
    =========================== */
 const BG_OPTIONS = [
-    { id: 'none', label: 'グラデーション', src: null },
-    { id: 'bg01', label: '背景①',         src: 'images/card-bg/bg01.jpg' },
+    // デフォルト（テーマ別グラデーション）
+    { id: 'none',     label: 'グラデーション',   src: null },
+
+    // 各ページの背景画像
+    { id: 'about',    label: 'イベント',         src: 'images/bg-about-pc.png' },
+    { id: 'cast',     label: 'キャスト',         src: 'images/bg-cast-pc.png' },
+    { id: 'official', label: '公式サイト',       src: 'images/bg-official-pc.png' },
+
+    // 単色カラー
+    { id: 'c-black',   label: '黒',             color: '#080808' },
+    { id: 'c-charcoal',label: 'チャコール',      color: '#2a2a2a' },
+    { id: 'c-navy',    label: 'ネイビー',        color: '#0a0e1f' },
+    { id: 'c-purple',  label: 'ディープパープル', color: '#1a0a2e' },
+    { id: 'c-forest',  label: 'フォレスト',      color: '#0a1f0f' },
+    { id: 'c-wine',    label: 'ワイン',          color: '#2e0a14' },
+    { id: 'c-brown',   label: 'こげ茶',          color: '#1f1008' },
+    { id: 'c-teal',    label: 'ティール',        color: '#081f1f' },
+    { id: 'c-white',   label: 'グレー',          color: '#808080' },
+    { id: 'c-cream',   label: 'クリーム',        color: '#b0a898' },
+    { id: 'c-pink',    label: 'ピンク',          color: '#c07898' },
+    { id: 'c-sky',     label: 'スカイブルー',    color: '#6898be' },
 ];
 
 /* ===========================
@@ -275,6 +296,15 @@ function buildBgSelector() {
             img.alt = opt.label;
             img.className = 'bg-option-img';
             item.appendChild(img);
+        } else if (opt.color) {
+            // 単色カラースウォッチ
+            const swatch = document.createElement('div');
+            swatch.className = 'bg-option-color';
+            swatch.style.background = opt.color;
+            // 白・明るい色は枠で視認しやすくする
+            const isLight = isLightColor(opt.color);
+            if (isLight) swatch.style.border = '1px solid rgba(0,0,0,0.2)';
+            item.appendChild(swatch);
         } else {
             // グラデーションプレビュー
             const grad = document.createElement('div');
@@ -306,19 +336,29 @@ function selectBg(opt) {
     });
 
     if (opt.src) {
+        // 画像背景：ロードしてから描画
         const img = new Image();
         img.onload = () => {
             bgImage = img;
+            bgColor = null;
             drawPreviewCard();
         };
         img.onerror = () => {
             // 画像が存在しない場合はグラデーションにフォールバック
             bgImage = null;
+            bgColor = null;
             drawPreviewCard();
         };
         img.src = opt.src;
-    } else {
+    } else if (opt.color) {
+        // 単色カラー背景
         bgImage = null;
+        bgColor = opt.color;
+        drawPreviewCard();
+    } else {
+        // グラデーション（デフォルト）
+        bgImage = null;
+        bgColor = null;
         drawPreviewCard();
     }
 }
@@ -540,7 +580,7 @@ function drawPreviewCard() {
     const cardType = document.getElementById('cardType').value;
     const theme    = THEMES[cardType] || THEMES.regular;
 
-    // --- 背景（選択中の画像またはグラデーション） ---
+    // --- 背景（画像 / 単色カラー / グラデーション） ---
     if (bgImage) {
         // カードのアスペクト比に合わせて中央クロップして描画
         const imgRatio  = bgImage.width / bgImage.height;
@@ -561,6 +601,15 @@ function drawPreviewCard() {
         // テキスト可読性確保のためダークオーバーレイを重ねる
         ctx.fillStyle = 'rgba(0,0,0,0.5)';
         ctx.fillRect(0, 0, CARD_W, CARD_H);
+    } else if (bgColor) {
+        // 単色カラー背景
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, CARD_W, CARD_H);
+        // 明るい色は少し落ち着かせる（文字は黒で対応済みなので軽めに）
+        if (isLightColor(bgColor)) {
+            ctx.fillStyle = 'rgba(0,0,0,0.28)';
+            ctx.fillRect(0, 0, CARD_W, CARD_H);
+        }
     } else {
         // グラデーション背景（デフォルト）
         const bg = ctx.createLinearGradient(0, 0, CARD_W, CARD_H);
@@ -582,8 +631,17 @@ function drawPreviewCard() {
     }
     ctx.restore();
 
-    // --- 左パネル背景（背景画像時は半透明で重ねる） ---
-    ctx.fillStyle = bgImage ? 'rgba(0,0,0,0.3)' : theme.leftBg;
+    // 明るい単色背景かどうかを判定（文字色・オーバーレイ色の切り替えに使用）
+    const isLightBg = bgColor ? isLightColor(bgColor) : false;
+
+    // --- 左パネル背景（画像・単色時は半透明オーバーレイ、グラデーション時はテーマ色） ---
+    if (bgImage) {
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    } else if (bgColor) {
+        ctx.fillStyle = isLightBg ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)';
+    } else {
+        ctx.fillStyle = theme.leftBg;
+    }
     ctx.fillRect(0, 0, LEFT_W, CARD_H);
 
     // --- 左パネル右側の縦線（アクセント） ---
@@ -629,8 +687,14 @@ function drawPreviewCard() {
     drawPhotoCorners(ctx, PHOTO_X, PHOTO_Y, PHOTO_W, PHOTO_H,
         theme.vip ? makeGoldGrad(ctx, PHOTO_X, PHOTO_Y, PHOTO_X + PHOTO_W, PHOTO_Y + PHOTO_H) : theme.accent);
 
-    // --- ボトムストリップ（背景画像時は半透明で重ねる） ---
-    ctx.fillStyle = bgImage ? 'rgba(0,0,0,0.35)' : theme.stripBg;
+    // --- ボトムストリップ（画像・単色時は半透明オーバーレイ、グラデーション時はテーマ色） ---
+    if (bgImage) {
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    } else if (bgColor) {
+        ctx.fillStyle = isLightBg ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.35)';
+    } else {
+        ctx.fillStyle = theme.stripBg;
+    }
     ctx.fillRect(0, STRIP_Y, CARD_W, STRIP_H);
 
     // ストリップ上端線
@@ -654,7 +718,7 @@ function drawPreviewCard() {
     }
 
     // --- 右パネル：情報エリア ---
-    drawCardInfo(ctx, theme, cardType);
+    drawCardInfo(ctx, theme, cardType, isLightBg);
 
     // --- ボトムストリップ：QR + モットー ---
     drawCardFooter(ctx, theme);
@@ -697,10 +761,11 @@ function drawPhotoCorners(ctx, x, y, w, h, color) {
 /* ===========================
    右パネル情報エリア描画
    =========================== */
-function drawCardInfo(ctx, theme, cardType) {
+function drawCardInfo(ctx, theme, cardType, isLightBg = false) {
     const x         = INFO_X;
     const accent    = theme.accent;
-    const textColor = '#f0ece0';
+    // 明るい背景のときは黒文字、通常は白系
+    const textColor = isLightBg ? '#1a1a1a' : '#f0ece0';
 
     const userName        = document.getElementById('userName').value        || '———';
     const userTitle       = document.getElementById('userTitle').value       || '———';
@@ -712,7 +777,7 @@ function drawCardInfo(ctx, theme, cardType) {
 
     // MEMBER CARD サブタイトル（小さく・薄く）
     ctx.save();
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.fillStyle = isLightBg ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.2)';
     ctx.font = `400 11px 'Zen Maru Gothic', sans-serif`;
     ctx.textAlign = 'left';
     ctx.fillText('M E M B E R   C A R D', x, 44);
@@ -1079,7 +1144,8 @@ function resetForm() {
     document.getElementById('photoPreviewContainer').style.display = 'none';
     document.getElementById('downloadSection').style.display       = 'none';
 
-    // 背景を「グラデーション」に戻す
+    // 背景を「グラデーション」に戻す（bgColor もリセット）
+    bgColor = null;
     selectBg(BG_OPTIONS[0]);
 
     photoImage = null;
@@ -1098,4 +1164,20 @@ function goBack() {
     if (confirm('メインページに戻りますか？')) {
         window.location.href = 'index.html';
     }
+}
+
+/* ===========================
+   ユーティリティ
+   =========================== */
+/**
+ * 16進カラーコードが明るい色かどうかを判定する（スウォッチ枠表示に使用）
+ * @param {string} hex - '#ffffff' 形式のカラーコード
+ * @returns {boolean} 明るければ true
+ */
+function isLightColor(hex) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    // 相対輝度（知覚輝度）が0.5以上なら明るいと判定
+    return (r * 0.299 + g * 0.587 + b * 0.114) > 128;
 }

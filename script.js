@@ -491,6 +491,12 @@ function activateTab(targetId) {
     // メニューを閉じる
     closeDrawer();
 
+    // 名刺ジェネレーターボタンをイベントタブのときだけ表示
+    const cardGenBtn = document.getElementById('cardGenBtn');
+    if (cardGenBtn) {
+        cardGenBtn.classList.toggle('visible', targetId === 'about');
+    }
+
     // スクロールをトップに戻す
     window.scrollTo({ top: 0, behavior: 'instant' });
     castCard.scrollTop = 0;
@@ -816,6 +822,12 @@ function startWithLoading() {
                 // アニメーション終了後にスクロールを解除（overflow-xは横スクロール防止のため残す）
                 document.body.style.overflowX = 'hidden';
                 document.body.style.overflowY = 'auto';
+
+                // ムービー終了後、初期タブがaboutのとき名刺ジェネレーターボタンを表示
+                const cardGenBtn = document.getElementById('cardGenBtn');
+                if (cardGenBtn) {
+                    cardGenBtn.classList.add('visible');
+                }
             }, 3500);
         }, 800);
     }
@@ -970,6 +982,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 隠しページトリガーを設定
     setupSecretTrigger();
+
+    // 名刺ジェネレーターボタンの初期表示はムービー終了後に行う（startWithLoading内で制御）
 
     // VIP発見モーダルの閉じるボタン
     const vipDiscoverClose = document.getElementById('vipDiscoverClose');
