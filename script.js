@@ -305,6 +305,15 @@ const castData = [
         size: 'medium',
     },
     {
+        id: 35,
+        name: 'ニコ',
+        yomi: 'にこ niko',
+        image: 'images/cast/niko.png',
+        detailImage: 'images/cast/niko_original.png',
+        description: 'いっぱい撫でていっぱいバグして日々の疲れを癒してあげる！！',
+        size: 'medium',
+    },
+    {
         id: 34,
         name: 'MamLuua',
         yomi: 'まむるあ mamluua',
