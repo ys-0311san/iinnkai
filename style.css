@@ -1957,7 +1957,7 @@ main {
 }
 
 .manga-preview:hover,
-.manga-preview:focus {
+.manga-preview:focus-visible {
     transform: translateY(-4px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
     outline: 3px solid var(--gold-accent);
@@ -1985,7 +1985,7 @@ main {
 }
 
 .manga-preview:hover .manga-overlay,
-.manga-preview:focus .manga-overlay {
+.manga-preview:focus-visible .manga-overlay {
     opacity: 1;
 }
 
