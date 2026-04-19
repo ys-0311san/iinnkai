@@ -612,6 +612,7 @@ function activateTab(targetId) {
         cardGenBtn.classList.toggle('visible', targetId === 'about');
     }
 
+
     // スクロールをトップに戻す
     window.scrollTo({ top: 0, behavior: 'instant' });
     castCard.scrollTop = 0;
@@ -1280,6 +1281,16 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSecretTrigger();
 
     // 名刺ジェネレーターボタンの初期表示はムービー終了後に行う（startWithLoading内で制御）
+
+    // ジェネレーターボタン：VIP発見済みならlocalStorageに保存してから遷移
+    const cardGenBtnEl = document.getElementById('cardGenBtn');
+    if (cardGenBtnEl) {
+        cardGenBtnEl.addEventListener('click', (e) => {
+            if (vipDiscovered) {
+                localStorage.setItem('mesukemo_vip_unlocked', '1');
+            }
+        });
+    }
 
     // VIP発見モーダルの閉じるボタン
     const vipDiscoverClose = document.getElementById('vipDiscoverClose');
