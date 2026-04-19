@@ -1935,6 +1935,13 @@ main {
     line-height: 1.8;
 }
 
+/* 複数漫画を横並びに並べるグリッド */
+.manga-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+}
+
 /* サムネイル：クリック可能なプレビューエリア */
 .manga-preview {
     position: relative;

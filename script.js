@@ -1126,19 +1126,30 @@ function setupSecretTrigger() {
    漫画ライトボックス
    =========================== */
 
-/** 漫画ページ画像パスの定義 */
-const mangaPages = [
-    { src: 'images/manga-page1.jpg', alt: '漫画 1ページ目' },
-    { src: 'images/manga-page2.jpg', alt: '漫画 2ページ目' },
-    { src: 'images/manga-page3.jpg', alt: '漫画 3ページ目' },
-    { src: 'images/manga-page4.jpg', alt: '漫画 4ページ目' },
+/** 漫画データ定義（複数対応） */
+const mangaList = [
+    {
+        pages: [
+            { src: 'images/manga-page1.jpg', alt: '漫画1 1ページ目' },
+            { src: 'images/manga-page2.jpg', alt: '漫画1 2ページ目' },
+            { src: 'images/manga-page3.jpg', alt: '漫画1 3ページ目' },
+            { src: 'images/manga-page4.jpg', alt: '漫画1 4ページ目' },
+        ],
+    },
+    {
+        pages: [
+            { src: 'images/manga2-page1.jpg', alt: '漫画2 1ページ目' },
+        ],
+    },
 ];
 
 /** ライトボックスの状態 */
 let mangaCurrentPage = 0;
+let mangaCurrentIndex = 0; // どの漫画を開いているか
 
 /** ライトボックスを開く */
-function openMangaLightbox(pageIndex = 0) {
+function openMangaLightbox(mangaIndex = 0, pageIndex = 0) {
+    mangaCurrentIndex = mangaIndex;
     mangaCurrentPage = pageIndex;
     const lb = document.getElementById('mangaLightbox');
     lb.hidden = false;
@@ -1154,47 +1165,58 @@ function closeMangaLightbox() {
     // 既存のscroll制御（overflowX:hidden / overflowY:auto）に戻す
     document.body.style.overflowX = 'hidden';
     document.body.style.overflowY = 'auto';
-    document.getElementById('mangaPreview').focus();
+    const activePrev = document.querySelector(`.manga-preview[data-manga-index="${mangaCurrentIndex}"]`);
+    if (activePrev) activePrev.focus();
 }
 
 /** 表示中のページを更新する */
 function updateMangaLightbox() {
+    const pages = mangaList[mangaCurrentIndex].pages;
     const img = document.getElementById('mangaLbImg');
-    const page = mangaPages[mangaCurrentPage];
+    const page = pages[mangaCurrentPage];
     img.src = page.src;
     img.alt = page.alt;
 
-    // 矢印の有効・無効切り替え
-    document.getElementById('mangaLbPrev').disabled = (mangaCurrentPage === 0);
-    document.getElementById('mangaLbNext').disabled = (mangaCurrentPage === mangaPages.length - 1);
+    // 矢印の有効・無効切り替え（1ページのみのときは両方非表示）
+    const prevBtn = document.getElementById('mangaLbPrev');
+    const nextBtn = document.getElementById('mangaLbNext');
+    prevBtn.disabled = (mangaCurrentPage === 0);
+    nextBtn.disabled = (mangaCurrentPage === pages.length - 1);
+    prevBtn.style.visibility = pages.length <= 1 ? 'hidden' : '';
+    nextBtn.style.visibility = pages.length <= 1 ? 'hidden' : '';
 
-    // インジケータードットを更新
+    // インジケータードットを更新（1ページのみのときは非表示）
     const indicators = document.getElementById('mangaLbIndicators');
     indicators.innerHTML = '';
-    mangaPages.forEach((_, i) => {
-        const dot = document.createElement('button');
-        dot.className = 'manga-lb-dot' + (i === mangaCurrentPage ? ' active' : '');
-        dot.setAttribute('aria-label', `${i + 1}ページ目へ`);
-        dot.addEventListener('click', () => {
-            mangaCurrentPage = i;
-            updateMangaLightbox();
+    if (pages.length > 1) {
+        pages.forEach((_, i) => {
+            const dot = document.createElement('button');
+            dot.className = 'manga-lb-dot' + (i === mangaCurrentPage ? ' active' : '');
+            dot.setAttribute('aria-label', `${i + 1}ページ目へ`);
+            dot.addEventListener('click', () => {
+                mangaCurrentPage = i;
+                updateMangaLightbox();
+            });
+            indicators.appendChild(dot);
         });
-        indicators.appendChild(dot);
-    });
+    }
 }
 
 /** ライトボックスのイベント設定 */
 function setupMangaLightbox() {
-    const preview = document.getElementById('mangaPreview');
-    const lb      = document.getElementById('mangaLightbox');
-    const close   = document.getElementById('mangaLbClose');
-    const prev    = document.getElementById('mangaLbPrev');
-    const next    = document.getElementById('mangaLbNext');
+    const previews = document.querySelectorAll('.manga-preview');
+    const lb       = document.getElementById('mangaLightbox');
+    const close    = document.getElementById('mangaLbClose');
+    const prev     = document.getElementById('mangaLbPrev');
+    const next     = document.getElementById('mangaLbNext');
 
-    // サムネイルクリック・Enterキーで開く
-    preview.addEventListener('click', () => openMangaLightbox(0));
-    preview.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openMangaLightbox(0); }
+    // 各サムネイルクリック・Enterキーで対応する漫画を開く
+    previews.forEach((preview) => {
+        const idx = parseInt(preview.dataset.mangaIndex ?? '0', 10);
+        preview.addEventListener('click', () => openMangaLightbox(idx, 0));
+        preview.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openMangaLightbox(idx, 0); }
+        });
     });
 
     // 閉じるボタン
@@ -1210,24 +1232,27 @@ function setupMangaLightbox() {
         if (mangaCurrentPage > 0) { mangaCurrentPage--; updateMangaLightbox(); }
     });
     next.addEventListener('click', () => {
-        if (mangaCurrentPage < mangaPages.length - 1) { mangaCurrentPage++; updateMangaLightbox(); }
+        const pages = mangaList[mangaCurrentIndex].pages;
+        if (mangaCurrentPage < pages.length - 1) { mangaCurrentPage++; updateMangaLightbox(); }
     });
 
     // キーボード操作（矢印キー・ESC）
     document.addEventListener('keydown', (e) => {
         if (lb.hidden) return;
+        const pages = mangaList[mangaCurrentIndex].pages;
         if (e.key === 'Escape') { closeMangaLightbox(); }
         if (e.key === 'ArrowLeft'  && mangaCurrentPage > 0) { mangaCurrentPage--; updateMangaLightbox(); }
-        if (e.key === 'ArrowRight' && mangaCurrentPage < mangaPages.length - 1) { mangaCurrentPage++; updateMangaLightbox(); }
+        if (e.key === 'ArrowRight' && mangaCurrentPage < pages.length - 1) { mangaCurrentPage++; updateMangaLightbox(); }
     });
 
     // スワイプ操作（タッチデバイス）
     let touchStartX = 0;
     lb.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
     lb.addEventListener('touchend', (e) => {
+        const pages = mangaList[mangaCurrentIndex].pages;
         const diff = touchStartX - e.changedTouches[0].clientX;
-        if (Math.abs(diff) < 40) return; // 小さい動きは無視
-        if (diff > 0 && mangaCurrentPage < mangaPages.length - 1) { mangaCurrentPage++; updateMangaLightbox(); }
+        if (Math.abs(diff) < 40) return;
+        if (diff > 0 && mangaCurrentPage < pages.length - 1) { mangaCurrentPage++; updateMangaLightbox(); }
         if (diff < 0 && mangaCurrentPage > 0) { mangaCurrentPage--; updateMangaLightbox(); }
     }, { passive: true });
 }
