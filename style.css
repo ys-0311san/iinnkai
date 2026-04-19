@@ -270,6 +270,18 @@ body {
     outline-offset: 2px;
 }
 
+/* ベルマークタブ（お知らせ専用） */
+.tab-button--bell {
+    padding: 0.6rem 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tab-button--bell.active svg {
+    stroke: var(--gold-accent);
+}
+
 /* スマホではPC用タブを非表示 */
 @media (max-width: 768px) {
     .tabs {

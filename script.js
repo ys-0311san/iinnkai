@@ -330,6 +330,7 @@ const bgImages = {
     about:    { pc: 'images/bg-about-pc.png',    sp: 'images/bg-about-sp.png'    },
     cast:     { pc: 'images/bg-cast-pc.png',     sp: 'images/bg-cast-sp.png'     },
     official: { pc: 'images/bg-official-pc.png', sp: 'images/bg-official-sp.png' },
+    news:     { pc: 'images/bg-about-pc.png',    sp: 'images/bg-about-sp.png'    },
 };
 
 /**
@@ -352,7 +353,9 @@ function crossfadeBackground(targetId) {
 const sidebarData = {
     about: [
         { id: 'about-main', label: 'イベントについて' },
-        { id: 'about-news', label: 'お知らせ一覧' },
+    ],
+    news: [
+        { id: 'news-main', label: 'お知らせ' },
     ],
     cast: [
         { id: 'cast-main', label: 'キャスト一覧' },
@@ -1274,17 +1277,6 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCastGrid(castData);
     renderNewsList();
     startWithLoading();
-
-    // お知らせ一覧サブセクションを描画
-    renderNewsList('newsListFull');
-
-    // お知らせ一覧ボタン：about-newsサブセクションへ遷移
-    const newsMoreBtn = document.getElementById('newsMoreBtn');
-    if (newsMoreBtn) {
-        newsMoreBtn.addEventListener('click', () => {
-            activateSubSection('about', 'about-news');
-        });
-    }
 
     // 漫画ライトボックスを設定
     setupMangaLightbox();
