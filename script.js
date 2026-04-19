@@ -1151,7 +1151,9 @@ function openMangaLightbox(pageIndex = 0) {
 function closeMangaLightbox() {
     const lb = document.getElementById('mangaLightbox');
     lb.hidden = true;
-    document.body.style.overflow = '';
+    // 既存のscroll制御（overflowX:hidden / overflowY:auto）に戻す
+    document.body.style.overflowX = 'hidden';
+    document.body.style.overflowY = 'auto';
     document.getElementById('mangaPreview').focus();
 }
 
