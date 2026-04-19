@@ -352,6 +352,7 @@ function crossfadeBackground(targetId) {
 const sidebarData = {
     about: [
         { id: 'about-main', label: 'イベントについて' },
+        { id: 'about-news', label: 'お知らせ一覧' },
     ],
     cast: [
         { id: 'cast-main', label: 'キャスト一覧' },
@@ -382,10 +383,10 @@ const newsData = [
 
 /**
  * お知らせ一覧を描画する
- * newsData が空の場合は「お知らせはありません」を表示する
+ * @param {string} targetId - 描画先要素のID（省略時は 'newsList'）
  */
-function renderNewsList() {
-    const newsList = document.getElementById('newsList');
+function renderNewsList(targetId = 'newsList') {
+    const newsList = document.getElementById(targetId);
     if (!newsList) return;
 
     if (newsData.length === 0) {
@@ -1273,6 +1274,17 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCastGrid(castData);
     renderNewsList();
     startWithLoading();
+
+    // お知らせ一覧サブセクションを描画
+    renderNewsList('newsListFull');
+
+    // お知らせ一覧ボタン：about-newsサブセクションへ遷移
+    const newsMoreBtn = document.getElementById('newsMoreBtn');
+    if (newsMoreBtn) {
+        newsMoreBtn.addEventListener('click', () => {
+            activateSubSection('about', 'about-news');
+        });
+    }
 
     // 漫画ライトボックスを設定
     setupMangaLightbox();
