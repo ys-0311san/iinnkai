@@ -1916,3 +1916,237 @@ main {
 .cast-image.lazy-load.loaded {
     opacity: 1;
 }
+
+/* ===================================================================
+   漫画セクション・ライトボックス
+   =================================================================== */
+
+/* ===== 漫画セクション（イベントについてタブ内） ===== */
+.about-manga {
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.manga-description {
+    font-size: clamp(0.9rem, 1.5vw, 1rem);
+    color: var(--charcoal);
+    margin-bottom: var(--spacing-md);
+    line-height: 1.8;
+}
+
+/* サムネイル：クリック可能なプレビューエリア */
+.manga-preview {
+    position: relative;
+    display: inline-block;
+    max-width: 300px;
+    width: 100%;
+    cursor: pointer;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid rgba(212, 175, 55, 0.4);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.manga-preview:hover,
+.manga-preview:focus {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    outline: 3px solid var(--gold-accent);
+    outline-offset: 2px;
+}
+
+.manga-thumb {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* ホバー時に表示されるオーバーレイ */
+.manga-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.manga-preview:hover .manga-overlay,
+.manga-preview:focus .manga-overlay {
+    opacity: 1;
+}
+
+.manga-open-btn {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    background: var(--gold-accent);
+    padding: 0.5rem 1.2rem;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+}
+
+.manga-page-count {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-family: var(--font-display);
+}
+
+/* ===== ライトボックスモーダル ===== */
+.manga-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.93);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    cursor: pointer; /* 背景クリックで閉じる視覚的ヒント */
+}
+
+/* hiddenのときは非表示 */
+.manga-lightbox[hidden] {
+    display: none;
+}
+
+/* 閉じるボタン */
+.manga-lb-close {
+    position: fixed;
+    top: 1.2rem;
+    right: 1.5rem;
+    background: none;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    color: #fff;
+    font-size: 1.4rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s, background 0.2s;
+    z-index: 10001;
+}
+
+.manga-lb-close:hover,
+.manga-lb-close:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--gold-accent);
+    outline: none;
+}
+
+/* 矢印＋画像の横並びrow（PC用） */
+.manga-lb-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    max-height: calc(100vh - 7rem);
+    pointer-events: none; /* rowはクリックを透過させ背景クリックを維持 */
+}
+
+/* 左右ナビゲーション矢印 */
+.manga-lb-arrow {
+    pointer-events: all; /* 矢印ボタン自体はクリック有効 */
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    font-size: 2rem;
+    width: 3rem;
+    height: 5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.manga-lb-arrow:hover,
+.manga-lb-arrow:focus {
+    background: rgba(212, 175, 55, 0.25);
+    border-color: var(--gold-accent);
+    outline: none;
+}
+
+.manga-lb-arrow:disabled {
+    opacity: 0.2;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* 漫画画像エリア */
+.manga-lb-content {
+    pointer-events: all;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-height: 100%;
+}
+
+.manga-lb-img {
+    max-width: 100%;
+    max-height: calc(100vh - 7rem);
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+    user-select: none;
+    -webkit-user-drag: none;
+    cursor: default; /* 画像上はデフォルトカーソル */
+}
+
+/* フッター（インジケーター） */
+.manga-lb-footer {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: default;
+}
+
+/* ページドットインジケーター */
+.manga-lb-indicators {
+    display: flex;
+    gap: 0.6rem;
+}
+
+.manga-lb-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    border: 1.5px solid rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.manga-lb-dot.active {
+    background: var(--gold-accent);
+    border-color: var(--gold-accent);
+    transform: scale(1.3);
+}
+
+/* ===== スマホ対応 ===== */
+@media (max-width: 768px) {
+    .manga-lb-arrow {
+        width: 2.2rem;
+        height: 3.5rem;
+        font-size: 1.4rem;
+    }
+
+    .manga-lb-row {
+        gap: 0.4rem;
+    }
+}

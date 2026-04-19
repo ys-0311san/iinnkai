@@ -1123,6 +1123,114 @@ function setupSecretTrigger() {
 }
 
 /* ===========================
+   漫画ライトボックス
+   =========================== */
+
+/** 漫画ページ画像パスの定義 */
+const mangaPages = [
+    { src: 'images/manga-page1.jpg', alt: '漫画 1ページ目' },
+    { src: 'images/manga-page2.jpg', alt: '漫画 2ページ目' },
+    { src: 'images/manga-page3.jpg', alt: '漫画 3ページ目' },
+    { src: 'images/manga-page4.jpg', alt: '漫画 4ページ目' },
+];
+
+/** ライトボックスの状態 */
+let mangaCurrentPage = 0;
+
+/** ライトボックスを開く */
+function openMangaLightbox(pageIndex = 0) {
+    mangaCurrentPage = pageIndex;
+    const lb = document.getElementById('mangaLightbox');
+    lb.hidden = false;
+    document.body.style.overflow = 'hidden';
+    updateMangaLightbox();
+    document.getElementById('mangaLbClose').focus();
+}
+
+/** ライトボックスを閉じる */
+function closeMangaLightbox() {
+    const lb = document.getElementById('mangaLightbox');
+    lb.hidden = true;
+    document.body.style.overflow = '';
+    document.getElementById('mangaPreview').focus();
+}
+
+/** 表示中のページを更新する */
+function updateMangaLightbox() {
+    const img = document.getElementById('mangaLbImg');
+    const page = mangaPages[mangaCurrentPage];
+    img.src = page.src;
+    img.alt = page.alt;
+
+    // 矢印の有効・無効切り替え
+    document.getElementById('mangaLbPrev').disabled = (mangaCurrentPage === 0);
+    document.getElementById('mangaLbNext').disabled = (mangaCurrentPage === mangaPages.length - 1);
+
+    // インジケータードットを更新
+    const indicators = document.getElementById('mangaLbIndicators');
+    indicators.innerHTML = '';
+    mangaPages.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'manga-lb-dot' + (i === mangaCurrentPage ? ' active' : '');
+        dot.setAttribute('aria-label', `${i + 1}ページ目へ`);
+        dot.addEventListener('click', () => {
+            mangaCurrentPage = i;
+            updateMangaLightbox();
+        });
+        indicators.appendChild(dot);
+    });
+}
+
+/** ライトボックスのイベント設定 */
+function setupMangaLightbox() {
+    const preview = document.getElementById('mangaPreview');
+    const lb      = document.getElementById('mangaLightbox');
+    const close   = document.getElementById('mangaLbClose');
+    const prev    = document.getElementById('mangaLbPrev');
+    const next    = document.getElementById('mangaLbNext');
+
+    // サムネイルクリック・Enterキーで開く
+    preview.addEventListener('click', () => openMangaLightbox(0));
+    preview.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openMangaLightbox(0); }
+    });
+
+    // 閉じるボタン
+    close.addEventListener('click', closeMangaLightbox);
+
+    // 背景クリックで閉じる（画像エリア以外）
+    lb.addEventListener('click', (e) => {
+        if (e.target === lb) closeMangaLightbox();
+    });
+
+    // 前後ページボタン
+    prev.addEventListener('click', () => {
+        if (mangaCurrentPage > 0) { mangaCurrentPage--; updateMangaLightbox(); }
+    });
+    next.addEventListener('click', () => {
+        if (mangaCurrentPage < mangaPages.length - 1) { mangaCurrentPage++; updateMangaLightbox(); }
+    });
+
+    // キーボード操作（矢印キー・ESC）
+    document.addEventListener('keydown', (e) => {
+        if (lb.hidden) return;
+        if (e.key === 'Escape') { closeMangaLightbox(); }
+        if (e.key === 'ArrowLeft'  && mangaCurrentPage > 0) { mangaCurrentPage--; updateMangaLightbox(); }
+        if (e.key === 'ArrowRight' && mangaCurrentPage < mangaPages.length - 1) { mangaCurrentPage++; updateMangaLightbox(); }
+    });
+
+    // スワイプ操作（タッチデバイス）
+    let touchStartX = 0;
+    lb.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    lb.addEventListener('touchend', (e) => {
+        const diff = touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) < 40) return; // 小さい動きは無視
+        if (diff > 0 && mangaCurrentPage < mangaPages.length - 1) { mangaCurrentPage++; updateMangaLightbox(); }
+        if (diff < 0 && mangaCurrentPage > 0) { mangaCurrentPage--; updateMangaLightbox(); }
+    }, { passive: true });
+}
+
+/* ===========================
    初期化
    =========================== */
 document.addEventListener('DOMContentLoaded', () => {
@@ -1137,6 +1245,9 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCastGrid(castData);
     renderNewsList();
     startWithLoading();
+
+    // 漫画ライトボックスを設定
+    setupMangaLightbox();
 
     // 隠しページトリガーを設定
     setupSecretTrigger();

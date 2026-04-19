@@ -177,6 +177,19 @@
                                     <p>メスケモアバターを使用していなくても、メスケモが好きという気持ちがあれば貴方は既にメスケモ推進委員会です。「人間」でも「人外」でも「オスケモ」でもだれでも参加可能！世界をメスケモで満たすために各々の力で邁進していきましょう！</p>
                                 </div>
 
+                                <!-- 漫画セクション -->
+                                <div class="about-manga">
+                                    <h3 class="about-title">コミック</h3>
+                                    <p class="manga-description">メスケモ推進委員会の世界観を漫画でご紹介します。</p>
+                                    <div class="manga-preview" id="mangaPreview" role="button" tabindex="0" aria-label="漫画を読む（全4ページ）">
+                                        <img src="images/manga-page1.jpg" alt="漫画1ページ目" class="manga-thumb">
+                                        <div class="manga-overlay">
+                                            <span class="manga-open-btn">漫画を読む</span>
+                                            <span class="manga-page-count">全4ページ</span>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
                         <!-- 将来のサブセクションをここに追加 -->
@@ -314,6 +327,22 @@
         <span class="card-gen-sub">作成開始</span>
         <span class="card-gen-badge">ここをクリック！</span>
     </a>
+
+    <!-- 漫画ライトボックスモーダル -->
+    <div class="manga-lightbox" id="mangaLightbox" hidden aria-modal="true" role="dialog" aria-label="漫画ビューア">
+        <button class="manga-lb-close" id="mangaLbClose" aria-label="閉じる">✕</button>
+        <!-- 矢印と画像を横並びにするrow -->
+        <div class="manga-lb-row">
+            <button class="manga-lb-arrow manga-lb-prev" id="mangaLbPrev" aria-label="前のページ">&#8592;</button>
+            <div class="manga-lb-content">
+                <img class="manga-lb-img" id="mangaLbImg" src="" alt="">
+            </div>
+            <button class="manga-lb-arrow manga-lb-next" id="mangaLbNext" aria-label="次のページ">&#8594;</button>
+        </div>
+        <div class="manga-lb-footer">
+            <div class="manga-lb-indicators" id="mangaLbIndicators"></div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
