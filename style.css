@@ -695,6 +695,148 @@ main {
     margin-bottom: var(--spacing-sm);
 }
 
+/* ===== 参加ガイド / FAQ ===== */
+.guide-section {
+    margin-bottom: 2rem;
+}
+
+.guide-section:last-child {
+    margin-bottom: 0;
+}
+
+.guide-steps {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.guide-steps li {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.guide-step-num {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(180, 130, 80, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #e8d5b0;
+    letter-spacing: 0;
+    margin-top: 3px;
+    background: rgba(20, 15, 10, 0.75);
+}
+
+.guide-step-body strong {
+    display: block;
+    margin-bottom: 0.3rem;
+    color: var(--wood-brown);
+}
+
+.guide-event-split {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-top: 0.5rem;
+}
+
+.guide-event-item {
+    padding: 0.7rem 0.9rem;
+    border-left: 2px solid rgba(180,130,80,0.4);
+    background: transparent;
+}
+
+.guide-event-label {
+    display: block;
+    font-size: 0.85em;
+    color: var(--wood-brown);
+    margin-bottom: 0.3rem;
+    font-weight: bold;
+}
+
+.guide-event-item p {
+    margin: 0;
+    font-size: 0.88em;
+    color: rgba(220, 200, 170, 0.85);
+    line-height: 1.6;
+}
+
+.guide-step-body p,
+.guide-section > p {
+    margin: 0 0 0.5rem;
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: var(--charcoal);
+}
+
+.guide-step-body p:last-child,
+.guide-section > p:last-child {
+    margin-bottom: 0;
+}
+
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+}
+
+.faq-item {
+    border-bottom: 1px solid rgba(139, 111, 71, 0.2);
+    padding: 1rem 0;
+}
+
+.faq-item:first-child {
+    padding-top: 0;
+}
+
+.faq-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.faq-question {
+    font-weight: 700;
+    color: var(--wood-brown);
+    margin-bottom: 0.5rem;
+    padding-left: 1.2em;
+    position: relative;
+}
+
+.faq-question::before {
+    content: 'Q.';
+    position: absolute;
+    left: 0;
+    color: rgba(139, 111, 71, 0.8);
+    font-size: 0.9em;
+}
+
+.faq-answer {
+    margin: 0;
+    padding-left: 1.2em;
+    position: relative;
+    color: var(--charcoal);
+    font-size: 0.95rem;
+    line-height: 1.8;
+}
+
+.faq-answer::before {
+    content: 'A.';
+    position: absolute;
+    left: 0;
+    color: rgba(139, 111, 71, 0.7);
+    font-size: 0.9em;
+}
+
 /* ショップ案内 */
 .about-shop {
     margin: var(--spacing-md) 0;
@@ -1235,6 +1377,63 @@ main {
 .official-link:focus-visible {
     outline: 3px solid var(--gold-accent);
     outline-offset: 3px;
+}
+
+.official-link--no-icon {
+    justify-content: center;
+}
+
+/* ===== BGMプレイヤー ===== */
+.bgm-player {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(20, 15, 10, 0.85);
+    border: 1px solid rgba(180, 130, 80, 0.5);
+    border-radius: 30px;
+    padding: 6px;
+    backdrop-filter: blur(8px);
+}
+
+.bgm-toggle-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid rgba(180,130,80,0.5);
+    background: transparent;
+    color: rgba(200, 170, 120, 0.8);
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.bgm-toggle-btn:hover {
+    background: rgba(180, 130, 80, 0.2);
+    color: #d4a96a;
+}
+
+.bgm-toggle-btn.active {
+    background: rgba(180, 130, 80, 0.35);
+    color: #f0c070;
+    border-color: rgba(180, 130, 80, 0.8);
+}
+
+@media (max-width: 768px) {
+    .bgm-player {
+        bottom: 14px;
+        right: 14px;
+        padding: 6px;
+    }
+
+    .bgm-toggle-btn {
+        width: 34px;
+        height: 34px;
+        font-size: 16px;
+    }
 }
 
 /* ===== キーフレームアニメーション ===== */

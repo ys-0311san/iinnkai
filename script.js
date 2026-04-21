@@ -353,6 +353,8 @@ function crossfadeBackground(targetId) {
 const sidebarData = {
     about: [
         { id: 'about-main', label: 'イベントについて' },
+        { id: 'about-guide', label: '参加条件' },
+        { id: 'about-faq', label: 'FAQ' },
     ],
     news: [
         { id: 'news-main', label: 'お知らせ' },
@@ -383,6 +385,75 @@ const newsData = [
         isExternal: false,
     },
 ];
+
+/* ===========================
+   BGMプレイヤー
+   =========================== */
+const bgmTracks = [
+    { src: 'audio/bgm1_yuruyakanakaze.mp3', label: '緩やかな風' },
+    { src: 'audio/bgm2_ouun.mp3', label: '桜雲' },
+];
+
+let bgmAudio = null;
+
+function setupBgmPlayer() {
+    const toggleBtn = document.getElementById('bgmToggleBtn');
+
+    if (!toggleBtn) return;
+
+    toggleBtn.addEventListener('click', () => {
+        if (bgmAudio) {
+            stopBgm(toggleBtn);
+            return;
+        }
+
+        const idx = Math.floor(Math.random() * 2);
+        playBgmTrack(idx, toggleBtn);
+    });
+
+    // 最初のユーザー操作でBGMを自動開始（ブラウザのAutoplay制限回避）
+    const startOnFirstInteraction = () => {
+        if (!bgmAudio) {
+            const idx = Math.floor(Math.random() * 2);
+            playBgmTrack(idx, toggleBtn);
+        }
+        document.removeEventListener('click', startOnFirstInteraction);
+        document.removeEventListener('keydown', startOnFirstInteraction);
+        document.removeEventListener('touchstart', startOnFirstInteraction);
+    };
+
+    document.addEventListener('click', startOnFirstInteraction);
+    document.addEventListener('keydown', startOnFirstInteraction);
+    document.addEventListener('touchstart', startOnFirstInteraction, { passive: true });
+}
+
+function playBgmTrack(idx, toggleBtn = document.getElementById('bgmToggleBtn')) {
+    if (!bgmTracks[idx]) return;
+
+    if (bgmAudio) {
+        bgmAudio.pause();
+        bgmAudio.currentTime = 0;
+    }
+
+    bgmAudio = new Audio(bgmTracks[idx].src);
+    bgmAudio.loop = true;
+    bgmAudio.volume = 0.1;
+    bgmAudio.play().catch(() => {
+        // ブラウザの自動再生制限により再生できない場合は何もしない
+    });
+
+    toggleBtn?.classList.add('active');
+}
+
+function stopBgm(toggleBtn = document.getElementById('bgmToggleBtn')) {
+    if (bgmAudio) {
+        bgmAudio.pause();
+        bgmAudio.currentTime = 0;
+        bgmAudio = null;
+    }
+
+    toggleBtn?.classList.remove('active');
+}
 
 /**
  * お知らせ一覧を描画する
@@ -1310,4 +1381,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target === vipDiscoverModal) vipDiscoverModal.hidden = true;
         });
     }
+
+    setupBgmPlayer();
 });
