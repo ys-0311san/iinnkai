@@ -376,7 +376,7 @@ const sidebarData = {
 const newsData = [
     {
         id: 1,
-        date: '2026.04.10',
+        date: '2026.04.21',
         isNew: true,
         title: 'メスケモ推進委員会 公式サイトオープン！',
         body: '公式ウェブサイトをオープンしました。キャスト情報やイベントスケジュールをご確認いただけます。',
