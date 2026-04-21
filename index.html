@@ -243,21 +243,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Xタイムライン -->
-                                <div class="about-twitter">
-                                    <h3 class="about-title">公式X タイムライン</h3>
-                                    <div class="twitter-widget-wrap">
-                                        <a class="twitter-timeline"
-                                           data-theme="dark"
-                                           data-chrome="noheader nofooter noborders"
-                                           data-height="500"
-                                           data-lang="ja"
-                                           href="https://twitter.com/mesukemo_ya?ref_src=twsrc%5Etfw">
-                                            Tweets by mesukemo_ya
-                                        </a>
-                                    </div>
-                                </div>
-
                             </div>
                         </div>
 
@@ -484,12 +469,14 @@
         </div>
     </div>
 
+    <!-- 桜吹雪Canvas（イントロ中のみ表示） -->
+    <canvas id="sakuraCanvas" aria-hidden="true"></canvas>
+
     <!-- BGMフローティングプレイヤー -->
     <div class="bgm-player" id="bgmPlayer" aria-label="BGMプレイヤー">
         <button class="bgm-toggle-btn" id="bgmToggleBtn" aria-label="BGMをON/OFF">♪</button>
     </div>
 
     <script src="script.js"></script>
-    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 </body>
 </html>

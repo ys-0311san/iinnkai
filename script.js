@@ -1021,6 +1021,154 @@ searchInput.addEventListener('input', () => {
 });
 
 /* ===========================
+   桜吹雪エフェクト
+   =========================== */
+let sakuraCanvas = null;
+let sakuraCtx = null;
+let sakuraPetals = [];
+let sakuraAnimationId = null;
+let sakuraResizeHandler = null;
+let sakuraStopTimeoutId = null;
+
+function randomBetween(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+function createSakuraPetal(canvas, randomYRange = true) {
+    return {
+        x: Math.random() * canvas.width,
+        y: randomYRange ? randomBetween(-50, 0) : randomBetween(-80, -20),
+        size: randomBetween(5, 12),
+        speedY: randomBetween(1, 2.5),
+        speedX: randomBetween(-0.5, 0.5),
+        rotation: randomBetween(0, Math.PI * 2),
+        rotationSpeed: randomBetween(-2, 2) * (Math.PI / 180),
+        opacity: randomBetween(0.6, 1.0),
+        color: ['#ffb7c5', '#ffc0cb', '#ff9eb5', '#ffe4e8', '#ffffff'][Math.floor(Math.random() * 5)],
+    };
+}
+
+function resizeSakuraCanvas() {
+    if (!sakuraCanvas) return;
+    sakuraCanvas.width = window.innerWidth;
+    sakuraCanvas.height = window.innerHeight;
+}
+
+function setupSakura() {
+    if (sakuraCanvas) return;
+
+    sakuraCanvas = document.getElementById('sakuraCanvas');
+    if (!sakuraCanvas) return;
+
+    sakuraCtx = sakuraCanvas.getContext('2d');
+    resizeSakuraCanvas();
+
+    const petalCount = Math.floor(randomBetween(30, 41));
+    sakuraPetals = Array.from({ length: petalCount }, () => createSakuraPetal(sakuraCanvas, true));
+
+    sakuraResizeHandler = () => {
+        resizeSakuraCanvas();
+    };
+    window.addEventListener('resize', sakuraResizeHandler);
+}
+
+function drawSakuraPetal(ctx, petal) {
+    ctx.save();
+    ctx.translate(petal.x, petal.y);
+    ctx.rotate(petal.rotation);
+    ctx.scale(1, 0.82);
+    ctx.globalAlpha = petal.opacity;
+
+    const gradient = ctx.createRadialGradient(
+        -petal.size * 0.25,
+        -petal.size * 0.35,
+        petal.size * 0.15,
+        0,
+        0,
+        petal.size
+    );
+    gradient.addColorStop(0, '#ffffff');
+    gradient.addColorStop(0.35, petal.color);
+    gradient.addColorStop(1, 'rgba(255, 183, 197, 0)');
+
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, petal.size * 0.55, petal.size, -0.25, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, petal.size * 0.55, petal.size, 0.25, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
+    ctx.beginPath();
+    ctx.ellipse(-petal.size * 0.15, -petal.size * 0.25, petal.size * 0.12, petal.size * 0.35, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+}
+
+function animateSakura() {
+    if (!sakuraCtx || !sakuraCanvas) return;
+
+    sakuraCtx.clearRect(0, 0, sakuraCanvas.width, sakuraCanvas.height);
+
+    sakuraPetals.forEach((petal) => {
+        petal.y += petal.speedY;
+        petal.x += petal.speedX + Math.sin((petal.y + petal.rotation) * 0.02) * 0.35;
+        petal.rotation += petal.rotationSpeed;
+
+        if (petal.y > sakuraCanvas.height + petal.size) {
+            Object.assign(petal, createSakuraPetal(sakuraCanvas, false));
+        }
+
+        if (petal.x < -petal.size) {
+            petal.x = sakuraCanvas.width + petal.size;
+        } else if (petal.x > sakuraCanvas.width + petal.size) {
+            petal.x = -petal.size;
+        }
+
+        drawSakuraPetal(sakuraCtx, petal);
+    });
+
+    sakuraAnimationId = requestAnimationFrame(animateSakura);
+}
+
+function startSakura() {
+    setupSakura();
+    if (!sakuraCanvas || !sakuraCtx) return;
+
+    if (sakuraStopTimeoutId) {
+        clearTimeout(sakuraStopTimeoutId);
+        sakuraStopTimeoutId = null;
+    }
+
+    sakuraCanvas.classList.add('active');
+
+    if (sakuraAnimationId === null) {
+        animateSakura();
+    }
+}
+
+function stopSakura() {
+    if (!sakuraCanvas) return;
+
+    sakuraCanvas.classList.remove('active');
+
+    if (sakuraStopTimeoutId) {
+        clearTimeout(sakuraStopTimeoutId);
+    }
+
+    sakuraStopTimeoutId = setTimeout(() => {
+        if (sakuraAnimationId !== null) {
+            cancelAnimationFrame(sakuraAnimationId);
+            sakuraAnimationId = null;
+        }
+        if (sakuraCtx && sakuraCanvas) {
+            sakuraCtx.clearRect(0, 0, sakuraCanvas.width, sakuraCanvas.height);
+        }
+        sakuraStopTimeoutId = null;
+    }, 1000);
+}
+
+/* ===========================
    ローディング制御
    必要な画像を全て読み込んでからイントロを開始する
    =========================== */
@@ -1049,9 +1197,11 @@ function startWithLoading() {
         setTimeout(() => {
             loadingScreen.style.display = 'none';
             introScreen.classList.add('ready');
+            startSakura();
 
             // イントロ終了（2.5秒表示 + 1秒フェードアウト）後にメインをフェードイン
             setTimeout(() => {
+                stopSakura();
                 document.getElementById('mainContent').classList.add('visible');
                 // アニメーション終了後にスクロールを解除（overflow-xは横スクロール防止のため残す）
                 document.body.style.overflowX = 'hidden';
