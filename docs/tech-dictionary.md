@@ -198,3 +198,111 @@ rgba(20, 15, 10, 0.85)    /* 暗い半透明背景 */
 ```
 https://vrchat.com/home/group/grp_XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 ```
+
+---
+
+## キャスト画像パイプライン
+
+### 2枚1セットのルール
+| 枚数 | 用途 | ファイル名 | 処理 |
+|---|---|---|---|
+| 1枚目 | 詳細ビュー（originalImage） | `名前_original.png` | FHD（長辺1920px）以下にリサイズ |
+| 2枚目 | グリッド一覧（image） | `名前.png` | 長辺600pxリサイズ・カラーそのまま |
+
+### Python処理コード（Pillowで画像リサイズ）
+```python
+from PIL import Image
+
+CAST_DIR = '/mnt/c/Users/yuuya/Desktop/メスケモ推進委員会/images/cast'
+
+def save_original(src_path, filename_base):
+    """詳細ビュー用: FHD以下にリサイズ"""
+    img = Image.open(src_path).convert('RGBA')
+    w, h = img.size
+    scale = min(1, 1920 / max(w, h))
+    if scale < 1:
+        img = img.resize((round(w*scale), round(h*scale)), Image.LANCZOS)
+    img.save(f'{CAST_DIR}/{filename_base}_original.png', 'PNG')
+
+def save_grid(src_path, filename_base):
+    """グリッド用: 長辺600pxリサイズ・フィルターなし"""
+    img = Image.open(src_path).convert('RGBA')
+    w, h = img.size
+    scale = min(1, 600 / max(w, h))
+    resized = img.resize((round(w*scale), round(h*scale)), Image.LANCZOS)
+    resized.save(f'{CAST_DIR}/{filename_base}.png', 'PNG')
+```
+
+### castDataテンプレート
+```javascript
+{
+    id: N,
+    name: '名前',
+    yomi: 'よみがな romanization',  // 検索用（全角・半角・ローマ字）
+    image: 'images/cast/filename.png',           // グリッド用（600px）
+    detailImage: 'images/cast/filename_original.png', // 詳細用（FHD）
+    description: '紹介文',
+    size: 'large' | 'medium' | 'small',  // グリッドカードの表示サイズ
+}
+```
+
+### sizeの目安
+- `large` — 大きいアバター・存在感を出したいキャスト
+- `medium` — 標準（デフォルト）
+- `small` — 小柄なアバター・アイコン的に見せたいキャスト
+
+---
+
+## 画像遅延読み込み（Lazy Load）
+
+### 仕組み
+- キャストタブを開くまで画像を一切読み込まない
+- Intersection Observer（rootMargin: 50px）で画面に近づいた画像から順次ロード
+- 読み込み前はシマーアニメーション（スケルトン）を表示
+- 読み込み完了後に0.45sのフェードインで表示
+
+### HTMLカード構造（JS生成）
+```
+div.cast-image-wrapper.lazy-wrapper   ← Observerの監視対象
+  ├── div.skeleton.skeleton-image      ← シマーアニメーション（absolute）
+  └── picture
+       ├── source[data-srcset="...webp"]  ← WebP用（現在無効）
+       └── img[data-src="...png"].cast-image.lazy-load
+```
+
+### 主要関数
+| 関数 | 役割 |
+|---|---|
+| `initLazyLoad()` | Observer初期化（重複防止あり） |
+| `observeCastImages()` | `.lazy-wrapper`内の要素をObserverに登録 |
+| `lazyLoadTabImages(tabId)` | タブ切り替え時に呼ぶ |
+| `preloadAdjacentImages(castId, count)` | 詳細表示時に前後N枚を先読み |
+
+### CSSクラス
+```css
+.cast-image-wrapper { aspect-ratio: 3/4; }        /* 縦横比を確保 */
+.skeleton-image { position: absolute; inset: 0; } /* 画像に重ねる */
+.cast-image.lazy-load { opacity: 0; transition: opacity 0.45s; }
+.cast-image.lazy-load.loaded { opacity: 1; }      /* フェードイン完了 */
+```
+
+### ⚠️ WebP対応は保留中
+`<source type="image/webp">` の構造は実装済みだが、Observer内でコメントアウト中。
+
+**理由**: WebPファイルが存在しない状態で有効化すると、WebP対応ブラウザが404になっても
+`<picture>` タグはPNGにフォールバックしないため、画像が全て消えるバグが発生する。
+
+**有効化方法**: WebPファイルを全キャスト分用意してから `initLazyLoad()` 内の以下をコメント解除:
+```javascript
+// if (source) { source.srcset = source.dataset.srcset; }
+```
+
+### 画像エラー時のSVGプレースホルダー
+```javascript
+// グリッド用（3:4縦長）
+img.onerror = () => { img.src = placeholderCard; };
+
+// 詳細ビュー用
+detailImage.onerror = () => { detailImage.src = placeholderDetail; };
+```
+画像が404でも白紙にならず「📸 写真撮影中」と表示される。
