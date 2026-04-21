@@ -2143,7 +2143,7 @@ main {
     border-radius: 4px;
     overflow: hidden;
     border: 2px solid rgba(212, 175, 55, 0.3);
-    background: rgba(44, 28, 18, 0.5);
+    background: transparent;
 }
 
 /* ラッパー内のpicture要素はブロックで全幅・全高 */
