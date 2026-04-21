@@ -2163,6 +2163,20 @@ main {
    漫画セクション・ライトボックス
    =================================================================== */
 
+/* ===== Xタイムライン ===== */
+.about-twitter {
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid rgba(180, 130, 80, 0.2);
+}
+
+.twitter-widget-wrap {
+    margin-top: 1rem;
+    border-radius: 12px;
+    overflow: hidden;
+    max-width: 550px;
+}
+
 /* ===== 漫画セクション（イベントについてタブ内） ===== */
 .about-manga {
     margin-top: var(--spacing-xl);
