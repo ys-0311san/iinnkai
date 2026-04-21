@@ -437,7 +437,7 @@ function playBgmTrack(idx, toggleBtn = document.getElementById('bgmToggleBtn')) 
 
     bgmAudio = new Audio(bgmTracks[idx].src);
     bgmAudio.loop = true;
-    bgmAudio.volume = 0.1;
+    bgmAudio.volume = 0.05;
     bgmAudio.play().catch(() => {
         // ブラウザの自動再生制限により再生できない場合は何もしない
     });
