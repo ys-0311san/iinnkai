@@ -200,6 +200,10 @@ body {
     opacity: 1;
 }
 
+#sakuraCanvas.behind {
+    z-index: 0;
+}
+
 /* ===== 固定ヘッダー ===== */
 .site-header {
     position: fixed;
