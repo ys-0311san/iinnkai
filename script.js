@@ -687,6 +687,12 @@ function activateTab(targetId) {
         cardGenBtn.classList.toggle('visible', targetId === 'about');
     }
 
+    // 桜吹雪はabout・newsタブのみ表示
+    const sakura = document.getElementById('sakuraCanvas');
+    if (sakura && sakura.classList.contains('behind')) {
+        sakura.classList.toggle('active', targetId === 'about' || targetId === 'news');
+    }
+
 
     // スクロールをトップに戻す
     window.scrollTo({ top: 0, behavior: 'instant' });
