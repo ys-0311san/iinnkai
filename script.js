@@ -379,7 +379,7 @@ const newsData = [
         date: '2026.04.21',
         isNew: true,
         title: 'メスケモ推進委員会 公式サイトオープン！',
-        body: '公式ウェブサイトをオープンしました。キャスト情報やイベントスケジュールをご確認いただけます。',
+        body: '公式ウェブサイトをオープンしました。キャスト情報をご確認いただけます。',
         link: null,
         linkText: null,
         isExternal: false,
