@@ -313,6 +313,16 @@ const castData = [
         description: '「今、私を見たな。撫で回すから覚悟しな♡（初キャスト頑張ります♡）」',
         size: 'large',
     },
+    {
+        id: 36,
+        name: 'クレーヴェル',
+        yomi: 'くれーヴぇる crevelle',
+        image: 'images/cast/crevelle.png',
+        detailImage: 'images/cast/crevelle_original.png',
+        description: '2025/03/29からキャストですよ～\nﾅﾃﾞﾅﾃﾞ､ﾌﾜﾌﾜ､ﾓﾌﾓﾌ､ﾍﾟﾛﾍﾟﾛ\nあなたはどの私がお好き？',
+        size: 'large',
+        hasFrame: true,
+    },
     // 以降は実際のキャストデータに差し替えてください
     ...Array.from({ length: 50 }, (_, i) => ({
         id: i + 2,
@@ -1251,6 +1261,10 @@ function moveSakuraBehind() {
 function startWithLoading() {
     const loadingScreen = document.getElementById('loadingScreen');
     const introScreen   = document.getElementById('introScreen');
+
+    // ムービー中はスクロール・クリックを全面ブロック
+    document.body.style.overflow = 'hidden';
+    document.body.style.pointerEvents = 'none';
     const isMobile      = window.matchMedia('(max-width: 768px)').matches;
 
     // 読み込む画像リスト（背景3枚 + ヘッダー画像）
@@ -1279,9 +1293,10 @@ function startWithLoading() {
             setTimeout(() => {
                 moveSakuraBehind();
                 document.getElementById('mainContent').classList.add('visible');
-                // アニメーション終了後にスクロールを解除（overflow-xは横スクロール防止のため残す）
+                // ムービー終了後にスクロール・クリックを解除
                 document.body.style.overflowX = 'hidden';
                 document.body.style.overflowY = 'auto';
+                document.body.style.pointerEvents = '';
 
                 // ムービー終了後、初期タブがaboutのとき名刺ジェネレーターボタンを表示
                 const cardGenBtn = document.getElementById('cardGenBtn');

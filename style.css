@@ -2437,13 +2437,15 @@ main {
     position: absolute;
     pointer-events: none;
     z-index: 2;
+    background: #000;
 }
 
-/* 外枠: 金色の線 + 内側暗帯 + 外側に茶色帯（内側の枠線を超えて重なるよう14px） */
+/* 外枠: 金色の線 + 内側全体を黒 + 外側に茶色帯 */
 .frame-overlay::before {
     content: '';
     position: absolute;
     inset: -16px;
+    background: #000;
     border: 2px solid rgba(212, 175, 55, 0.85);
     box-shadow:
         inset 0 0 0 5px rgba(16, 7, 2, 0.45),
