@@ -504,6 +504,7 @@ const detailImage     = document.getElementById('detailImage');
 const detailName      = document.getElementById('detailName');
 const detailDesc      = document.getElementById('detailDescription');
 const detailClose     = document.getElementById('detailClose');
+const frameOverlay    = document.getElementById('frameOverlay'); // 和風額縁オーバーレイ
 
 /* ===========================
    画像が読み込めなかった場合のSVGプレースホルダー
@@ -889,6 +890,51 @@ function renderCastGrid(casts) {
 let previousFocus = null;
 
 /**
+ * object-fit:contain / object-position:center center / transform:scale(0.9) で
+ * 表示された画像の実際の表示矩形を計算し、額縁オーバーレイを配置する
+ */
+function positionFrameOverlay() {
+    const cW = castDetailVisual.clientWidth;
+    const cH = castDetailVisual.clientHeight;
+    const nW = detailImage.naturalWidth;
+    const nH = detailImage.naturalHeight;
+    if (!nW || !nH) return;
+
+    const imgRatio = nW / nH;
+    const conRatio = cW / cH;
+    let renderW, renderH;
+    if (imgRatio > conRatio) {
+        renderW = cW;
+        renderH = cW / imgRatio;
+    } else {
+        renderH = cH;
+        renderW = cH * imgRatio;
+    }
+
+    // object-position: 60% bottom のオフセット
+    const baseOffsetX = (cW - renderW) * 0.6;
+    const baseOffsetY = cH - renderH;
+
+    // transform: scale(0.9) translateY(-5%) transform-origin: 60% bottom に合わせた最終位置計算
+    // CSS transform は左から右の順に行列積: scale * translateY の順
+    // pivot = (cW*0.6, cH), ty = translateY(-5%) = -0.05*cH
+    const scale = 0.9;
+    const ty = -0.05 * cH;
+    const ox = cW * 0.6;
+    const oy = cH;
+    const finalW = renderW * scale;
+    const finalH = renderH * scale;
+    const offsetX = scale * (baseOffsetX - ox) + ox;
+    const offsetY = scale * (baseOffsetY + ty - oy) + oy;
+
+    frameOverlay.style.left   = `${offsetX}px`;
+    frameOverlay.style.top    = `${offsetY}px`;
+    frameOverlay.style.width  = `${finalW}px`;
+    frameOverlay.style.height = `${finalH}px`;
+    frameOverlay.hidden = false;
+}
+
+/**
  * 木札グリッドを隠してキャスト詳細ビューを表示する
  * @param {Object} cast - 表示するキャスト情報
  */
@@ -915,7 +961,18 @@ function openCastDetail(cast) {
     detailDesc.textContent = cast.description;
 
     // 常に大（デフォルト）で開く・ボタンで割り当てサイズに切り替え
-    castDetailVisual.classList.remove('size-medium', 'size-small');
+    castDetailVisual.classList.remove('size-medium', 'size-small', 'has-frame');
+    frameOverlay.hidden = true;
+
+    // 集合写真など透過なし画像には額縁を表示
+    if (cast.hasFrame) {
+        castDetailVisual.classList.add('has-frame');
+        if (detailImage.complete && detailImage.naturalWidth) {
+            positionFrameOverlay();
+        } else {
+            detailImage.addEventListener('load', positionFrameOverlay, { once: true });
+        }
+    }
 
     // トグル状態をリセットして大（デフォルト）表示に戻す
     sizeToggled = false;
@@ -949,7 +1006,8 @@ function closeCastDetail() {
     // サイズトグルをリセット
     sizeToggled = false;
     sizeCheckBtn.classList.remove('active');
-    castDetailVisual.classList.remove('size-medium', 'size-small');
+    castDetailVisual.classList.remove('size-medium', 'size-small', 'has-frame');
+    frameOverlay.hidden = true;
 
     if (previousFocus) {
         previousFocus.focus();
@@ -1551,4 +1609,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     setupBgmPlayer();
+
+    // 画面リサイズ時に額縁位置を再計算
+    window.addEventListener('resize', () => {
+        if (!frameOverlay.hidden) positionFrameOverlay();
+    });
 });

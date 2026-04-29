@@ -2420,3 +2420,40 @@ main {
         gap: 0.4rem;
     }
 }
+
+/* ============================================================
+   額縁オーバーレイ: 集合写真など透過なし画像の表示矩形にピッタリ重ねる
+   位置・サイズはJSで動的計算して inline style で設定
+   ============================================================ */
+/* 集合写真を通常配置のまま90%縮小し、額縁が見切れないよう余白を確保 */
+.cast-detail-visual.has-frame .detail-image {
+    transform: scale(0.9) translateY(-5%);
+    transform-origin: 60% bottom;
+    position: relative;
+    z-index: 3; /* frame-overlay(z-index:2)より上面に置いて茶色帯が画像に被らないようにする */
+}
+
+.frame-overlay {
+    position: absolute;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* 外枠: 金色の線 + 内側暗帯 + 外側に茶色帯（内側の枠線を超えて重なるよう14px） */
+.frame-overlay::before {
+    content: '';
+    position: absolute;
+    inset: -16px;
+    border: 2px solid rgba(212, 175, 55, 0.85);
+    box-shadow:
+        inset 0 0 0 5px rgba(16, 7, 2, 0.45),
+        0 0 0 14px rgba(90, 55, 20, 0.85);
+}
+
+/* 内側の枠: 外枠のさらに外側に細い金色線（茶色帯に重なって見える） */
+.frame-overlay::after {
+    content: '';
+    position: absolute;
+    inset: -28px;
+    border: 1px solid rgba(212, 175, 55, 0.5);
+}
