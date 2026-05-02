@@ -502,12 +502,53 @@ main {
 
 /* ===== セクションレイアウト ===== */
 .section-layout {
-    display: block;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-lg);
 }
 
-/* PCではサイドバー非表示・hidden属性も確実に非表示 */
+/* PC: 左側縦型サイドバーとして表示 */
 .section-sidebar {
-    display: none;
+    display: block;
+    flex-shrink: 0;
+    width: 140px;
+    position: sticky;
+    top: 110px;
+}
+
+.section-sidebar .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.section-sidebar .sidebar-item {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: rgba(245, 243, 237, 0.65);
+    background: transparent;
+    border: none;
+    border-left: 3px solid transparent;
+    border-radius: 0 6px 6px 0;
+    cursor: pointer;
+    text-align: left;
+    white-space: nowrap;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.section-sidebar .sidebar-item:hover {
+    background: rgba(212, 175, 55, 0.12);
+    color: var(--paper-white);
+}
+
+.section-sidebar .sidebar-item.active {
+    color: var(--gold-accent);
+    border-left-color: var(--gold-accent);
+    background: rgba(212, 175, 55, 0.12);
 }
 
 .section-sidebar[hidden] {
@@ -516,7 +557,8 @@ main {
 
 /* メインコンテンツ領域 */
 .section-body {
-    width: 100%;
+    flex: 1;
+    min-width: 0;
 }
 
 /* サブセクションの表示切替 */
@@ -530,6 +572,11 @@ main {
 
 /* スマホ: 上部横スクロールタブバーとして表示 */
 @media (max-width: 768px) {
+    .section-layout {
+        flex-direction: column;
+        gap: 0;
+    }
+
     .section-sidebar {
         display: block;
         width: 100%;
