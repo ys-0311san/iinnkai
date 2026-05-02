@@ -835,6 +835,10 @@ function renderCastGrid(casts) {
             // 画像ラッパー（スケルトンと実画像を重ねるコンテナ）
             const imageWrapper = document.createElement('div');
             imageWrapper.className = 'cast-image-wrapper lazy-wrapper';
+            // sizeプロパティを data属性としてセットし、CSSで object-position を制御する
+            if (cast.size) {
+                imageWrapper.dataset.size = cast.size;
+            }
 
             // スケルトン（画像読み込み前のシマーアニメーション）
             const skeleton = document.createElement('div');
