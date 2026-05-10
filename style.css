@@ -258,9 +258,6 @@ body {
     gap: var(--spacing-xs);
     flex-wrap: wrap;
     margin-bottom: 0;
-    background: var(--paper-white);
-    padding: 4px 6px;
-    border-radius: 6px;
 }
 
 .tab-button {
@@ -268,9 +265,9 @@ body {
     font-size: clamp(0.8rem, 1.5vw, 1rem);
     font-weight: 500;
     padding: 0.6rem var(--spacing-md);
-    background: var(--paper-white);
-    border: 2px solid rgba(92, 64, 51, 0.3);
-    color: var(--wood-brown);
+    background: rgba(245, 243, 237, 0.1);
+    border: 2px solid rgba(212, 175, 55, 0.3);
+    color: var(--paper-white);
     cursor: pointer;
     border-radius: 4px;
     -webkit-tap-highlight-color: transparent;
@@ -278,14 +275,14 @@ body {
 
 /* 非アクティブタブのホバーエフェクト */
 .tab-button:hover:not(.active) {
-    background: var(--cream);
-    border-color: rgba(92, 64, 51, 0.5);
+    background: rgba(245, 243, 237, 0.15);
+    border-color: rgba(212, 175, 55, 0.5);
 }
 
 .tab-button.active {
-    background: var(--gold-accent);
+    background: rgba(212, 175, 55, 0.2);
     border-color: var(--gold-accent);
-    color: #2c1c12;
+    color: var(--gold-accent);
 }
 
 .tab-button:focus-visible {
@@ -517,6 +514,10 @@ main {
     width: 140px;
     position: sticky;
     top: 110px;
+    background: rgba(10, 6, 4, 0.72);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 8px;
+    padding: 6px 0;
 }
 
 .section-sidebar .sidebar-nav {
