@@ -265,7 +265,7 @@ body {
     font-size: clamp(0.8rem, 1.5vw, 1rem);
     font-weight: 500;
     padding: 0.6rem var(--spacing-md);
-    background: rgba(245, 243, 237, 0.1);
+    background: rgba(44, 28, 18, 0.95);
     border: 2px solid rgba(212, 175, 55, 0.3);
     color: var(--paper-white);
     cursor: pointer;
@@ -275,12 +275,12 @@ body {
 
 /* 非アクティブタブのホバーエフェクト */
 .tab-button:hover:not(.active) {
-    background: rgba(245, 243, 237, 0.15);
+    background: rgba(70, 45, 25, 0.98);
     border-color: rgba(212, 175, 55, 0.5);
 }
 
 .tab-button.active {
-    background: rgba(212, 175, 55, 0.2);
+    background: rgba(80, 58, 10, 0.98);
     border-color: var(--gold-accent);
     color: var(--gold-accent);
 }
