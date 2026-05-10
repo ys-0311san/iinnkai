@@ -577,20 +577,8 @@ main {
         gap: 0;
     }
 
+    /* スマホではサイドバータブバーを非表示（ドロワーで代替） */
     .section-sidebar {
-        display: block;
-        width: 100%;
-        background: rgba(10, 6, 4, 0.72);
-        border: 1px solid rgba(212, 175, 55, 0.35);
-        border-radius: 8px;
-        padding: var(--spacing-xs) var(--spacing-sm);
-        margin-bottom: var(--spacing-sm);
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-    }
-
-    .section-sidebar::-webkit-scrollbar {
         display: none;
     }
 

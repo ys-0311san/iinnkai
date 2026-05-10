@@ -503,6 +503,9 @@ function renderNewsList(targetId = 'newsList') {
    =========================== */
 const tabButtons   = document.querySelectorAll('.tab-button, .drawer-item'); // PC用タブ＋スマホ用ドロワーアイテム
 const tabContents  = document.querySelectorAll('.tab-content');
+const currentSubSections = Object.fromEntries(
+    Object.entries(sidebarData).map(([tabId, items]) => [tabId, items[0]?.id || null])
+);
 const castGrid     = document.getElementById('castGrid');
 const searchInput  = document.getElementById('castSearch');
 const noResults    = document.getElementById('noResults');
@@ -662,18 +665,39 @@ function preloadAdjacentImages(castId, count = 3) {
    タブ切り替え
    =========================== */
 
+function updateTabButtonStates(tabId) {
+    const currentSectionId = currentSubSections[tabId];
+
+    tabButtons.forEach((btn) => {
+        if (btn.classList.contains('drawer-item')) {
+            const tabMatch = btn.dataset.tab === tabId;
+            const sectionAttr = btn.dataset.section;
+
+            let isActive;
+            if (sectionAttr) {
+                isActive = tabMatch && sectionAttr === (currentSectionId || 'about-main');
+            } else {
+                isActive = tabMatch;
+            }
+
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            return;
+        }
+
+        const isActive = btn.dataset.tab === tabId;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-selected', String(isActive));
+    });
+}
+
 /**
  * 指定したタブIDをアクティブにし、対応するコンテンツと背景画像を切り替える
  * タブ切り替え時は詳細ビューを閉じて木札グリッドに戻す
  * @param {string} targetId - 表示するタブのID（'about' | 'cast' | 'official'）
  */
 function activateTab(targetId) {
-    // ドロワーアイテムのアクティブ状態を更新
-    tabButtons.forEach((btn) => {
-        const isActive = btn.dataset.tab === targetId;
-        btn.classList.toggle('active', isActive);
-        btn.setAttribute('aria-selected', String(isActive));
-    });
+    updateTabButtonStates(targetId);
 
     // コンテンツと背景を同時に切り替え（遅延なし）
     tabContents.forEach((section) => {
@@ -713,7 +737,16 @@ function activateTab(targetId) {
 }
 
 tabButtons.forEach((btn) => {
-    btn.addEventListener('click', () => activateTab(btn.dataset.tab));
+    btn.addEventListener('click', () => {
+        const tabId = btn.dataset.tab;
+        const sectionId = btn.dataset.section || null;
+
+        activateTab(tabId);
+
+        if (sectionId) {
+            activateSubSection(tabId, sectionId);
+        }
+    });
 });
 
 /* ===========================
@@ -1362,6 +1395,8 @@ function renderSidebar(tabId) {
  * @param {string} sectionId - 表示するサブセクションID
  */
 function activateSubSection(tabId, sectionId) {
+    currentSubSections[tabId] = sectionId;
+
     // サブセクションの表示切替
     const section = document.getElementById(tabId);
     if (!section) return;
@@ -1380,6 +1415,8 @@ function activateSubSection(tabId, sectionId) {
             btn.setAttribute('aria-current', isActive ? 'page' : 'false');
         });
     }
+
+    updateTabButtonStates(tabId);
 
     // サブセクション切替時にスクロールをトップへ
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -1589,6 +1626,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 全タブのサイドバーを生成
     Object.keys(sidebarData).forEach(renderSidebar);
+    updateTabButtonStates('about');
     renderCastGrid(castData);
     renderNewsList();
     startWithLoading();
