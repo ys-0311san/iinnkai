@@ -258,6 +258,9 @@ body {
     gap: var(--spacing-xs);
     flex-wrap: wrap;
     margin-bottom: 0;
+    background: var(--paper-white);
+    padding: 4px 6px;
+    border-radius: 6px;
 }
 
 .tab-button {
