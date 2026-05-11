@@ -348,7 +348,7 @@ const bgImages = {
  * @param {string} targetId - 切り替え先タブID
  */
 function crossfadeBackground(targetId) {
-    const isSP  = window.matchMedia('(max-width: 768px)').matches;
+    const isSP  = window.matchMedia('(max-width: 767px)').matches;
     const newSrc = bgImages[targetId]?.[isSP ? 'sp' : 'pc'];
     if (!newSrc) return;
 
@@ -796,7 +796,7 @@ document.addEventListener('keydown', (e) => {
  * @param {HTMLElement} nameEl - .cast-name 要素
  */
 function fitNameToCard(nameEl) {
-    if (window.innerWidth > 600) return;
+    if (window.innerWidth > 767) return;
     // name-long は sp-break で2行になるため対象外
     if (nameEl.classList.contains('name-long')) return;
     const minFontSize = 7;
@@ -984,17 +984,19 @@ function positionFrameOverlay() {
         renderW = cH * imgRatio;
     }
 
-    // object-position: 60% bottom のオフセット
-    const baseOffsetX = (cW - renderW) * 0.6;
-    const baseOffsetY = cH - renderH;
+    // スマホ(768px以下)はobject-position:center top、PCはobject-position:60% bottom
+    const isMobile = window.innerWidth <= 767;
+    const posXRatio = isMobile ? 0.5 : 0.6;
+    const baseOffsetX = (cW - renderW) * posXRatio;
+    const baseOffsetY = isMobile ? 0 : (cH - renderH);
 
-    // transform: scale(0.9) translateY(-5%) transform-origin: 60% bottom に合わせた最終位置計算
-    // CSS transform は左から右の順に行列積: scale * translateY の順
-    // pivot = (cW*0.6, cH), ty = translateY(-5%) = -0.05*cH
+    // transform: scale(0.9) translateY(-5%) の pivot（transform-origin）もスマホで変わる
+    // PC:    transform-origin: 60% bottom → pivot = (cW*0.6, cH)
+    // スマホ: transform-origin: 50% top  → pivot = (cW*0.5, 0)
     const scale = 0.9;
     const ty = -0.05 * cH;
-    const ox = cW * 0.6;
-    const oy = cH;
+    const ox = cW * posXRatio;
+    const oy = isMobile ? 0 : cH;
     const finalW = renderW * scale;
     const finalH = renderH * scale;
     const offsetX = scale * (baseOffsetX - ox) + ox;
@@ -1328,7 +1330,7 @@ function startWithLoading() {
     // ムービー中はスクロール・クリックを全面ブロック
     document.body.style.overflow = 'hidden';
     document.body.style.pointerEvents = 'none';
-    const isMobile      = window.matchMedia('(max-width: 768px)').matches;
+    const isMobile      = window.matchMedia('(max-width: 767px)').matches;
 
     // 読み込む画像リスト（背景3枚 + ヘッダー画像）
     const srcs = isMobile
@@ -1646,7 +1648,7 @@ function setupMangaLightbox() {
    =========================== */
 document.addEventListener('DOMContentLoaded', () => {
     // 初期背景（aboutタブ）を即座にセット
-    const isSPInit = window.matchMedia('(max-width: 768px)').matches;
+    const isSPInit = window.matchMedia('(max-width: 767px)').matches;
     const initBg = bgImages.about[isSPInit ? 'sp' : 'pc'];
     const bgCurrent = document.getElementById('bgCurrent');
     if (bgCurrent) bgCurrent.style.backgroundImage = `url('${initBg}')`;

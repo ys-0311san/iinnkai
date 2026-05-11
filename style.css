@@ -303,7 +303,7 @@ body {
 }
 
 /* スマホではPC用タブを非表示 */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .tabs {
         display: none;
     }
@@ -315,7 +315,7 @@ body {
     display: none;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .menu-toggle {
         display: flex;
         flex-direction: column;
@@ -575,7 +575,7 @@ main {
 }
 
 /* スマホ: 上部横スクロールタブバーとして表示 */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .section-layout {
         flex-direction: column;
         gap: 0;
@@ -729,7 +729,7 @@ main {
 }
 
 /* スマホは1カラムに */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .event-posters {
         grid-template-columns: 1fr;
         gap: var(--spacing-lg);
@@ -1109,7 +1109,7 @@ main {
     display: none;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 767px) {
     .cast-name.name-long .sp-break {
         display: block;
     }
@@ -1355,7 +1355,7 @@ main {
 }
 
 /* スマホ: 画像を上・吹き出しを下中央に */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .cast-detail {
         top: 70px;
         height: calc(100vh - 70px);
@@ -1534,7 +1534,7 @@ main {
     border-color: rgba(180, 130, 80, 0.8);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .bgm-player {
         bottom: 14px;
         right: 14px;
@@ -1767,15 +1767,45 @@ main {
 
 /* ===== レスポンシブ対応 ===== */
 
-/* タブレット（〜1024px） */
-@media (max-width: 1024px) {
+/* タブレット（768px〜1023px）：iPad全般向け中間レイアウト */
+@media (min-width: 768px) and (max-width: 1023px) {
+    /* キャストグリッド：3列（PC:4列→タブレット:3列→スマホ:2列） */
     .cast-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-md);
+    }
+
+    /* カードは軽くコンパクト化 */
+    .cast-card {
+        padding: var(--spacing-sm);
+    }
+
+    /* 名前フォント：PC〜スマホの中間値 */
+    .cast-name              { font-size: 0.9rem; }
+    .cast-name.name-short   { font-size: 1.0rem; }
+    .cast-name.name-medium  { font-size: 0.85rem; }
+    .cast-name.name-long    { font-size: 0.75rem; }
+
+    /* 詳細ビュー：タブレット縦でも情報パネルが読みやすいよう幅を調整 */
+    .cast-detail-info {
+        right: 58%;
+        max-width: 280px;
+    }
+
+    /* ヘッダー高さをやや詰める */
+    .header-logo {
+        height: 40px;
+    }
+
+    /* イベントポスターは1列に */
+    .event-posters {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
     }
 }
 
 /* スマートフォン（〜768px） */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     /* ヘッダーはタイトル＋ハンバーガーボタンを横並びのまま */
     .header-inner {
         flex-direction: row;
@@ -2111,7 +2141,7 @@ main {
 }
 
 /* PC：縦横比を維持しつつ全体を大きく */
-@media (min-width: 769px) {
+@media (min-width: 768px) {
     .card-gen-btn {
         padding: 1.1rem 1.7rem 1.1rem 1.5rem;
         gap: 0.3rem;
@@ -2135,7 +2165,7 @@ main {
 }
 
 /* スマホ：下部固定の広告バナー風フルWidth */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .card-gen-btn {
         /* 左右いっぱいに広げてバナー配置 */
         left: 0;
@@ -2503,7 +2533,7 @@ main {
 }
 
 /* ===== スマホ対応 ===== */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .manga-lb-arrow {
         width: 2.2rem;
         height: 3.5rem;
@@ -2525,6 +2555,13 @@ main {
     transform-origin: 60% bottom;
     position: relative;
     z-index: 3; /* frame-overlay(z-index:2)より上面に置いて茶色帯が画像に被らないようにする */
+}
+
+/* スマホではobject-positionがcenter topに変わるためtransform-originも合わせる */
+@media (max-width: 767px) {
+    .cast-detail-visual.has-frame .detail-image {
+        transform-origin: 50% top;
+    }
 }
 
 .frame-overlay {
