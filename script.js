@@ -95,7 +95,7 @@ const castData = [
     },
     {
         id: 10,
-        name: '蒼天-Souten-',
+        name: '蒼天-|Souten-',
         yomi: 'そうてん souten',
         image: 'images/cast/souten.png',
         detailImage: 'images/cast/souten_original.png',
@@ -182,7 +182,7 @@ const castData = [
     },
     {
         id: 21,
-        name: 'Shint_Akatohi',
+        name: 'Shint_|Akatohi',
         yomi: 'しんとあかとひ shint akatohi',
         image: 'images/cast/shint-akatohi.png',
         detailImage: 'images/cast/shint-akatohi_original.png',
@@ -792,6 +792,22 @@ document.addEventListener('keydown', (e) => {
    =========================== */
 
 /**
+ * スマホでキャスト名がカード幅をはみ出す場合にフォントサイズを縮小する
+ * @param {HTMLElement} nameEl - .cast-name 要素
+ */
+function fitNameToCard(nameEl) {
+    if (window.innerWidth > 600) return;
+    // name-long は sp-break で2行になるため対象外
+    if (nameEl.classList.contains('name-long')) return;
+    const minFontSize = 7;
+    let fontSize = parseFloat(window.getComputedStyle(nameEl).fontSize);
+    while (nameEl.scrollWidth > nameEl.clientWidth && fontSize > minFontSize) {
+        fontSize -= 0.5;
+        nameEl.style.fontSize = `${fontSize}px`;
+    }
+}
+
+/**
  * キャスト配列をもとに木札グリッドを再描画する
  * @param {Array} casts - 表示するキャストの配列
  */
@@ -847,14 +863,20 @@ function renderCastGrid(casts) {
             card.className = 'cast-card';
             card.setAttribute('role', 'button');
             card.setAttribute('tabindex', '0');
-            card.setAttribute('aria-label', `${cast.name}の詳細を見る`);
+            const cleanName = cast.name.replace('|', '');
+            card.setAttribute('aria-label', `${cleanName}の詳細を見る`);
 
             // 文字数に応じてサイズクラスを付与（短い名前ほど大きく表示）
             const nameEl = document.createElement('div');
-            const nameLen = cast.name.length;
-            const nameSizeClass = nameLen <= 4 ? 'name-short' : nameLen <= 7 ? 'name-medium' : 'name-long';
+            const nameLen = cleanName.length;
+            const nameSizeClass = nameLen <= 4 ? 'name-short' : nameLen <= 9 ? 'name-medium' : 'name-long';
             nameEl.className = `cast-name ${nameSizeClass}`;
-            nameEl.textContent = cast.name;
+            // | がある場合はスマホ改行用spanに変換、ない場合はそのまま
+            if (cast.name.includes('|')) {
+                nameEl.innerHTML = cast.name.replace('|', '<span class="sp-break"></span>');
+            } else {
+                nameEl.textContent = cleanName;
+            }
 
             // 役職バッジ（カード上部に表示）
             if (cast.role) {
@@ -925,6 +947,11 @@ function renderCastGrid(casts) {
     });
 
     castGrid.appendChild(fragment);
+
+    // DOM描画後にスマホでのはみ出し防止処理を実行
+    requestAnimationFrame(() => {
+        castGrid.querySelectorAll('.cast-name').forEach(fitNameToCard);
+    });
 }
 
 /* ===========================
@@ -989,10 +1016,10 @@ function openCastDetail(cast) {
 
     // 前の画像をクリアしてから新しい画像をセット（前のキャストが一瞬表示されるのを防ぐ）
     detailImage.src = '';
-    detailImage.alt = cast.name;
+    detailImage.alt = cast.name.replace('|', '');
     detailImage.onerror = () => { detailImage.src = placeholderDetail; };
     detailImage.src = cast.detailImage || cast.image;
-    detailName.textContent = cast.name;
+    detailName.textContent = cast.name.replace('|', '');
     // 既存の役職バッジを削除してから再生成
     const existingRole = detailName.nextElementSibling;
     if (existingRole && existingRole.classList.contains('detail-role')) {
@@ -1117,7 +1144,7 @@ searchInput.addEventListener('input', () => {
     } else {
         const filtered = castData.filter((cast) => {
             return (
-                normalizeSearch(cast.name).includes(term) ||
+                normalizeSearch(cast.name.replace('|', '')).includes(term) ||
                 normalizeSearch(cast.yomi || '').includes(term)
             );
         });
