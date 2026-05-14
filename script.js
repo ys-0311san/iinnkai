@@ -23,7 +23,7 @@ const castData = [
         role: 'オーナー',
         image: 'images/cast/takaniso.png',               // 木札グリッド用（焼き木調）
         detailImage: 'images/cast/takaniso_original.png', // 詳細ビュー用（オリジナル）
-        description: 'ここに挨拶文や紹介を入れてください。',
+        description: 'なでなで茶屋はメスケモの楽園…ゆっくりして心を癒してくださいね',
         size: 'medium',
     },
     {
@@ -337,10 +337,12 @@ const castData = [
    背景画像マップ（タブID → PC/SP画像パス）
    =========================== */
 const bgImages = {
-    about:    { pc: 'images/bg-about-pc.png',    sp: 'images/bg-about-sp.png'    },
-    cast:     { pc: 'images/bg-cast-pc.png',     sp: 'images/bg-cast-sp.png'     },
-    official: { pc: 'images/bg-official-pc.png', sp: 'images/bg-official-sp.png' },
-    news:     { pc: 'images/bg-about-pc.png',    sp: 'images/bg-about-sp.png'    },
+    community: { pc: 'images/bg-about-pc.png',    sp: 'images/bg-about-sp.png'    },
+    events:    { pc: 'images/bg-about-pc.png',    sp: 'images/bg-about-sp.png'    },
+    special:   { pc: 'images/bg-about-pc.png',    sp: 'images/bg-about-sp.png'    },
+    cast:      { pc: 'images/bg-cast-pc.png',     sp: 'images/bg-cast-sp.png'     },
+    official:  { pc: 'images/bg-official-pc.png', sp: 'images/bg-official-sp.png' },
+    news:      { pc: 'images/bg-about-pc.png',    sp: 'images/bg-about-sp.png'    },
 };
 
 /**
@@ -361,9 +363,17 @@ function crossfadeBackground(targetId) {
    各タブのサブセクションをここに追加する
    =========================== */
 const sidebarData = {
-    about: [
-        { id: 'about-main', label: 'イベント概要' },
-        { id: 'about-faq', label: 'Q&A' },
+    community: [
+        { id: 'community-main', label: 'コミュニティ概要' },
+    ],
+    events: [
+        { id: 'events-chaya', label: 'なでなで茶屋 牝獣' },
+        { id: 'events-mesukemo', label: 'なでなで倶楽部 MESUKEMO' },
+        { id: 'events-kemono', label: 'KEMONO写真館' },
+        { id: 'events-faq', label: 'Q&A' },
+    ],
+    special: [
+        { id: 'special-shrine', label: '24時間メスケモ神社' },
     ],
     news: [
         { id: 'news-main', label: 'お知らせ' },
@@ -675,7 +685,7 @@ function updateTabButtonStates(tabId) {
 
             let isActive;
             if (sectionAttr) {
-                isActive = tabMatch && sectionAttr === (currentSectionId || 'about-main');
+                isActive = tabMatch && sectionAttr === (currentSectionId || 'community-main');
             } else {
                 isActive = tabMatch;
             }
@@ -694,7 +704,7 @@ function updateTabButtonStates(tabId) {
 /**
  * 指定したタブIDをアクティブにし、対応するコンテンツと背景画像を切り替える
  * タブ切り替え時は詳細ビューを閉じて木札グリッドに戻す
- * @param {string} targetId - 表示するタブのID（'about' | 'cast' | 'official'）
+ * @param {string} targetId - 表示するタブのID
  */
 function activateTab(targetId) {
     updateTabButtonStates(targetId);
@@ -715,16 +725,16 @@ function activateTab(targetId) {
     // メニューを閉じる
     closeDrawer();
 
-    // 名刺ジェネレーターボタンをイベントタブのときだけ表示
+    // 名刺ジェネレーターボタンを community / events タブのときだけ表示
     const cardGenBtn = document.getElementById('cardGenBtn');
     if (cardGenBtn) {
-        cardGenBtn.classList.toggle('visible', targetId === 'about');
+        cardGenBtn.classList.toggle('visible', targetId === 'community' || targetId === 'events');
     }
 
-    // 桜吹雪はabout・newsタブのみ表示
+    // 桜吹雪は community / events / special / news タブで表示
     const sakura = document.getElementById('sakuraCanvas');
     if (sakura && sakura.classList.contains('behind')) {
-        sakura.classList.toggle('active', targetId === 'about' || targetId === 'news');
+        sakura.classList.toggle('active', targetId === 'community' || targetId === 'events' || targetId === 'special' || targetId === 'news');
     }
 
 
@@ -1363,7 +1373,7 @@ function startWithLoading() {
                 document.body.style.overflowY = 'auto';
                 document.body.style.pointerEvents = '';
 
-                // ムービー終了後、初期タブがaboutのとき名刺ジェネレーターボタンを表示
+                // ムービー終了後、初期タブがcommunityのとき名刺ジェネレーターボタンを表示
                 const cardGenBtn = document.getElementById('cardGenBtn');
                 if (cardGenBtn) {
                     cardGenBtn.classList.add('visible');
@@ -1386,7 +1396,7 @@ function startWithLoading() {
 
 /**
  * 指定タブのサイドバーを生成する
- * @param {string} tabId - タブID（'about' | 'cast' | 'official'）
+ * @param {string} tabId - タブID
  */
 function renderSidebar(tabId) {
     const sidebar = document.getElementById(`sidebar-${tabId}`);
@@ -1647,15 +1657,15 @@ function setupMangaLightbox() {
    初期化
    =========================== */
 document.addEventListener('DOMContentLoaded', () => {
-    // 初期背景（aboutタブ）を即座にセット
+    // 初期背景（communityタブ）を即座にセット
     const isSPInit = window.matchMedia('(max-width: 767px)').matches;
-    const initBg = bgImages.about[isSPInit ? 'sp' : 'pc'];
+    const initBg = bgImages.community[isSPInit ? 'sp' : 'pc'];
     const bgCurrent = document.getElementById('bgCurrent');
     if (bgCurrent) bgCurrent.style.backgroundImage = `url('${initBg}')`;
 
     // 全タブのサイドバーを生成
     Object.keys(sidebarData).forEach(renderSidebar);
-    updateTabButtonStates('about');
+    updateTabButtonStates('community');
     renderCastGrid(castData);
     renderNewsList();
     startWithLoading();
