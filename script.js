@@ -1662,8 +1662,8 @@ const kemonoCastList = [
     'takaniso', 'toyosakurako', 'udon_a', 'uryfi', 'yuki-san'
 ];
 
-function initKemonoGallery() {
-    const container = document.getElementById('kemonoGallery');
+function initKemonoGallery(containerId = 'kemonoGallery') {
+    const container = document.getElementById(containerId);
     if (!container) return;
 
     const shuffled = [...kemonoCastList];
@@ -1702,6 +1702,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 隠しページトリガーを設定
     setupSecretTrigger();
     initKemonoGallery();
+    initKemonoGallery('officialGallery');
 
     // 名刺ジェネレーターボタンの初期表示はムービー終了後に行う（startWithLoading内で制御）
 
