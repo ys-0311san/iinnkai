@@ -368,7 +368,7 @@ const sidebarData = {
     ],
     events: [
         { id: 'events-chaya', label: 'なでなで茶屋 牝獣' },
-        { id: 'events-mesukemo', label: 'なでなで倶楽部 MESUKEMO' },
+        { id: 'events-mesukemo', label: 'メスケモ倶楽部' },
         { id: 'events-kemono', label: 'KEMONO写真館' },
         { id: 'events-faq', label: 'Q&A' },
     ],
@@ -783,7 +783,7 @@ function closeDrawer() {
     drawerOverlay.classList.remove('open');
     menuToggle.setAttribute('aria-expanded', 'false');
     sideDrawer.setAttribute('aria-hidden', 'true');
-    document.body.style.overflowY = 'auto';
+    document.body.style.overflowY = 'scroll';
 }
 
 menuToggle.addEventListener('click', openDrawer);
@@ -1086,7 +1086,7 @@ function closeCastDetail() {
     if (castDetail.hidden) return;
     castDetail.hidden = true;
     castCard.hidden = false;
-    document.body.style.overflowY = 'auto';
+    document.body.style.overflowY = 'scroll';
 
     // サイズトグルをリセット
     sizeToggled = false;
@@ -1370,7 +1370,7 @@ function startWithLoading() {
                 document.getElementById('mainContent').classList.add('visible');
                 // ムービー終了後にスクロール・クリックを解除
                 document.body.style.overflowX = 'hidden';
-                document.body.style.overflowY = 'auto';
+                document.body.style.overflowY = 'scroll';
                 document.body.style.pointerEvents = '';
 
                 // ムービー終了後、初期タブがcommunityのとき名刺ジェネレーターボタンを表示
@@ -1558,9 +1558,9 @@ function openMangaLightbox(mangaIndex = 0, pageIndex = 0) {
 function closeMangaLightbox() {
     const lb = document.getElementById('mangaLightbox');
     lb.hidden = true;
-    // 既存のscroll制御（overflowX:hidden / overflowY:auto）に戻す
+    // 既存のscroll制御（overflowX:hidden / overflowY:scroll）に戻す
     document.body.style.overflowX = 'hidden';
-    document.body.style.overflowY = 'auto';
+    document.body.style.overflowY = 'scroll';
     const activePrev = document.querySelector(`.manga-preview[data-manga-index="${mangaCurrentIndex}"]`);
     if (activePrev) activePrev.focus();
 }
@@ -1653,6 +1653,32 @@ function setupMangaLightbox() {
     }, { passive: true });
 }
 
+const kemonoCastList = [
+    '6ugca6', 'akachan', 'amatuka-mauru', 'arari', 'cinnamon', 'crevelle',
+    'cute-nukko', 'eclixis', 'elvie', 'ginten-wayne', 'girachii', 'inoue-nn',
+    'kanameri', 'konatsu', 'makauso', 'mamluua', 'maruko',
+    'nanairoyumeko', 'nanami', 'naoe', 'narga', 'nikkun', 'niko', 'nuno',
+    'nyasu', 'otokitsune', 'ryudora', 'samaa', 'shint-akatohi', 'souten',
+    'takaniso', 'toyosakurako', 'udon_a', 'uryfi', 'yuki-san'
+];
+
+function initKemonoGallery() {
+    const container = document.getElementById('kemonoGallery');
+    if (!container) return;
+
+    const shuffled = [...kemonoCastList];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    container.innerHTML = shuffled.slice(0, 4).map((name) => `
+        <div class="kemono-gallery-item">
+            <img src="images/cast/${name}.png" alt="${name}" loading="lazy">
+        </div>
+    `).join('');
+}
+
 /* ===========================
    初期化
    =========================== */
@@ -1675,6 +1701,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 隠しページトリガーを設定
     setupSecretTrigger();
+    initKemonoGallery();
 
     // 名刺ジェネレーターボタンの初期表示はムービー終了後に行う（startWithLoading内で制御）
 

@@ -52,6 +52,7 @@ body {
     position: relative;
     /* スマホのバウンススクロールによる背景ズレを防止 */
     overscroll-behavior: none;
+    scrollbar-gutter: stable;
 }
 
 /* スクリーンリーダー専用テキスト（視覚的に非表示） */
@@ -175,7 +176,7 @@ body {
 /* ===== メインコンテンツ ===== */
 .main-content {
     opacity: 0;
-    padding-top: 90px;
+    padding-top: 110px;
     transition: opacity 1s ease;
 }
 
@@ -255,21 +256,23 @@ body {
 /* ===== PC用タブナビゲーション ===== */
 .tabs {
     display: flex;
-    gap: var(--spacing-xs);
-    flex-wrap: wrap;
+    gap: 4px;
+    flex-wrap: nowrap;
     margin-bottom: 0;
+    overflow-x: auto;
 }
 
 .tab-button {
     font-family: var(--font-body);
-    font-size: clamp(0.8rem, 1.5vw, 1rem);
+    font-size: clamp(0.65rem, 1.1vw, 0.85rem);
     font-weight: 500;
-    padding: 0.6rem var(--spacing-md);
+    padding: 0.5rem 0.75rem;
     background: rgba(245, 243, 237, 0.1);
     border: 2px solid rgba(212, 175, 55, 0.3);
     color: var(--paper-white);
     cursor: pointer;
     border-radius: 4px;
+    white-space: nowrap;
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -449,7 +452,7 @@ body {
     font-family: var(--font-body);
     font-size: 1rem;
     font-weight: 600;
-    color: rgba(245, 243, 237, 0.75);
+    color: rgba(245, 243, 237, 0.87);
     background: transparent;
     border: none;
     border-left: 3px solid transparent;
@@ -533,7 +536,7 @@ main {
     font-family: var(--font-body);
     font-size: 0.85rem;
     font-weight: 600;
-    color: rgba(245, 243, 237, 0.65);
+    color: rgba(245, 243, 237, 0.82);
     background: transparent;
     border: none;
     border-left: 3px solid transparent;
@@ -599,7 +602,7 @@ main {
         font-family: var(--font-body);
         font-size: 0.82rem;
         font-weight: 600;
-        color: rgba(245, 243, 237, 0.65);
+        color: rgba(245, 243, 237, 0.82);
         background: transparent;
         border: none;
         border-bottom: 3px solid transparent;
@@ -631,6 +634,12 @@ main {
     padding: var(--spacing-xl);
     border-radius: 8px;
     box-shadow: 0 8px 32px var(--shadow);
+}
+
+#events-kemono {
+    position: relative;
+    min-height: calc(100vh + 150px);
+    overflow: hidden;
 }
 
 .content-card h2 {
@@ -683,12 +692,29 @@ main {
     gap: var(--spacing-md);
 }
 
+@media (min-width: 768px) {
+    .poster-block {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+}
+
 .poster-image {
     width: 100%;
     border-radius: 8px;
     border: 2px solid rgba(212, 175, 55, 0.4);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
     display: block;
+}
+
+@media (min-width: 768px) {
+    .poster-image {
+        width: auto;
+        max-width: 48%;
+        max-height: calc(100vh - 220px);
+        object-fit: contain;
+        flex-shrink: 0;
+    }
 }
 
 .poster-title {
@@ -706,6 +732,65 @@ main {
     font-size: clamp(0.9rem, 1.5vw, 1rem);
     line-height: 1.8;
     color: var(--charcoal);
+}
+
+/* KEMONO写真館 キャラクターひょっこり（カード外・セクション下端） */
+.kemono-gallery-section {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 24px;
+    pointer-events: none;
+}
+
+.kemono-gallery-grid {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.kemono-gallery-item {
+    flex-shrink: 0;
+    width: 110px;
+}
+
+.kemono-gallery-item img {
+    width: 100%;
+    height: 200px;
+    display: block;
+    object-fit: contain;
+    object-position: bottom center;
+}
+
+/* PC・タブレット: 大きめに */
+@media (min-width: 768px) {
+    .kemono-gallery-item {
+        width: 170px;
+    }
+    .kemono-gallery-item img {
+        height: 260px;
+    }
+    .kemono-gallery-section {
+        gap: 32px;
+    }
+    .kemono-gallery-grid {
+        gap: 32px;
+    }
+}
+
+/* スマホ調整 */
+@media (max-width: 767px) {
+    .kemono-gallery-item {
+        width: 80px;
+    }
+    .kemono-gallery-grid {
+        gap: 16px;
+    }
 }
 
 .poster-description p {
@@ -899,7 +984,7 @@ main {
     content: 'Q.';
     position: absolute;
     left: 0;
-    color: rgba(139, 111, 71, 0.8);
+    color: var(--cedar);
     font-size: 0.9em;
 }
 
@@ -916,7 +1001,7 @@ main {
     content: 'A.';
     position: absolute;
     left: 0;
-    color: rgba(139, 111, 71, 0.7);
+    color: var(--cedar);
     font-size: 0.9em;
 }
 
@@ -973,7 +1058,7 @@ main {
 /* ===== 検索バー ===== */
 .cast-notice {
     text-align: center;
-    color: rgba(245, 243, 237, 0.6);
+    color: var(--wood-brown);
     font-size: 0.9rem;
     margin-bottom: var(--spacing-lg);
     margin-top: calc(var(--spacing-sm) * -1);
@@ -1195,7 +1280,7 @@ main {
     font-family: var(--font-display);
     font-size: 0.75rem;
     font-weight: 700;
-    color: rgba(245, 243, 237, 0.7);
+    color: rgba(245, 243, 237, 0.87);
     text-align: center;
     margin-top: 4px;
     letter-spacing: 0.1em;
@@ -2603,29 +2688,82 @@ main {
     border: 1px solid rgba(212, 175, 55, 0.5);
 }
 
-/* ===== メスケモ推進委員会とは：Heroエリア ===== */
+/* ===== メスケモ推進委員会とは：Heroエリア（上部バナー帯型） ===== */
 .community-hero {
-    text-align: center;
-    padding: var(--spacing-xl) var(--spacing-lg);
     margin-bottom: var(--spacing-lg);
+    border-radius: 12px;
+    border: 2px solid rgba(212, 175, 55, 0.5);
+    overflow: hidden;
+    box-shadow: 0 6px 32px rgba(0, 0, 0, 0.7);
+}
+
+/* 上部: バナー画像エリア（PC: 縦を抑えて一画面に収める / SP: 4:3） */
+.community-hero-banner {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    position: relative;
+    background: #080400;
+}
+
+/* 画像下部に暗幕グラデーションを追加し木目帯へ自然につなぐ */
+.community-hero-banner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom,
+        transparent 40%,
+        rgba(15, 8, 3, 0.6) 80%,
+        rgba(15, 8, 3, 0.85) 100%
+    );
+    pointer-events: none;
+}
+
+/* バナー画像: 全体を表示（トリミングなし） */
+.community-icon {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center center;
+    border-radius: 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* 下部: 木目テクスチャ帯 */
+.community-hero-caption {
+    position: relative;
+    text-align: center;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: url('images/wood-texture.jpg') center / cover no-repeat;
+}
+
+/* 木目を活かしつつ文字を読みやすくする薄い暗幕 */
+.community-hero-caption::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 4, 0, 0.38);
+    z-index: 0;
+}
+
+/* キャプション内の子要素は暗幕より上 */
+.community-hero-caption > * {
+    position: relative;
+    z-index: 1;
 }
 
 .community-catch {
-    font-size: 1.4rem;
+    font-size: 1.7rem;
     font-weight: bold;
     color: var(--gold-accent);
-    margin-bottom: var(--spacing-lg);
-    letter-spacing: 0.05em;
-    line-height: 1.6;
-}
-
-.community-icon {
-    display: block;
-    width: min(320px, 80%);
-    height: auto;
-    margin: 0 auto var(--spacing-lg);
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    margin-bottom: var(--spacing-sm);
+    letter-spacing: 0.1em;
+    line-height: 1.5;
+    text-shadow:
+        0 2px 12px rgba(0, 0, 0, 1),
+        0 0 30px rgba(0, 0, 0, 0.9);
 }
 
 .community-hero-links {
@@ -2635,6 +2773,30 @@ main {
     justify-content: center;
 }
 
+/* Heroエリア内のリンクを金色ボーダーボタンに格上げ */
+.community-hero-links .shop-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.6em 1.4em;
+    border: 1.5px solid var(--gold-accent);
+    border-radius: 6px;
+    background: rgba(212, 175, 55, 0.08);
+    color: var(--gold-accent);
+    font-size: 0.95rem;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    transition: background 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.15);
+}
+
+.community-hero-links .shop-link:hover,
+.community-hero-links .shop-link:focus-visible {
+    background: rgba(212, 175, 55, 0.22);
+    box-shadow: 0 0 16px rgba(212, 175, 55, 0.35);
+}
+
 .about-booth {
     margin-top: var(--spacing-xl);
     padding-top: var(--spacing-lg);
@@ -2642,7 +2804,47 @@ main {
 }
 
 @media (max-width: 767px) {
+    .community-hero-banner {
+        aspect-ratio: 4 / 3;
+    }
+
     .community-catch {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
+    }
+}
+
+/* ===== 特別開催イベント グリッドレイアウト ===== */
+.special-events-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-xl);
+    padding: var(--spacing-md);
+}
+
+.special-event-card {
+    background: rgba(245, 243, 237, 0.6);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px var(--shadow);
+    display: flex;
+    flex-direction: column;
+}
+
+.special-event-poster {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.special-event-info {
+    padding: var(--spacing-md);
+    flex: 1;
+}
+
+/* スマホ: 1列 */
+@media (max-width: 767px) {
+    .special-events-grid {
+        grid-template-columns: 1fr;
+        padding: var(--spacing-sm);
     }
 }

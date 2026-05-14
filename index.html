@@ -135,19 +135,25 @@
 
                             <!-- Heroエリア -->
                             <div class="community-hero">
-                                <p class="community-catch">メスケモ好きなら、今すぐ参加しよう！</p>
-                                <img src="images/group-icon.jpg" alt="メスケモ推進委員会 グループアイコン" class="community-icon">
-                                <div class="community-hero-links">
-                                    <a href="https://vrchat.com/home/group/grp_df3c5259-05df-4a28-b5b5-b326c55110fa"
-                                       target="_blank" rel="noopener noreferrer" class="shop-link">
-                                        VRChat グループに参加する
-                                        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 15L15 5M15 5H8M15 5V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                    </a>
-                                    <a href="https://x.com/mesukemo_ya"
-                                       target="_blank" rel="noopener noreferrer" class="shop-link">
-                                        X (Twitter) をフォローする
-                                        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 15L15 5M15 5H8M15 5V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                    </a>
+                                <!-- 上部: 横幅いっぱいのバナー画像 -->
+                                <div class="community-hero-banner">
+                                    <img src="images/group-icon.jpg" alt="メスケモ推進委員会 グループアイコン" class="community-icon">
+                                </div>
+                                <!-- 下部: 木目テクスチャ帯 -->
+                                <div class="community-hero-caption">
+                                    <p class="community-catch">メスケモ好きなら、今すぐ参加しよう！</p>
+                                    <div class="community-hero-links">
+                                        <a href="https://vrchat.com/home/group/grp_df3c5259-05df-4a28-b5b5-b326c55110fa"
+                                           target="_blank" rel="noopener noreferrer" class="shop-link">
+                                            VRChat グループに参加する
+                                            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 15L15 5M15 5H8M15 5V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                        </a>
+                                        <a href="https://x.com/mesukemo_ya"
+                                           target="_blank" rel="noopener noreferrer" class="shop-link">
+                                            X (Twitter) をフォローする
+                                            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 15L15 5M15 5H8M15 5V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
 
@@ -327,6 +333,10 @@
                                     </div>
                                 </div>
                             </div>
+                            <!-- キャストギャラリー（ランダム4名） -->
+                            <div class="kemono-gallery-section">
+                                <div class="kemono-gallery-grid" id="kemonoGallery"></div>
+                            </div>
                         </div>
 
                         <!-- Q&A -->
@@ -368,17 +378,19 @@
 
             <!-- 特別開催イベント -->
             <section class="tab-content" id="special" role="tabpanel" aria-labelledby="tab-special">
-                <div class="section-layout">
-                    <aside class="section-sidebar" id="sidebar-special" aria-label="特別開催イベントのナビゲーション"></aside>
-                    <div class="section-body">
-                        <div class="sub-section active" id="special-shrine">
-                            <div class="content-card">
-                                <h2>24時間メスケモ神社</h2>
-                                <p class="poster-schedule">2026年 元旦〜 特別開催</p>
-                                <p>お正月に特別開催された24時間ぶっ通しのメスケモイベントです。新年を一緒に祝うべく、たくさんのケモノたちが集まりました。</p>
-                            </div>
+                <div class="special-events-grid">
+
+                    <!-- 24時間メスケモ神社 -->
+                    <div class="special-event-card">
+                        <img src="images/poster-shrine.jpg" alt="24時間メスケモ神社 ポスター" class="special-event-poster">
+                        <div class="special-event-info">
+                            <h3 class="poster-title">24時間メスケモ神社</h3>
+                            <p class="poster-schedule">2026年1月3日 特別開催</p>
+                            <p>お正月に特別開催された24時間ぶっ通しのメスケモイベントです。24時間ケモ巫女常駐・お焚き上げおみくじ・ふるまい甘酒など、新年を一緒に祝うべく、たくさんのケモノたちが集まりました。</p>
                         </div>
                     </div>
+
+                    <!-- 今後の特別イベントはここに追加 -->
                 </div>
             </section>
 

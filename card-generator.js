@@ -1116,7 +1116,35 @@ function generateCard() {
     }
     drawPreviewCard();
     document.getElementById('downloadSection').style.display = 'block';
+    updateShareXBtn();
     alert('カードが生成されました！\nダウンロードボタンから保存できます。');
+}
+
+/* ===========================
+   Xシェアボタンのhrefを動的生成して表示する
+   称号（userTitle）を含めたツイートテキストを構築する
+   =========================== */
+function updateShareXBtn() {
+    const shareBtn = document.getElementById('shareXBtn');
+    if (!shareBtn) return;
+
+    const userTitle = document.getElementById('userTitle').value.trim();
+
+    const tweetText = userTitle
+        ? `メスケモ推進委員会の会員カードを作りました！\n「${userTitle}」として認定されました🐾`
+        : 'メスケモ推進委員会の会員カードを作りました！🐾';
+
+    const params = new URLSearchParams({
+        text: tweetText,
+        url: 'https://mesukemo.uk/',
+        hashtags: 'メスケモ推進委員会,VRChat',
+    });
+
+    shareBtn.href = `https://twitter.com/intent/tweet?${params.toString()}`;
+    shareBtn.style.display = 'inline-flex';
+
+    const shareHint = document.getElementById('shareXHint');
+    if (shareHint) shareHint.style.display = 'block';
 }
 
 /* ===========================
@@ -1154,6 +1182,13 @@ function resetForm() {
     photoScale = 1.0;
 
     generateMemberId();
+
+    // Xシェアボタンとヘルプテキストを非表示に戻す
+    const shareBtn = document.getElementById('shareXBtn');
+    if (shareBtn) shareBtn.style.display = 'none';
+    const shareHint = document.getElementById('shareXHint');
+    if (shareHint) shareHint.style.display = 'none';
+
     drawPreviewCard();
 }
 
