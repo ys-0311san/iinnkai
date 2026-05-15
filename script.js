@@ -765,13 +765,15 @@ function openDrawer() {
     sideDrawer.classList.add('open');
     drawerOverlay.classList.add('open');
     menuToggle.setAttribute('aria-expanded', 'true');
-    sideDrawer.setAttribute('aria-hidden', 'false');
+    sideDrawer.removeAttribute('aria-hidden');
     document.body.style.overflow = 'hidden';
     drawerClose.focus();
 }
 
 /** ドロワーを閉じる */
 function closeDrawer() {
+    // フォーカスを先にメニューボタンへ移動してからaria-hiddenを設定する
+    menuToggle.focus();
     sideDrawer.classList.remove('open');
     drawerOverlay.classList.remove('open');
     menuToggle.setAttribute('aria-expanded', 'false');

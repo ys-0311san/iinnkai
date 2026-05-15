@@ -170,6 +170,16 @@ body {
     letter-spacing: 0.1em;
 }
 
+/* スマホ専用改行 */
+.sp-only {
+    display: none;
+}
+@media (max-width: 767px) {
+    .sp-only {
+        display: block;
+    }
+}
+
 .intro-screen .schedule {
     font-family: var(--font-display);
     font-size: clamp(1rem, 2.5vw, 1.5rem);
