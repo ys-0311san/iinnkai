@@ -377,7 +377,7 @@ const sidebarData = {
     ],
     events: [
         { id: 'events-chaya', label: 'なでなで茶屋 牝獣' },
-        { id: 'events-mesukemo', label: 'メスケモ倶楽部' },
+        { id: 'events-mesukemo', label: 'なでなで倶楽部' },
         { id: 'events-kemono', label: 'KEMONO写真館' },
         { id: 'events-special', label: '特別開催イベント' },
         { id: 'events-faq', label: 'Q&A' },
