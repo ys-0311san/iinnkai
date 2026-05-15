@@ -80,6 +80,10 @@ body {
     transition: opacity 0.6s ease;
 }
 
+#bgNext {
+    opacity: 0;
+}
+
 
 /* ===== ローディング画面（黒・最前面） ===== */
 .loading-screen {

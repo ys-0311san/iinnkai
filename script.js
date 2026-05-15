@@ -354,7 +354,17 @@ function crossfadeBackground(targetId) {
     if (!newSrc) return;
 
     const bgCurrent = document.getElementById('bgCurrent');
-    bgCurrent.style.backgroundImage = `url('${newSrc}')`;
+    const bgNext    = document.getElementById('bgNext');
+
+    // 次レイヤーに新画像をセットしてフェードイン
+    bgNext.style.backgroundImage = `url('${newSrc}')`;
+    bgNext.style.opacity = '1';
+
+    // フェード完了後、現レイヤーを更新して次レイヤーをリセット
+    setTimeout(() => {
+        bgCurrent.style.backgroundImage = `url('${newSrc}')`;
+        bgNext.style.opacity = '0';
+    }, 600);
 }
 
 /* ===========================
