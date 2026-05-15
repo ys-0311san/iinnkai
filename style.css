@@ -613,6 +613,28 @@ main {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
+        /* デフォルト: 右端フェードで「まだ続きあり」を示す */
+        -webkit-mask-image: linear-gradient(to right, black 70%, transparent 100%);
+        mask-image: linear-gradient(to right, black 70%, transparent 100%);
+        transition: mask-image 0.2s ease, -webkit-mask-image 0.2s ease;
+    }
+
+    /* スクロール中（左右にコンテンツあり）: 両端フェード */
+    .section-sidebar.scroll-mid {
+        -webkit-mask-image: linear-gradient(to right, transparent 0%, black 12%, black 80%, transparent 100%);
+        mask-image: linear-gradient(to right, transparent 0%, black 12%, black 80%, transparent 100%);
+    }
+
+    /* 右端まで到達: 左端フェードのみ */
+    .section-sidebar.scroll-end {
+        -webkit-mask-image: linear-gradient(to right, transparent 0%, black 12%, black 100%);
+        mask-image: linear-gradient(to right, transparent 0%, black 12%, black 100%);
+    }
+
+    /* スクロール不要（全タブが収まる）: フェードなし */
+    .section-sidebar.no-overflow {
+        -webkit-mask-image: none;
+        mask-image: none;
     }
 
     .section-sidebar::-webkit-scrollbar {

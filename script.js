@@ -1421,6 +1421,38 @@ function renderSidebar(tabId) {
     });
 
     sidebar.appendChild(nav);
+
+    // スクロールフェードインジケーターを初期化
+    initSidebarScrollFade(sidebar);
+}
+
+/**
+ * サイドバーのスクロールフェードインジケーターを初期化する
+ */
+function initSidebarScrollFade(sidebar) {
+    updateSidebarScrollFade(sidebar);
+    sidebar.addEventListener('scroll', () => updateSidebarScrollFade(sidebar), { passive: true });
+}
+
+/**
+ * スクロール位置に応じてフェードクラスを切り替える
+ */
+function updateSidebarScrollFade(sidebar) {
+    const { scrollLeft, scrollWidth, clientWidth } = sidebar;
+    const hasOverflow = scrollWidth > clientWidth + 2;
+
+    sidebar.classList.toggle('no-overflow', !hasOverflow);
+
+    if (!hasOverflow) {
+        sidebar.classList.remove('scroll-mid', 'scroll-end');
+        return;
+    }
+
+    const atEnd = scrollLeft >= scrollWidth - clientWidth - 2;
+    const scrolled = scrollLeft > 2;
+
+    sidebar.classList.toggle('scroll-end', atEnd);
+    sidebar.classList.toggle('scroll-mid', scrolled && !atEnd);
 }
 
 /**
@@ -1687,6 +1719,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // 全タブのサイドバーを生成
     Object.keys(sidebarData).forEach(renderSidebar);
     updateTabButtonStates('community');
+
+    // リサイズ時にスクロールフェードを再チェック（横幅変化でオーバーフロー状態が変わるため）
+    window.addEventListener('resize', () => {
+        document.querySelectorAll('.section-sidebar').forEach(updateSidebarScrollFade);
+    }, { passive: true });
     renderCastGrid(castData);
     renderNewsList();
     startWithLoading();
