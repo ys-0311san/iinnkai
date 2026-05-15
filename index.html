@@ -61,11 +61,6 @@
                 </button>
             </li>
             <li>
-                <button class="drawer-item" data-tab="special" role="tab" aria-selected="false" aria-controls="special">
-                    特別開催イベント
-                </button>
-            </li>
-            <li>
                 <button class="drawer-item" data-tab="cast" role="tab" aria-selected="false" aria-controls="cast">
                     キャスト
                 </button>
@@ -99,9 +94,6 @@
                     </button>
                     <button class="tab-button" id="tab-events" data-tab="events" role="tab" aria-selected="false" aria-controls="events">
                         開催イベント
-                    </button>
-                    <button class="tab-button" id="tab-special" data-tab="special" role="tab" aria-selected="false" aria-controls="special">
-                        特別開催イベント
                     </button>
                     <button class="tab-button" id="tab-cast" data-tab="cast" role="tab" aria-selected="false" aria-controls="cast">
                         キャスト
@@ -339,6 +331,27 @@
                             </div>
                         </div>
 
+                        <!-- 特別開催イベント -->
+                        <div class="sub-section" id="events-special">
+                            <div class="content-card">
+                                <h2 class="about-title">特別開催イベント</h2>
+                                <div class="special-events-grid">
+
+                                    <!-- 24時間メスケモ神社 -->
+                                    <div class="special-event-card">
+                                        <img src="images/poster-shrine.jpg" alt="24時間メスケモ神社 ポスター" class="special-event-poster">
+                                        <div class="special-event-info">
+                                            <h3 class="poster-title">24時間メスケモ神社</h3>
+                                            <p class="poster-schedule">2026年1月3日 特別開催</p>
+                                            <p>お正月に特別開催された24時間ぶっ通しのメスケモイベントです。24時間ケモ巫女常駐・お焚き上げおみくじ・ふるまい甘酒など、新年を一緒に祝うべく、たくさんのケモノたちが集まりました。</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- 今後の特別イベントはここに追加 -->
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Q&A -->
                         <div class="sub-section" id="events-faq">
                             <div class="content-card">
@@ -373,24 +386,6 @@
                         </div>
 
                     </div>
-                </div>
-            </section>
-
-            <!-- 特別開催イベント -->
-            <section class="tab-content" id="special" role="tabpanel" aria-labelledby="tab-special">
-                <div class="special-events-grid">
-
-                    <!-- 24時間メスケモ神社 -->
-                    <div class="special-event-card">
-                        <img src="images/poster-shrine.jpg" alt="24時間メスケモ神社 ポスター" class="special-event-poster">
-                        <div class="special-event-info">
-                            <h3 class="poster-title">24時間メスケモ神社</h3>
-                            <p class="poster-schedule">2026年1月3日 特別開催</p>
-                            <p>お正月に特別開催された24時間ぶっ通しのメスケモイベントです。24時間ケモ巫女常駐・お焚き上げおみくじ・ふるまい甘酒など、新年を一緒に祝うべく、たくさんのケモノたちが集まりました。</p>
-                        </div>
-                    </div>
-
-                    <!-- 今後の特別イベントはここに追加 -->
                 </div>
             </section>
 
@@ -510,6 +505,9 @@
                 </div>
             </section>
         </main>
+        <footer class="site-footer-copy">
+            <p>&copy; メスケモ推進委員会</p>
+        </footer>
     </div>
 
 

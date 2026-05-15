@@ -584,21 +584,36 @@ main {
         gap: 0;
     }
 
-    /* スマホではサイドバータブバーを非表示（ドロワーで代替） */
+    /* スマホ: サイドバーを横スクロールタブバーに変換 */
     .section-sidebar {
+        display: block;
+        width: 100%;
+        position: static;
+        background: rgba(10, 6, 4, 0.6);
+        border: none;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+        border-radius: 0;
+        padding: 0;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .section-sidebar::-webkit-scrollbar {
         display: none;
     }
 
-    .sidebar-nav {
+    .section-sidebar .sidebar-nav {
         display: flex;
         flex-direction: row;
-        gap: 6px;
+        gap: 0;
         white-space: nowrap;
+        padding: 0 var(--spacing-sm);
     }
 
-    .sidebar-item {
+    .section-sidebar .sidebar-item {
         display: inline-block;
-        padding: 8px 14px;
+        padding: 10px 14px;
         font-family: var(--font-body);
         font-size: 0.82rem;
         font-weight: 600;
@@ -606,21 +621,21 @@ main {
         background: transparent;
         border: none;
         border-bottom: 3px solid transparent;
-        border-radius: 6px 6px 0 0;
+        border-radius: 0;
         cursor: pointer;
         white-space: nowrap;
         transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     }
 
-    .sidebar-item:hover {
-        background: rgba(212, 175, 55, 0.12);
+    .section-sidebar .sidebar-item:hover {
+        background: rgba(212, 175, 55, 0.1);
         color: var(--paper-white);
     }
 
-    .sidebar-item.active {
+    .section-sidebar .sidebar-item.active {
         color: var(--gold-accent);
         border-bottom-color: var(--gold-accent);
-        background: rgba(212, 175, 55, 0.12);
+        background: transparent;
     }
 }
 
@@ -2853,4 +2868,12 @@ main {
         grid-template-columns: 1fr;
         padding: var(--spacing-sm);
     }
+}
+
+.site-footer-copy {
+    text-align: center;
+    padding: var(--spacing-md) var(--spacing-sm);
+    font-size: 0.75rem;
+    color: rgba(245, 243, 237, 0.4);
+    letter-spacing: 0.05em;
 }

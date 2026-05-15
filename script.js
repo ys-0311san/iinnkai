@@ -339,7 +339,6 @@ const castData = [
 const bgImages = {
     community: { pc: 'images/bg-about-pc.png',    sp: 'images/bg-about-sp.png'    },
     events:    { pc: 'images/bg-about-pc.png',    sp: 'images/bg-about-sp.png'    },
-    special:   { pc: 'images/bg-about-pc.png',    sp: 'images/bg-about-sp.png'    },
     cast:      { pc: 'images/bg-cast-pc.png',     sp: 'images/bg-cast-sp.png'     },
     official:  { pc: 'images/bg-official-pc.png', sp: 'images/bg-official-sp.png' },
     news:      { pc: 'images/bg-about-pc.png',    sp: 'images/bg-about-sp.png'    },
@@ -370,10 +369,8 @@ const sidebarData = {
         { id: 'events-chaya', label: 'なでなで茶屋 牝獣' },
         { id: 'events-mesukemo', label: 'メスケモ倶楽部' },
         { id: 'events-kemono', label: 'KEMONO写真館' },
+        { id: 'events-special', label: '特別開催イベント' },
         { id: 'events-faq', label: 'Q&A' },
-    ],
-    special: [
-        { id: 'special-shrine', label: '24時間メスケモ神社' },
     ],
     news: [
         { id: 'news-main', label: 'お知らせ' },
@@ -430,20 +427,6 @@ function setupBgmPlayer() {
         playBgmTrack(idx, toggleBtn);
     });
 
-    // 最初のユーザー操作でBGMを自動開始（ブラウザのAutoplay制限回避）
-    const startOnFirstInteraction = () => {
-        if (!bgmAudio) {
-            const idx = Math.floor(Math.random() * 2);
-            playBgmTrack(idx, toggleBtn);
-        }
-        document.removeEventListener('click', startOnFirstInteraction);
-        document.removeEventListener('keydown', startOnFirstInteraction);
-        document.removeEventListener('touchstart', startOnFirstInteraction);
-    };
-
-    document.addEventListener('click', startOnFirstInteraction);
-    document.addEventListener('keydown', startOnFirstInteraction);
-    document.addEventListener('touchstart', startOnFirstInteraction, { passive: true });
 }
 
 function playBgmTrack(idx, toggleBtn = document.getElementById('bgmToggleBtn')) {
@@ -731,10 +714,10 @@ function activateTab(targetId) {
         cardGenBtn.classList.toggle('visible', targetId === 'community' || targetId === 'events');
     }
 
-    // 桜吹雪は community / events / special / news タブで表示
+    // 桜吹雪は community / events / news タブで表示
     const sakura = document.getElementById('sakuraCanvas');
     if (sakura && sakura.classList.contains('behind')) {
-        sakura.classList.toggle('active', targetId === 'community' || targetId === 'events' || targetId === 'special' || targetId === 'news');
+        sakura.classList.toggle('active', targetId === 'community' || targetId === 'events' || targetId === 'news');
     }
 
 

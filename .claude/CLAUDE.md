@@ -63,5 +63,6 @@ VRChatイベント「メスケモ推進委員会」の公式サイト（静的HT
 
 - `npm run dev` / `npm install` は実行しない（既に起動済み）
 - コミット・プッシュは必ずユーザーの指示を受けてから行う
-- コード実装は Codex CLI が担当。Claude は仕様書（`docs/spec_*.md`）を作成する
+- コード実装のフローは「Claudeが仕様書（`docs/spec_*.md`）作成 → Codex CLI で実行 → Claude が差分レビュー → Claude が Edit/Write で既存ファイルに適用」
+- 新規ファイルの作成は Codex CLI 担当。既存ファイルへの Edit/Write 適用は Claude が行う
 - レスポンシブ対応（モバイル/PC）を常に意識する
