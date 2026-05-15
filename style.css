@@ -1486,10 +1486,10 @@ main {
         top: auto;
         right: auto;
         bottom: calc(var(--spacing-md) + 8px);
-        left: 50%;
-        transform: translateX(-50%);
-        width: calc(100% - var(--spacing-md) * 2);
-        max-width: 480px;
+        left: 0;
+        transform: none;
+        width: 100%;
+        max-width: 100%;
         animation: slideInBottom 0.4s ease forwards;
         /* 背景・枠線・影を透明化 */
         background: transparent;
@@ -1640,8 +1640,8 @@ main {
 
 @media (max-width: 767px) {
     .bgm-player {
-        /* card-gen-btnがbottom:0のバナーとして表示されるため、その高さ分上にずらす */
-        bottom: 72px;
+        /* card-gen-btnがbottom:0のバナーとして表示されるため、その上に退避 */
+        bottom: 130px;
         right: 14px;
         padding: 6px;
     }
@@ -1925,7 +1925,7 @@ main {
     .header-inner {
         flex-direction: row;
         align-items: center;
-        padding: var(--spacing-sm) var(--spacing-md);
+        padding: var(--spacing-sm);
     }
 
     .header-logo {
@@ -1941,6 +1941,17 @@ main {
         padding-top: 80px;
         padding-left: var(--spacing-sm);
         padding-right: var(--spacing-sm);
+    }
+
+    .poster-block {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .poster-image {
+        max-width: 100%;
+        width: 100%;
+        max-height: none;
     }
 
     .cast-grid {
@@ -2019,6 +2030,7 @@ main {
     }
 
     .cast-grid {
+        grid-template-columns: 1fr;
         gap: 0.4rem;
     }
 
@@ -2829,8 +2841,23 @@ main {
         aspect-ratio: 4 / 3;
     }
 
+    .community-hero-caption {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+
     .community-catch {
         font-size: 1.2rem;
+    }
+
+    .community-hero-links {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-sm);
+    }
+
+    .community-hero-links .shop-link {
+        justify-content: center;
+        text-align: center;
     }
 }
 
