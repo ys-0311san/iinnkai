@@ -804,13 +804,30 @@ main {
     }
 }
 
-/* スマホ調整 */
+/* スマホ調整：767px以下で3キャラ表示 */
 @media (max-width: 767px) {
     .kemono-gallery-item {
         width: 80px;
     }
     .kemono-gallery-grid {
         gap: 16px;
+    }
+    .kemono-gallery-item:nth-child(4) {
+        display: none;
+    }
+}
+
+/* 480px以下で2キャラ表示 */
+@media (max-width: 480px) {
+    .kemono-gallery-item:nth-child(3) {
+        display: none;
+    }
+}
+
+/* 360px以下で1キャラ表示 */
+@media (max-width: 360px) {
+    .kemono-gallery-item:nth-child(2) {
+        display: none;
     }
 }
 
