@@ -995,11 +995,11 @@ function positionFrameOverlay() {
     const baseOffsetX = (cW - renderW) * posXRatio;
     const baseOffsetY = isMobile ? 0 : (cH - renderH);
 
-    // transform: scale(0.9) translateY(-5%) の pivot（transform-origin）もスマホで変わる
-    // PC:    transform-origin: 60% bottom → pivot = (cW*0.6, cH)
-    // スマホ: transform-origin: 50% top  → pivot = (cW*0.5, 0)
-    const scale = 0.9;
-    const ty = -0.05 * cH;
+    // CSSのtransformと一致させる
+    // PC:    scale(0.9) translateY(-5%)  transform-origin: 60% bottom
+    // スマホ: scale(0.62) translateY(5%) transform-origin: 50% top
+    const scale = isMobile ? 0.62 : 0.9;
+    const ty = isMobile ? (0.20 * cH) : (-0.05 * cH);
     const ox = cW * posXRatio;
     const oy = isMobile ? 0 : cH;
     const finalW = renderW * scale;

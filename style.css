@@ -274,6 +274,8 @@ body {
     flex-wrap: nowrap;
     margin-bottom: 0;
     overflow-x: auto;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .tab-button {
@@ -1757,11 +1759,11 @@ main {
 /* スマホ詳細吹き出し: translateX(-50%)を維持しながら下からスライドイン */
 @keyframes slideInBottom {
     from {
-        transform: translateX(-50%) translateY(30px);
+        transform: translateY(30px);
         opacity: 0;
     }
     to {
-        transform: translateX(-50%) translateY(0);
+        transform: translateY(0);
         opacity: 1;
     }
 }
@@ -2718,10 +2720,22 @@ main {
     z-index: 3; /* frame-overlay(z-index:2)より上面に置いて茶色帯が画像に被らないようにする */
 }
 
-/* スマホではobject-positionがcenter topに変わるためtransform-originも合わせる */
+/* スマホでは縮小率を下げて額縁ごと小さく表示する */
 @media (max-width: 767px) {
     .cast-detail-visual.has-frame .detail-image {
+        transform: scale(0.62) translateY(20%);
         transform-origin: 50% top;
+    }
+
+    .frame-overlay::before {
+        inset: -8px;
+        box-shadow:
+            inset 0 0 0 3px rgba(16, 7, 2, 0.45),
+            0 0 0 8px rgba(90, 55, 20, 0.85);
+    }
+
+    .frame-overlay::after {
+        inset: -14px;
     }
 }
 
