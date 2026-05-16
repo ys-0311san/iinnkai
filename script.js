@@ -383,7 +383,7 @@ const sidebarData = {
         { id: 'events-faq', label: 'Q&A' },
     ],
     news: [
-        { id: 'news-main', label: 'お知らせ' },
+        { id: 'news-main', label: '開催予定・開催中のイベント' },
     ],
     cast: [
         { id: 'cast-main', label: 'キャスト一覧' },
@@ -397,19 +397,29 @@ const sidebarData = {
 
 /* ===========================
    お知らせデータ定義
-   新しいお知らせを追加する際はここに追記する
+   ★ 運用ルール：
+     - 普段は空配列のまま（「現在開催中の特別イベントはありません。」と表示される）
+     - 特別イベント開催時だけ、下のテンプレートのコメントを外して使う
+     - イベント終了後は再びコメントアウトして空に戻す
    =========================== */
 const newsData = [
+    /* =============================================
+       特別イベント用テンプレート
+       イベント開催時はこのブロックのコメントを外す
+       =============================================
+
     {
-        id: 1,
-        date: '2026.04.21',
+        id: 101,
+        date: '2026.XX.XX',          // 開催日
         isNew: true,
-        title: 'メスケモ推進委員会 公式サイトオープン！',
-        body: '公式ウェブサイトをオープンしました。キャスト情報をご確認いただけます。',
-        link: null,
-        linkText: null,
-        isExternal: false,
+        title: '【開催中】特別イベント名',
+        body: 'イベントの説明文。開催日時・場所・テーマなどを記載する。',
+        link: null,                  // 外部告知URLがあれば 'https://...' を入れる
+        linkText: '詳細を見る →',
+        isExternal: true,
     },
+
+    ============================================= */
 ];
 
 /* ===========================
@@ -476,7 +486,7 @@ function renderNewsList(targetId = 'newsList') {
     if (!newsList) return;
 
     if (newsData.length === 0) {
-        newsList.innerHTML = '<p class="news-empty">現在お知らせはありません。</p>';
+        newsList.innerHTML = '<p class="news-empty">特別イベント時にイベントページが表示されます。<br><span class="news-empty-sub">現在、開催中の特別イベントはありません。<br>イベントをお待ちください。</span></p>';
         return;
     }
 
@@ -1207,7 +1217,7 @@ function setupSakura() {
     sakuraCtx = sakuraCanvas.getContext('2d');
     resizeSakuraCanvas();
 
-    const petalCount = 80;
+    const petalCount = 30;
     sakuraPetals = Array.from({ length: petalCount }, () => createSakuraPetal(sakuraCanvas, true));
 
     sakuraResizeHandler = () => {

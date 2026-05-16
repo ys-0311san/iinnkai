@@ -1817,10 +1817,16 @@ main {
 }
 
 .news-empty {
-    color: rgba(245, 243, 237, 0.5);
-    font-size: 0.9rem;
+    color: var(--wood-brown);
+    font-size: 1.2rem;
     text-align: center;
     padding: var(--spacing-lg) 0;
+    line-height: 2;
+}
+
+.news-empty-sub {
+    font-size: 1.05rem;
+    color: var(--wood-brown);
 }
 
 /* 各お知らせアイテム */

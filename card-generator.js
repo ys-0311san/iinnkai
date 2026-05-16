@@ -54,6 +54,9 @@ let bgColor      = null;
 /** 現在選択中の背景ID */
 let selectedBgId = 'none';
 
+// ダウンロード時の解像度倍率（1/2/3）
+let downloadScale = 2;
+
 /* ===========================
    背景オプション定義
    画像を追加する場合はここにエントリを追加するだけでよい
@@ -229,6 +232,15 @@ function setupEventListeners() {
 
     const backBtn = document.getElementById('backBtn');
     if (backBtn) backBtn.addEventListener('click', goBack);
+
+    // 解像度選択ボタン
+    document.querySelectorAll('.btn-resolution').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.btn-resolution').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            downloadScale = parseInt(btn.dataset.scale, 10);
+        });
+    });
 }
 
 /* ===========================
@@ -570,12 +582,13 @@ function resetPhotoPosition() {
 /* ===========================
    カードプレビュー描画（1024×650px）
    =========================== */
-function drawPreviewCard() {
-    const canvas = document.getElementById('cardCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    canvas.width  = CARD_W;
-    canvas.height = CARD_H;
+/* ===========================
+   カード共通描画（scale倍で描画。プレビュー=1、ダウンロード=2or3）
+   ctx は描画先のcanvasコンテキスト（プレビューまたはオフスクリーン）
+   =========================== */
+function drawCard(ctx, scale) {
+    ctx.save();
+    ctx.scale(scale, scale);
 
     const cardType = document.getElementById('cardType').value;
     const theme    = THEMES[cardType] || THEMES.regular;
@@ -725,6 +738,20 @@ function drawPreviewCard() {
 
     // --- カード内枠線（プレミアム感） ---
     drawCardFrame(ctx, theme);
+
+    ctx.restore();
+}
+
+/* ===========================
+   プレビューcanvasへの描画（scale=1 で drawCard を呼ぶだけ）
+   =========================== */
+function drawPreviewCard() {
+    const canvas = document.getElementById('cardCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width  = CARD_W;
+    canvas.height = CARD_H;
+    drawCard(ctx, 1);
 }
 
 /* ===========================
@@ -1151,11 +1178,19 @@ function updateShareXBtn() {
    カードダウンロード
    =========================== */
 function downloadCard() {
-    const canvas   = document.getElementById('cardCanvas');
+    // 選択した倍率のオフスクリーンcanvasに再描画してダウンロード
+    const scale      = downloadScale;
+    const offscreen  = document.createElement('canvas');
+    offscreen.width  = CARD_W * scale;
+    offscreen.height = CARD_H * scale;
+    const ctx = offscreen.getContext('2d');
+    drawCard(ctx, scale);
+
     const userName = document.getElementById('userName').value.trim() || 'member';
+    const suffix   = scale === 1 ? '' : `_${scale}x`;
     const link     = document.createElement('a');
-    link.download  = `mesukemo-card-${userName}.png`;
-    link.href      = canvas.toDataURL('image/png');
+    link.download  = `mesukemo-card-${userName}${suffix}.png`;
+    link.href      = offscreen.toDataURL('image/png');
     link.click();
 }
 

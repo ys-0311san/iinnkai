@@ -255,7 +255,94 @@ button:active {
     background: rgba(255, 255, 255, 0.15);
 }
 
-/* ダウンロードボタン */
+/* ===== 解像度選択UI ===== */
+.resolution-selector {
+    margin-bottom: var(--spacing-sm);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.resolution-selector > label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--cream);
+    margin-bottom: var(--spacing-xs);
+    font-weight: 500;
+}
+
+.resolution-btn-group {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-resolution {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 0.55rem 0.5rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 4px;
+    color: rgba(245, 243, 237, 0.85);
+    font-size: 0.82rem;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+    flex: 1;
+    position: relative;
+}
+
+.btn-resolution .resolution-size {
+    font-size: 0.6rem;
+    color: rgba(245, 243, 237, 0.45);
+    font-family: var(--font-body);
+    transition: color 0.2s;
+}
+
+.btn-resolution:hover {
+    background: rgba(212, 175, 55, 0.1);
+    border-color: rgba(212, 175, 55, 0.5);
+}
+
+/* 選択中：ゴールド枠・背景・太字＋上部インジケーターバー */
+.btn-resolution.active {
+    background: rgba(212, 175, 55, 0.15);
+    border-color: var(--gold-accent);
+    color: var(--gold-accent);
+    font-weight: 700;
+    box-shadow: inset 0 2px 0 var(--gold-accent);
+}
+
+.btn-resolution.active .resolution-size {
+    color: rgba(212, 175, 55, 0.75);
+}
+
+/* 選択中ラベルの上にチェックドット */
+.btn-resolution.active::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    background: var(--gold-accent);
+    border-radius: 50%;
+}
+
+@media (max-width: 600px) {
+    .btn-resolution {
+        padding: 0.5rem 0.35rem;
+        font-size: 0.75rem;
+    }
+
+    .btn-resolution .resolution-size {
+        font-size: 0.55rem;
+    }
+}
+
+/* ===== ダウンロードボタン ===== */
 .btn-download {
     width: 100%;
     padding: 0.8rem;
