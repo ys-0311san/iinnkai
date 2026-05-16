@@ -66,3 +66,24 @@ VRChatイベント「メスケモ推進委員会」の公式サイト（静的HT
 - コード実装のフローは「Claudeが仕様書（`docs/spec_*.md`）作成 → Codex CLI で実行 → Claude が差分レビュー → Claude が Edit/Write で既存ファイルに適用」
 - 新規ファイルの作成は Codex CLI 担当。既存ファイルへの Edit/Write 適用は Claude が行う
 - レスポンシブ対応（モバイル/PC）を常に意識する
+
+## ローカルサーバーの起動とブラウザ確認
+
+「localhostで開いて」「ブラウザで確認して」などの指示が来たら以下の手順を実行する。
+
+```bash
+# 1. サーバーが起動済みか確認
+ss -tlnp | grep 8080
+
+# 2. 起動していなければバックグラウンドで起動
+cd "/mnt/c/Users/yuuya/Desktop/メスケモ推進委員会" && python3 -m http.server 8080 &>/tmp/httpserver.log &
+
+# 3. 起動確認（200が返れば成功）
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/
+
+# 4. WindowsブラウザでURLを開く
+/mnt/c/Windows/System32/cmd.exe /c start http://localhost:8080/<対象ファイル>
+```
+
+- WSL2環境のため `cmd.exe` / `powershell.exe` は PATH に存在しない。必ずフルパス `/mnt/c/Windows/System32/cmd.exe` を使う。
+- `xdg-open` や `wslview` は使用不可。
