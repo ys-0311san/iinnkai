@@ -2903,6 +2903,19 @@ main {
     box-shadow: 0 0 16px rgba(212, 175, 55, 0.35);
 }
 
+/* 主CTAボタン（VRChat参加）：金塗りつぶし */
+.community-hero-links .shop-link--primary {
+    background: var(--gold-accent);
+    color: var(--ink-black);
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
+}
+
+.community-hero-links .shop-link--primary:hover,
+.community-hero-links .shop-link--primary:focus-visible {
+    background: #e0c040;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+}
+
 .about-booth {
     margin-top: var(--spacing-xl);
     padding-top: var(--spacing-lg);

@@ -1736,7 +1736,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
     renderCastGrid(castData);
     renderNewsList();
-    startWithLoading();
+
+    // ジェネレーターなどからのスキップ遷移：イントロを省略してeventsタブを直接表示
+    const skipIntro = new URLSearchParams(window.location.search).get('skip_intro') === '1';
+    if (skipIntro) {
+        const loadingScreen = document.getElementById('loadingScreen');
+        const introScreen   = document.getElementById('introScreen');
+        if (loadingScreen) loadingScreen.style.display = 'none';
+        if (introScreen)   introScreen.style.display   = 'none';
+        document.getElementById('mainContent').classList.add('visible');
+        document.body.style.overflowX    = 'hidden';
+        document.body.style.overflowY    = 'scroll';
+        document.body.style.pointerEvents = '';
+        startSakura();
+        moveSakuraBehind();
+        const cardGenBtn = document.getElementById('cardGenBtn');
+        if (cardGenBtn) cardGenBtn.classList.add('visible');
+        activateTab('events');
+    } else {
+        startWithLoading();
+    }
 
     // 漫画ライトボックスを設定
     setupMangaLightbox();

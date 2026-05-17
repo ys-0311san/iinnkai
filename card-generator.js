@@ -1232,7 +1232,7 @@ function resetForm() {
    =========================== */
 function goBack() {
     if (confirm('メインページに戻りますか？')) {
-        window.location.href = 'index.html';
+        window.location.href = 'index.html?skip_intro=1#events';
     }
 }
 
