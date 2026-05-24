@@ -337,11 +337,11 @@ const castData = [
    背景画像マップ（タブID → PC/SP画像パス）
    =========================== */
 const bgImages = {
-    community: { pc: 'images/bg-about-pc.png',    sp: 'images/bg-about-sp.png'    },
-    events:    { pc: 'images/bg-about-pc.png',    sp: 'images/bg-about-sp.png'    },
-    cast:      { pc: 'images/bg-cast-pc.png',     sp: 'images/bg-cast-sp.png'     },
-    official:  { pc: 'images/bg-official-pc.png', sp: 'images/bg-official-sp.png' },
-    news:      { pc: 'images/bg-about-pc.png',    sp: 'images/bg-about-sp.png'    },
+    community: { pc: 'images/bg-about-pc.jpg',    sp: 'images/bg-about-sp.jpg'    },
+    events:    { pc: 'images/bg-about-pc.jpg',    sp: 'images/bg-about-sp.jpg'    },
+    cast:      { pc: 'images/bg-cast-pc.jpg',     sp: 'images/bg-cast-sp.jpg'     },
+    official:  { pc: 'images/bg-official-pc.jpg', sp: 'images/bg-official-sp.jpg' },
+    news:      { pc: 'images/bg-about-pc.jpg',    sp: 'images/bg-about-sp.jpg'    },
 };
 
 /**
@@ -1349,9 +1349,9 @@ function startWithLoading() {
 
     // 読み込む画像リスト（背景3枚 + ヘッダー画像）
     const srcs = isMobile
-        ? ['images/bg-about-sp.png', 'images/bg-cast-sp.png', 'images/bg-official-sp.png',
+        ? ['images/bg-about-sp.jpg', 'images/bg-cast-sp.jpg', 'images/bg-official-sp.jpg',
            'images/header-banner.png', 'images/header-logo.png']
-        : ['images/bg-about-pc.png', 'images/bg-cast-pc.png', 'images/bg-official-pc.png',
+        : ['images/bg-about-pc.jpg', 'images/bg-cast-pc.jpg', 'images/bg-official-pc.jpg',
            'images/header-banner.png', 'images/header-logo.png'];
 
     let loaded = 0;
