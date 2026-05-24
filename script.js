@@ -323,8 +323,8 @@ const castData = [
         size: 'large',
         hasFrame: true,
     },
-    // 以降は実際のキャストデータに差し替えてください
-    ...Array.from({ length: 50 }, (_, i) => ({
+    // 空き枠（Coming Soon）5枠
+    ...Array.from({ length: 5 }, (_, i) => ({
         id: i + 2,
         name: 'Coming Soon',
         image: '',
