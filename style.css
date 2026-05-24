@@ -317,6 +317,10 @@ body {
     justify-content: center;
 }
 
+.tab-button--bell[hidden] {
+    display: none !important;
+}
+
 .tab-button--bell.active svg {
     stroke: var(--gold-accent);
 }
