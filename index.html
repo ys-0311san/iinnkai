@@ -21,6 +21,10 @@
     <meta name="twitter:title"       content="メスケモ推進委員会 - VRChatメスケモイベント">
     <meta name="twitter:description" content="なでなで茶屋 牝獣・なでなで倶楽部 MESUKEMOなど、メスケモイベントを開催中！">
     <meta name="twitter:image"       content="https://mesukemo.uk/images/ogp-main.png">
+    <!-- Google Fonts: @import よりブロッキング時間が短い <link> 方式 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Zen+Maru+Gothic:wght@400;500;700&family=Dela+Gothic+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <!-- 最初に表示される背景画像を最優先で先読み -->
     <link rel="preload" as="image" href="images/bg-about-pc.png" media="(min-width: 769px)">
@@ -85,8 +89,14 @@
         <header class="site-header">
             <div class="header-inner">
                 <div class="header-title">
-                    <img src="images/header-banner.png" alt="メスケモ推進委員会" class="header-banner">
-                    <img src="images/header-logo.png" alt="なでなで茶屋 ロゴ" class="header-logo">
+                    <picture>
+                        <source type="image/webp" srcset="images/header-banner.webp">
+                        <img src="images/header-banner.png" alt="メスケモ推進委員会" class="header-banner">
+                    </picture>
+                    <picture>
+                        <source type="image/webp" srcset="images/header-logo.webp">
+                        <img src="images/header-logo.png" alt="なでなで茶屋 ロゴ" class="header-logo">
+                    </picture>
                 </div>
                 <!-- PC用タブ（スマホでは非表示） -->
                 <nav class="tabs" role="tablist" aria-label="コンテンツナビゲーション">
@@ -130,7 +140,10 @@
                             <div class="community-hero">
                                 <!-- 上部: 横幅いっぱいのバナー画像 -->
                                 <div class="community-hero-banner">
-                                    <img src="images/group-icon.jpg" alt="メスケモ推進委員会 グループアイコン" class="community-icon">
+                                    <picture>
+                                        <source type="image/webp" srcset="images/group-icon.webp">
+                                        <img src="images/group-icon.jpg" alt="メスケモ推進委員会 グループアイコン" class="community-icon">
+                                    </picture>
                                 </div>
                                 <!-- 下部: 木目テクスチャ帯 -->
                                 <div class="community-hero-caption">
@@ -191,7 +204,10 @@
                         <div class="sub-section active" id="events-chaya">
                             <div class="content-card">
                                 <div class="poster-block">
-                                    <img src="images/poster-chaya.png" alt="なでなで茶屋 牝獣 ポスター" class="poster-image">
+                                    <picture>
+                                        <source type="image/webp" srcset="images/poster-chaya.webp">
+                                        <img src="images/poster-chaya.png" alt="なでなで茶屋 牝獣 ポスター" class="poster-image" loading="lazy" decoding="async" width="1448" height="2048">
+                                    </picture>
                                     <div class="poster-description">
                                         <h3 class="poster-title">なでなで茶屋 牝獣</h3>
                                         <p class="poster-schedule">毎月第1・第3土曜日 22:55~</p>
@@ -247,14 +263,14 @@
                                     <p class="manga-description">メスケモ推進委員会の世界観を漫画でご紹介します。</p>
                                     <div class="manga-grid">
                                         <div class="manga-preview" id="mangaPreview" role="button" tabindex="0" aria-label="漫画を読む（全4ページ）" data-manga-index="0">
-                                            <img src="images/manga-page1.jpg" alt="漫画1ページ目" class="manga-thumb">
+                                            <img src="images/manga-page1.webp" alt="漫画1ページ目" class="manga-thumb" loading="lazy" decoding="async">
                                             <div class="manga-overlay">
                                                 <span class="manga-open-btn">漫画を読む</span>
                                                 <span class="manga-page-count">全4ページ</span>
                                             </div>
                                         </div>
                                         <div class="manga-preview" role="button" tabindex="0" aria-label="漫画を読む（全1ページ）" data-manga-index="1">
-                                            <img src="images/manga2-page1.jpg" alt="漫画2 1ページ目" class="manga-thumb">
+                                            <img src="images/manga2-page1.webp" alt="漫画2 1ページ目" class="manga-thumb" loading="lazy" decoding="async">
                                             <div class="manga-overlay">
                                                 <span class="manga-open-btn">漫画を読む</span>
                                                 <span class="manga-page-count">全1ページ</span>
@@ -269,7 +285,10 @@
                         <div class="sub-section" id="events-mesukemo">
                             <div class="content-card">
                                 <div class="poster-block">
-                                    <img src="images/poster-mesukemo.png" alt="なでなで倶楽部 MESUKEMO ポスター" class="poster-image">
+                                    <picture>
+                                        <source type="image/webp" srcset="images/poster-mesukemo.webp">
+                                        <img src="images/poster-mesukemo.png" alt="なでなで倶楽部 MESUKEMO ポスター" class="poster-image" loading="lazy" decoding="async" width="1448" height="2048">
+                                    </picture>
                                     <div class="poster-description">
                                         <h3 class="poster-title">なでなで倶楽部 MESUKEMO</h3>
                                         <p class="poster-schedule">毎週土曜日 22:00~23:00</p>
@@ -312,7 +331,10 @@
                         <div class="sub-section" id="events-kemono">
                             <div class="content-card">
                                 <div class="poster-block">
-                                    <img src="images/poster-kemono.png" alt="KEMONO写真館 ポスター" class="poster-image">
+                                    <picture>
+                                        <source type="image/webp" srcset="images/poster-kemono.webp">
+                                        <img src="images/poster-kemono.png" alt="KEMONO写真館 ポスター" class="poster-image" loading="lazy" decoding="async" width="2480" height="3508">
+                                    </picture>
                                     <div class="poster-description">
                                         <h3 class="poster-title">KEMONO写真館</h3>
                                         <p class="poster-schedule">常時開放中</p>
@@ -340,7 +362,10 @@
 
                                     <!-- 24時間メスケモ神社 -->
                                     <div class="special-event-card">
-                                        <img src="images/poster-shrine.jpg" alt="24時間メスケモ神社 ポスター" class="special-event-poster">
+                                        <picture>
+                                            <source type="image/webp" srcset="images/poster-shrine.webp">
+                                            <img src="images/poster-shrine.jpg" alt="24時間メスケモ神社 ポスター" class="special-event-poster" loading="lazy" decoding="async" width="680" height="481">
+                                        </picture>
                                         <div class="special-event-info">
                                             <h3 class="poster-title">24時間メスケモ神社</h3>
                                             <p class="poster-schedule">2026年1月3日 特別開催</p>
@@ -486,12 +511,12 @@
                                     </a>
                                     <!-- X (Twitter) -->
                                     <a href="https://x.com/mesukemo_ya" class="official-link" target="_blank" rel="noopener noreferrer">
-                                        <img src="images/icon-x.jpg" alt="X アイコン" class="official-icon">
+                                        <img src="images/icon-x.webp" alt="X アイコン" class="official-icon" loading="lazy" decoding="async">
                                         <span>X (Twitter)</span>
                                     </a>
                                     <!-- BOOTHショップ -->
                                     <a href="https://mesukemoshop.booth.pm/" class="official-link" target="_blank" rel="noopener noreferrer">
-                                        <img src="images/icon-booth.png" alt="BOOTH アイコン" class="official-icon official-icon--booth">
+                                        <img src="images/icon-booth.webp" alt="BOOTH アイコン" class="official-icon official-icon--booth" loading="lazy" decoding="async">
                                         <span>メスケモ無人販売所 (BOOTH)</span>
                                     </a>
                                 </div>

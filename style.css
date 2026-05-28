@@ -1,5 +1,5 @@
 /* ===== フォント読み込み ===== */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Zen+Maru+Gothic:wght@400;500;700&family=Dela+Gothic+One&display=swap');
+/* @import はブロッキングになるため index.html の <head> で <link> 読み込みに移行 */
 
 /* ===== CSS カスタムプロパティ（和風旅館カラーパレット） ===== */
 :root {
@@ -764,19 +764,72 @@ main {
 
 .poster-image {
     width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    /* ロード前は非表示でスペースだけ確保、ロード後にフェードイン */
+    opacity: 0;
+    transition: opacity 0.45s ease;
+    position: relative;
+    z-index: 2;
+}
+
+/* ロード完了後にフェードイン */
+.poster-block picture.loaded .poster-image {
+    opacity: 1;
+}
+
+/* <picture>: flex アイテム兼スケルトン土台 */
+/* border・shadow・border-radius は picture 側で担う */
+/* aspect-ratio でスペースを事前確保（CLS防止） */
+.poster-block picture {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1448 / 2048;
+    position: relative;
+    overflow: hidden;
     border-radius: 8px;
     border: 2px solid rgba(212, 175, 55, 0.4);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-    display: block;
+    background: rgba(44, 36, 24, 0.35);
+}
+
+/* シマーアニメーション（ロード中） */
+.poster-block picture::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.0) 25%,
+        rgba(255, 255, 255, 0.12) 50%,
+        rgba(255, 255, 255, 0.0) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    z-index: 1;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+}
+
+/* ロード完了後: シマーをフェードアウト */
+.poster-block picture.loaded::before {
+    opacity: 0;
+    animation: none;
 }
 
 @media (min-width: 768px) {
     .poster-image {
-        width: auto;
-        max-width: 48%;
-        max-height: calc(100vh - 220px);
+        width: 100%;
+        height: 100%;
+        max-height: none; /* 高さは picture 側の max-height で制御 */
         object-fit: contain;
-        flex-shrink: 0;
+    }
+    /* 画像ロード前から幅を固定してCLSを防止 */
+    .poster-block picture {
+        flex: 0 0 42%;
+        width: 42%;
+        max-height: calc(100vh - 220px);
     }
 }
 
@@ -1295,6 +1348,7 @@ main {
 }
 
 /* 木札カードの役職バッジ */
+/* バッジをカード上部に絶対配置して、フローに影響させない（隣カードとの高さズレ防止） */
 .cast-role {
     font-family: var(--font-display);
     font-size: 0.75rem;
@@ -1304,10 +1358,13 @@ main {
     border-radius: 4px;
     padding: 2px 8px;
     text-align: center;
-    margin-top: 4px;
-    position: relative;
-    z-index: 1;
     letter-spacing: 0.05em;
+    position: absolute;
+    top: var(--spacing-xs);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    white-space: nowrap;
 }
 
 /* 詳細ビューの役職バッジ */
@@ -2014,8 +2071,14 @@ main {
     }
 
     .poster-image {
-        max-width: 100%;
         width: 100%;
+        height: 100%;
+        max-height: none;
+    }
+
+    .poster-block picture {
+        width: 100%;
+        max-width: 100%;
         max-height: none;
     }
 
@@ -2972,6 +3035,49 @@ main {
     width: 100%;
     height: auto;
     display: block;
+    /* ロード前は非表示でスペースだけ確保 */
+    opacity: 0;
+    transition: opacity 0.45s ease;
+    position: relative;
+    z-index: 2;
+}
+
+/* ロード完了後にフェードイン */
+.special-event-card picture.loaded .special-event-poster {
+    opacity: 1;
+}
+
+/* <picture> ラッパー: スケルトン土台 */
+.special-event-card picture {
+    display: block;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    background: rgba(44, 36, 24, 0.35);
+}
+
+/* シマーアニメーション */
+.special-event-card picture::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.0) 25%,
+        rgba(255, 255, 255, 0.12) 50%,
+        rgba(255, 255, 255, 0.0) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    z-index: 1;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+}
+
+/* ロード完了後 */
+.special-event-card picture.loaded::before {
+    opacity: 0;
+    animation: none;
 }
 
 .special-event-info {

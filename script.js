@@ -589,9 +589,8 @@ function initLazyLoad() {
                     return;
                 }
 
-                // WebP ファイルが用意できたら下記コメントを外して有効化する
-                // （WebP非存在時に有効化するとブラウザが404を優先してPNGに戻らないため保留）
-                // if (source) { source.srcset = source.dataset.srcset; }
+                // WebP ファイルが存在するため source の srcset を昇格させて WebP を優先配信
+                if (source) { source.srcset = source.dataset.srcset; }
 
                 // 実画像を読み込む（data-src → src に昇格）
                 img.src = img.dataset.src;
@@ -1716,6 +1715,29 @@ function initKemonoGallery(containerId = 'kemonoGallery') {
     `).join('');
 }
 
+/**
+ * ポスター画像のスケルトン制御
+ * 画像ロード完了時に picture 要素へ .loaded クラスを付与し、
+ * CSS のフェードインとシマー消去を発火させる
+ */
+function initPosterSkeletons() {
+    const selectors = '.poster-image, .special-event-poster';
+    document.querySelectorAll(selectors).forEach((img) => {
+        const picture = img.closest('picture');
+        if (!picture) return;
+
+        const markLoaded = () => picture.classList.add('loaded');
+
+        // キャッシュ済みの場合は即座に完了扱い
+        if (img.complete && img.naturalWidth > 0) {
+            markLoaded();
+        } else {
+            img.addEventListener('load',  markLoaded, { once: true });
+            img.addEventListener('error', markLoaded, { once: true });
+        }
+    });
+}
+
 /* ===========================
    初期化
    =========================== */
@@ -1764,6 +1786,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSecretTrigger();
     initKemonoGallery();
     initKemonoGallery('officialGallery');
+
+    // ポスター画像のスケルトン制御（ロード完了で picture に .loaded を付与しフェードイン）
+    initPosterSkeletons();
 
     // 名刺ジェネレーターボタンの初期表示はムービー終了後に行う（startWithLoading内で制御）
 
