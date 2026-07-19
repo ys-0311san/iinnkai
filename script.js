@@ -186,7 +186,7 @@ const castData = [
         yomi: 'しんとあかとひ shint akatohi',
         image: 'images/cast/shint-akatohi.png',
         detailImage: 'images/cast/shint-akatohi_original.png',
-        description: '',
+        description: 'かっこいい姉貴を目指しています',
     },
     {
         id: 22,
