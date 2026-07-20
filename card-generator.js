@@ -11,6 +11,11 @@
    =========================== */
 const CARD_W = 1024;
 const CARD_H = 650;
+const CARD_QR_URL = 'https://mesukemo.uk';
+const CARD_QR_SIZE = 92;
+const CARD_QR_PAD = 8;
+const CARD_QR_BASE_SIZE = CARD_QR_SIZE + CARD_QR_PAD * 2;
+const CARD_QR_RIGHT = 28;
 
 // 左パネル幅（写真エリアを含む）
 const LEFT_W = 330;
@@ -53,6 +58,8 @@ let bgImage      = null;
 let bgColor      = null;
 /** 現在選択中の背景ID */
 let selectedBgId = 'none';
+/** カードフッター固定QRコード */
+let footerQrCode = null;
 
 // ダウンロード時の解像度倍率（1/2/3）
 let downloadScale = 2;
@@ -1098,20 +1105,62 @@ function drawCardFooter(ctx, theme) {
     ctx.fillText('真正なるメスケモ推進委員会会員', CARD_W / 2, cy + 7);
     ctx.restore();
 
-    // --- 右装飾（ひし形ドット） ---
-    ctx.save();
-    ctx.fillStyle   = theme.vip
-        ? makeGoldGrad(ctx, CARD_W - 140, cy, CARD_W - 28, cy)
-        : theme.accent;
-    ctx.globalAlpha = 0.42;
-    for (let i = 0; i < 4; i++) {
-        const dx = CARD_W - 110 + i * 22;
-        ctx.save();
-        ctx.translate(dx, cy);
-        ctx.rotate(Math.PI / 4);
-        ctx.fillRect(-4, -4, 8, 8);
-        ctx.restore();
+    // --- QRコード（右側） ---
+    drawFooterQrCode(ctx, cy);
+}
+
+/* ===========================
+   カードフッター固定QRコード生成
+   =========================== */
+function getFooterQrCode() {
+    if (footerQrCode) return footerQrCode;
+
+    const qrFactory = window.qrcode;
+    if (typeof qrFactory !== 'function') {
+        throw new Error('qrcode-generator is not loaded.');
     }
+
+    const qr = qrFactory(0, 'M');
+    qr.addData(CARD_QR_URL);
+    qr.make();
+    footerQrCode = qr;
+    return footerQrCode;
+}
+
+/* ===========================
+   カードフッターQRコード描画
+   =========================== */
+function drawFooterQrCode(ctx, cy) {
+    const baseX = CARD_W - CARD_QR_RIGHT - CARD_QR_BASE_SIZE;
+    const baseY = Math.round(cy - CARD_QR_BASE_SIZE / 2);
+    const qrX = baseX + CARD_QR_PAD;
+    const qrY = baseY + CARD_QR_PAD;
+    const qr = getFooterQrCode();
+    const moduleCount = qr.getModuleCount();
+
+    ctx.save();
+
+    ctx.fillStyle = '#f5f3ed';
+    roundRect(ctx, baseX, baseY, CARD_QR_BASE_SIZE, CARD_QR_BASE_SIZE, 8);
+    ctx.fill();
+
+    ctx.strokeStyle = '#ebe6d9';
+    ctx.lineWidth = 1;
+    roundRect(ctx, baseX + 0.5, baseY + 0.5, CARD_QR_BASE_SIZE - 1, CARD_QR_BASE_SIZE - 1, 8);
+    ctx.stroke();
+
+    ctx.fillStyle = '#1a1a1a';
+    for (let row = 0; row < moduleCount; row++) {
+        const y1 = qrY + Math.round(row * CARD_QR_SIZE / moduleCount);
+        const y2 = qrY + Math.round((row + 1) * CARD_QR_SIZE / moduleCount);
+        for (let col = 0; col < moduleCount; col++) {
+            if (!qr.isDark(row, col)) continue;
+            const x1 = qrX + Math.round(col * CARD_QR_SIZE / moduleCount);
+            const x2 = qrX + Math.round((col + 1) * CARD_QR_SIZE / moduleCount);
+            ctx.fillRect(x1, y1, x2 - x1, y2 - y1);
+        }
+    }
+
     ctx.restore();
 }
 
