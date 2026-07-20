@@ -209,7 +209,7 @@ function setupEventListeners() {
     if (photoCanvas) setupDragEvents(photoCanvas);
 
     // フォーム入力のリアルタイム反映
-    ['userName', 'userTitle', 'favoriteSpecies', 'userComment', 'cardType'].forEach(id => {
+    ['userName', 'userTitle', 'favoriteSpecies', 'userComment', 'cardType', 'qrToggle'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
             el.addEventListener('input',  drawPreviewCard);
@@ -1106,7 +1106,10 @@ function drawCardFooter(ctx, theme) {
     ctx.restore();
 
     // --- QRコード（右側） ---
-    drawFooterQrCode(ctx, cy);
+    const qrToggle = document.getElementById('qrToggle');
+    if (!qrToggle || qrToggle.checked) {
+        drawFooterQrCode(ctx, cy);
+    }
 }
 
 /* ===========================
@@ -1253,6 +1256,7 @@ function resetForm() {
     document.getElementById('favoriteSpecies').value = '';
     document.getElementById('userComment').value     = '';
     document.getElementById('cardType').selectedIndex = 0;
+    document.getElementById('qrToggle').checked      = true;
     document.getElementById('photoPreviewContainer').style.display = 'none';
     document.getElementById('downloadSection').style.display       = 'none';
 
