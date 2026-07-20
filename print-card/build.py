@@ -218,7 +218,7 @@ def write_cmyk_pdf_direct() -> Path:
 
     right_edge = mm_to_pt(91.0)
     c.setFont("ZenMaruGothic", 6.7)
-    for idx, (label, value) in enumerate([("WEB", "mesukemo.uk"), ("X", "@mesukemo_ya")]):
+    for idx, (label, value) in enumerate([("X", "@mesukemo_ya")]):
         y = page_h - mm_to_pt(9.4 + idx * 4.1)
         value_w = pdfmetrics.stringWidth(value, "ZenMaruGothic", 6.7)
         label_w = pdfmetrics.stringWidth(label, "ZenMaruGothic", 6.7)
