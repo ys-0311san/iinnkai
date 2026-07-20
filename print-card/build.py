@@ -192,6 +192,19 @@ def write_cmyk_pdf_direct() -> Path:
     c.setFillColor(offwhite)
     c.drawString(name_x, name_y, name)
 
+    photo_x = mm_to_pt(55.0)
+    photo_y = mm_to_pt(10.0)
+    photo_w = mm_to_pt(34.0)
+    photo_h = mm_to_pt(41.0)
+    c.saveState()
+    c.setFillColor(CMYKColor(0.0, 0.0, 0.0, 0.70, alpha=0.36))
+    c.rect(photo_x + mm_to_pt(0.65), photo_y - mm_to_pt(0.8), photo_w, photo_h, stroke=0, fill=1)
+    c.restoreState()
+    c.drawImage(str(ASSETS / "character-photo-cmyk.jpg"), photo_x, photo_y, width=photo_w, height=photo_h)
+    c.setStrokeColor(gold)
+    c.setLineWidth(mm_to_pt(0.45))
+    c.rect(photo_x, photo_y, photo_w, photo_h, stroke=1, fill=0)
+
     banner_w = mm_to_pt(HEADER_BANNER_DISPLAY_MM)
     banner_h = banner_w * 179.0 / 960.0
     c.drawImage(str(ASSETS / "header-banner-cmyk.jpg"), mm_to_pt(6.0), mm_to_pt(6.0), width=banner_w, height=banner_h)

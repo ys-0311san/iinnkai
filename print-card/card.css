@@ -101,6 +101,19 @@ body {
   object-fit: contain;
 }
 
+.character-photo {
+  position: absolute;
+  left: 49mm;
+  top: 4mm;
+  display: block;
+  width: 34mm;
+  height: 41mm;
+  border: 0.45mm solid #d4af37;
+  filter: drop-shadow(0.65mm 0.8mm 0.55mm rgba(0, 0, 0, 0.55));
+  object-fit: cover;
+  object-position: center;
+}
+
 .identity {
   position: absolute;
   left: 0;
