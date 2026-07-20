@@ -6,3 +6,4 @@ fonttools
 pypdf
 pikepdf
 reportlab
+pymupdf

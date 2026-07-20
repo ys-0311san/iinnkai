@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import math
 import os
 import shutil
 import subprocess
@@ -13,7 +12,7 @@ import qrcode
 import pikepdf
 from fontTools.ttLib import TTFont as FontToolsTTFont
 from fontTools.varLib import instancer
-from PIL import Image, ImageDraw
+from PIL import Image
 from pypdf import PdfReader
 from reportlab.lib.colors import CMYKColor
 from reportlab.lib.pagesizes import landscape
@@ -21,6 +20,8 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from weasyprint import HTML
+
+from generate_background import build_backgrounds
 
 
 ROOT = Path(__file__).resolve().parent
@@ -86,46 +87,7 @@ def build_qr() -> None:
 
 def build_background() -> None:
     ASSETS.mkdir(parents=True, exist_ok=True)
-    width = round(PAGE_MM[0] / 25.4 * PREVIEW_DPI)
-    height = round(PAGE_MM[1] / 25.4 * PREVIEW_DPI)
-    scale = PREVIEW_DPI / 25.4
-    img = Image.new("RGB", (width, height), "#8b6f47")
-    draw = ImageDraw.Draw(img)
-
-    for x in range(width):
-        wave = int(9 * math.sin(x / 23.0) + 5 * math.sin(x / 71.0))
-        color = (139 + wave, 111 + wave // 2, 71 + wave // 3)
-        draw.line([(x, 0), (x, height)], fill=color)
-
-    for y in range(0, height, max(1, round(0.55 * scale))):
-        shade = 10 if (y // max(1, round(1.1 * scale))) % 2 else -6
-        draw.line([(0, y), (width, y)], fill=(139 + shade, 111 + shade, 71 + shade // 2))
-
-    border = round(3.0 * scale)
-    gold = round(0.55 * scale)
-    inner = round(4.6 * scale)
-    inner_gold = max(1, round(0.35 * scale))
-    draw.rectangle([0, 0, width - 1, height - 1], outline="#5c4033", width=border)
-    draw.rectangle(
-        [border, border, width - border - 1, height - border - 1],
-        outline="#d4af37",
-        width=gold,
-    )
-    draw.rectangle(
-        [inner, inner, width - inner - 1, height - inner - 1],
-        outline="#d4af37",
-        width=inner_gold,
-    )
-    img.save(ASSETS / "card-bg.png")
-
-    logo = Image.open(REPO_ROOT / "images" / "card-logo.png").convert("RGBA")
-    logo_px = round(LOGO_DISPLAY_MM / 25.4 * PREVIEW_DPI)
-    logo = logo.resize((logo_px, logo_px), Image.Resampling.LANCZOS)
-    logo_x = round(6.0 * scale)
-    logo_y = round(6.0 * scale)
-    bg_with_logo = img.convert("RGBA")
-    bg_with_logo.alpha_composite(logo, (logo_x, logo_y))
-    bg_with_logo.convert("CMYK").save(ASSETS / "card-bg-logo-cmyk.jpg", quality=95)
+    build_backgrounds()
 
     Image.open(ASSETS / "qr-mesukemo.png").convert("CMYK").save(ASSETS / "qr-mesukemo-cmyk.jpg", quality=95)
 
@@ -203,7 +165,6 @@ def write_cmyk_pdf_direct() -> Path:
 
     offwhite = CMYKColor(0.0, 0.0, 0.035, 0.04)
     gold = CMYKColor(0.20, 0.35, 0.75, 0.10)
-    ink_black = CMYKColor(0.0, 0.0, 0.0, 0.90)
 
     left_x = mm_to_pt(30.0)
     c.setFillColor(offwhite)
@@ -219,15 +180,10 @@ def write_cmyk_pdf_direct() -> Path:
     c.drawString(left_x, page_h - mm_to_pt(17.2), "mesukemo.uk")
 
     name_band_x = mm_to_pt(6.0)
-    name_band_top = mm_to_pt(43.0)
-    name_band_w = mm_to_pt(40.0)
-    name_band_h = mm_to_pt(12.0)
+    name_band_top = mm_to_pt(42.0)
+    name_band_w = mm_to_pt(42.0)
+    name_band_h = mm_to_pt(13.0)
     name_band_y = page_h - name_band_top - name_band_h
-    c.saveState()
-    c.setFillColor(ink_black)
-    c.setFillAlpha(0.32)
-    c.rect(name_band_x, name_band_y, name_band_w, name_band_h, stroke=0, fill=1)
-    c.restoreState()
 
     name = "yuki__san"
     name_size = 17.2
@@ -236,8 +192,12 @@ def write_cmyk_pdf_direct() -> Path:
     descent = pdfmetrics.getDescent("NotoSerifJP", name_size)
     name_x = name_band_x + (name_band_w - name_w) / 2
     name_y = name_band_y + (name_band_h - (ascent - descent)) / 2 - descent
-    c.setFillColor(offwhite)
     c.setFont("NotoSerifJP", name_size)
+    c.setFillColor(CMYKColor(0.0, 0.0, 0.0, 0.78))
+    c.drawString(name_x, name_y - mm_to_pt(0.22), name)
+    c.setFillColor(CMYKColor(0.0, 0.0, 0.0, 0.0, alpha=0.18))
+    c.drawString(name_x, name_y + mm_to_pt(0.22), name)
+    c.setFillColor(offwhite)
     c.drawString(name_x, name_y, name)
 
     right_edge = mm_to_pt(91.0)

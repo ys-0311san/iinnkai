@@ -104,12 +104,11 @@ body {
 .person {
   position: absolute;
   left: 0;
-  top: 37mm;
+  top: 36mm;
   display: flex;
-  width: 40mm;
-  height: 12mm;
+  width: 42mm;
+  height: 13mm;
   align-items: center;
-  background: rgba(26, 26, 26, 0.32);
   justify-content: center;
 }
 
@@ -121,6 +120,7 @@ body {
   font-size: 17.2pt;
   font-weight: 700;
   line-height: 1;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6), 0 -1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .links {
