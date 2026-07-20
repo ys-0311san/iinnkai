@@ -202,26 +202,51 @@ def write_cmyk_pdf_direct() -> Path:
     c.drawImage(str(ASSETS / "card-bg-logo-cmyk.jpg"), 0, 0, width=page_w, height=page_h)
 
     offwhite = CMYKColor(0.0, 0.0, 0.035, 0.04)
-    gold = CMYKColor(0.0, 0.18, 0.74, 0.17)
+    gold = CMYKColor(0.20, 0.35, 0.75, 0.10)
+    ink_black = CMYKColor(0.0, 0.0, 0.0, 0.90)
 
     left_x = mm_to_pt(30.0)
     c.setFillColor(offwhite)
-    c.setFont("NotoSerifJP", 12.5)
-    c.drawString(left_x, page_h - mm_to_pt(12.8), "メスケモ推進委員会")
+    organization = c.beginText(left_x, page_h - mm_to_pt(12.8))
+    organization.setFont("NotoSerifJP", 12.5)
+    organization.setFillColor(offwhite)
+    organization.setCharSpace(1.0)
+    organization.textLine("メスケモ推進委員会")
+    organization.setCharSpace(0)
+    c.drawText(organization)
     c.setFillColor(gold)
     c.setFont("ZenMaruGothic", 7.4)
     c.drawString(left_x, page_h - mm_to_pt(17.2), "mesukemo.uk")
 
+    name_band_x = mm_to_pt(6.0)
+    name_band_top = mm_to_pt(43.0)
+    name_band_w = mm_to_pt(40.0)
+    name_band_h = mm_to_pt(12.0)
+    name_band_y = page_h - name_band_top - name_band_h
+    c.saveState()
+    c.setFillColor(ink_black)
+    c.setFillAlpha(0.32)
+    c.rect(name_band_x, name_band_y, name_band_w, name_band_h, stroke=0, fill=1)
+    c.restoreState()
+
+    name = "yuki__san"
+    name_size = 17.2
+    name_w = pdfmetrics.stringWidth(name, "NotoSerifJP", name_size)
+    ascent = pdfmetrics.getAscent("NotoSerifJP", name_size)
+    descent = pdfmetrics.getDescent("NotoSerifJP", name_size)
+    name_x = name_band_x + (name_band_w - name_w) / 2
+    name_y = name_band_y + (name_band_h - (ascent - descent)) / 2 - descent
     c.setFillColor(offwhite)
-    c.setFont("NotoSerifJP", 17.2)
-    c.drawString(mm_to_pt(6.0), page_h - mm_to_pt(48.0), "yuki__san")
+    c.setFont("NotoSerifJP", name_size)
+    c.drawString(name_x, name_y, name)
 
     right_edge = mm_to_pt(91.0)
-    c.setFont("ZenMaruGothic", 6.7)
+    link_size = 7.2
+    c.setFont("ZenMaruGothic", link_size)
     for idx, (label, value) in enumerate([("X", "@mesukemo_ya")]):
-        y = page_h - mm_to_pt(9.4 + idx * 4.1)
-        value_w = pdfmetrics.stringWidth(value, "ZenMaruGothic", 6.7)
-        label_w = pdfmetrics.stringWidth(label, "ZenMaruGothic", 6.7)
+        y = page_h - mm_to_pt(17.2 + idx * 4.1)
+        value_w = pdfmetrics.stringWidth(value, "ZenMaruGothic", link_size)
+        label_w = pdfmetrics.stringWidth(label, "ZenMaruGothic", link_size)
         c.setFillColor(gold)
         c.drawString(right_edge - value_w - label_w - mm_to_pt(1.2), y, label)
         c.setFillColor(offwhite)
@@ -275,20 +300,29 @@ def find_japan_color_profile() -> str | None:
 def write_preview(cmyk_pdf: Path) -> Path:
     preview = OUTPUT / "meishi_mesukemo_preview.png"
     gs = shutil.which("gs") or shutil.which("gswin64c") or shutil.which("gswin32c")
-    if not gs:
-        raise RuntimeError("Ghostscript is required to render the preview from the CMYK PDF.")
-    run(
-        [
-            gs,
-            "-dSAFER",
-            "-dBATCH",
-            "-dNOPAUSE",
-            "-sDEVICE=png16m",
-            "-r350",
-            f"-sOutputFile={preview}",
-            str(cmyk_pdf),
-        ]
-    )
+    if gs:
+        run(
+            [
+                gs,
+                "-dSAFER",
+                "-dBATCH",
+                "-dNOPAUSE",
+                "-sDEVICE=png16m",
+                "-r350",
+                f"-sOutputFile={preview}",
+                str(cmyk_pdf),
+            ]
+        )
+        return preview
+
+    try:
+        import fitz
+    except ImportError as exc:
+        raise RuntimeError("Ghostscript was not found. Install `pymupdf` to render the preview fallback.") from exc
+
+    doc = fitz.open(str(cmyk_pdf))
+    pix = doc[0].get_pixmap(matrix=fitz.Matrix(PREVIEW_DPI / 72.0, PREVIEW_DPI / 72.0), alpha=False)
+    pix.save(str(preview))
     return preview
 
 
