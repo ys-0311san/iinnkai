@@ -1,6 +1,10 @@
 # ローカル確認・開発ツール（コミット不要）
 tools/
 
+# 名刺印刷データのビルド用フォント一式（容量大・build.pyが自動取得）
+print-card/fonts/
+print-card/.venv/
+
 # OS生成ファイル
 .DS_Store
 Thumbs.db
