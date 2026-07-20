@@ -46,8 +46,8 @@ def color_grade_wood(img: Image.Image, mode: str = "back") -> Image.Image:
         img = ImageEnhance.Brightness(img).enhance(0.42)
         shadow_color = "#0d0a08"
         light_color = "#1a1310"
-        glow_strength = 22
-        vignette_strength = 132
+        glow_strength = 0
+        vignette_strength = 58
         dark_color = "#070504"
     else:
         img = ImageEnhance.Color(img).enhance(0.72)
@@ -198,10 +198,11 @@ def make_name_plate(source: Image.Image, width_mm: float = 42.0, height_mm: floa
     return canvas
 
 
-def make_common_background(wood: Image.Image, mode: str) -> Image.Image:
+def make_common_background(wood: Image.Image, mode: str, include_kumiko: bool = True) -> Image.Image:
     base = mirror_tile(wood, (WIDTH, HEIGHT))
     base = color_grade_wood(base, mode=mode).convert("RGBA")
-    draw_kumiko(base)
+    if include_kumiko:
+        draw_kumiko(base)
     return base
 
 
@@ -215,7 +216,7 @@ def build_backgrounds() -> None:
     ASSETS.mkdir(parents=True, exist_ok=True)
     wood = Image.open(WOOD_TEXTURE).convert("RGB")
 
-    front = make_common_background(wood, "front")
+    front = make_common_background(wood, "front", include_kumiko=False)
     plate = make_name_plate(wood, 46.0, 15.0)
     front.alpha_composite(plate, (mm(5.3), mm(5.55)))
     draw_frame(front)
