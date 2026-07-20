@@ -34,6 +34,7 @@ PAGE_MM = (97.0, 61.0)
 FINISH_MM = (91.0, 55.0)
 SAFE_MM = (85.0, 49.0)
 LOGO_DISPLAY_MM = 20.0
+HEADER_BANNER_DISPLAY_MM = 31.0
 MIN_EFFECTIVE_DPI = 350.0
 QR_URL = "https://mesukemo.uk"
 PREVIEW_DPI = 350
@@ -90,6 +91,9 @@ def build_background() -> None:
     build_backgrounds()
 
     Image.open(ASSETS / "qr-mesukemo.png").convert("CMYK").save(ASSETS / "qr-mesukemo-cmyk.jpg", quality=95)
+    Image.open(REPO_ROOT / "images" / "header-banner.png").convert("CMYK").save(
+        ASSETS / "header-banner-cmyk.jpg", quality=96, subsampling=0
+    )
 
 
 def check_logo_dpi() -> float:
@@ -161,10 +165,40 @@ def write_cmyk_pdf_direct() -> Path:
 
     c = canvas.Canvas(str(cmyk_pdf), pagesize=(page_w, page_h), pageCompression=1)
     c.setTitle("メスケモ推進委員会 名刺")
-    c.drawImage(str(ASSETS / "card-bg-logo-cmyk.jpg"), 0, 0, width=page_w, height=page_h)
 
     offwhite = CMYKColor(0.0, 0.0, 0.035, 0.04)
     gold = CMYKColor(0.20, 0.35, 0.75, 0.10)
+
+    c.drawImage(str(ASSETS / "card-bg-front-cmyk.jpg"), 0, 0, width=page_w, height=page_h)
+
+    name_band_x = mm_to_pt(6.0)
+    name_band_top = mm_to_pt(6.0)
+    name_band_w = mm_to_pt(46.0)
+    name_band_h = mm_to_pt(15.0)
+    name_band_y = page_h - name_band_top - name_band_h
+
+    name = "yuki__san"
+    name_size = 18.3
+    name_w = pdfmetrics.stringWidth(name, "NotoSerifJP", name_size)
+    ascent = pdfmetrics.getAscent("NotoSerifJP", name_size)
+    descent = pdfmetrics.getDescent("NotoSerifJP", name_size)
+    name_x = name_band_x + (name_band_w - name_w) / 2
+    name_y = name_band_y + (name_band_h - (ascent - descent)) / 2 - descent
+    c.setFont("NotoSerifJP", name_size)
+    c.setFillColor(CMYKColor(0.0, 0.0, 0.0, 0.78))
+    c.drawString(name_x, name_y - mm_to_pt(0.22), name)
+    c.setFillColor(CMYKColor(0.0, 0.0, 0.0, 0.0, alpha=0.18))
+    c.drawString(name_x, name_y + mm_to_pt(0.22), name)
+    c.setFillColor(offwhite)
+    c.drawString(name_x, name_y, name)
+
+    banner_w = mm_to_pt(HEADER_BANNER_DISPLAY_MM)
+    banner_h = banner_w * 179.0 / 960.0
+    c.drawImage(str(ASSETS / "header-banner-cmyk.jpg"), mm_to_pt(6.0), mm_to_pt(6.0), width=banner_w, height=banner_h)
+
+    c.showPage()
+
+    c.drawImage(str(ASSETS / "card-bg-back-cmyk.jpg"), 0, 0, width=page_w, height=page_h)
 
     left_x = mm_to_pt(30.0)
     c.setFillColor(offwhite)
@@ -179,27 +213,6 @@ def write_cmyk_pdf_direct() -> Path:
     c.setFont("ZenMaruGothic", 7.4)
     c.drawString(left_x, page_h - mm_to_pt(17.2), "mesukemo.uk")
 
-    name_band_x = mm_to_pt(6.0)
-    name_band_top = mm_to_pt(42.0)
-    name_band_w = mm_to_pt(42.0)
-    name_band_h = mm_to_pt(13.0)
-    name_band_y = page_h - name_band_top - name_band_h
-
-    name = "yuki__san"
-    name_size = 17.2
-    name_w = pdfmetrics.stringWidth(name, "NotoSerifJP", name_size)
-    ascent = pdfmetrics.getAscent("NotoSerifJP", name_size)
-    descent = pdfmetrics.getDescent("NotoSerifJP", name_size)
-    name_x = name_band_x + (name_band_w - name_w) / 2
-    name_y = name_band_y + (name_band_h - (ascent - descent)) / 2 - descent
-    c.setFont("NotoSerifJP", name_size)
-    c.setFillColor(CMYKColor(0.0, 0.0, 0.0, 0.78))
-    c.drawString(name_x, name_y - mm_to_pt(0.22), name)
-    c.setFillColor(CMYKColor(0.0, 0.0, 0.0, 0.0, alpha=0.18))
-    c.drawString(name_x, name_y + mm_to_pt(0.22), name)
-    c.setFillColor(offwhite)
-    c.drawString(name_x, name_y, name)
-
     right_edge = mm_to_pt(91.0)
     link_size = 7.2
     c.setFont("ZenMaruGothic", link_size)
@@ -212,11 +225,17 @@ def write_cmyk_pdf_direct() -> Path:
         c.setFillColor(offwhite)
         c.drawString(right_edge - value_w, y, value)
 
-    qr_size = mm_to_pt(22.0)
+    qr_box_size = mm_to_pt(22.0)
+    qr_padding = mm_to_pt(1.7)
+    qr_x = mm_to_pt(69.0)
+    qr_y = page_h - mm_to_pt(55.0)
+    c.setFillColor(offwhite)
+    c.rect(qr_x, qr_y, qr_box_size, qr_box_size, stroke=0, fill=1)
+    qr_size = qr_box_size - qr_padding * 2
     c.drawImage(
         str(ASSETS / "qr-mesukemo-cmyk.jpg"),
-        mm_to_pt(69.0),
-        page_h - mm_to_pt(55.0),
+        qr_x + qr_padding,
+        qr_y + qr_padding,
         width=qr_size,
         height=qr_size,
     )
@@ -229,13 +248,13 @@ def write_cmyk_pdf_direct() -> Path:
 
 def remove_unused_reportlab_default_font(pdf_path: Path) -> None:
     pdf = pikepdf.Pdf.open(str(pdf_path), allow_overwriting_input=True)
-    page = pdf.pages[0]
-    content = page.Contents.read_bytes()
-    content = content.replace(b"BT /F1 12 Tf 14.4 TL ET\n", b"")
-    page.Contents = pdf.make_stream(content)
-    fonts = page.Resources.get("/Font", {})
-    if "/F1" in fonts and b"/F1 " not in content:
-        del fonts["/F1"]
+    for page in pdf.pages:
+        content = page.Contents.read_bytes()
+        content = content.replace(b"BT /F1 12 Tf 14.4 TL ET\n", b"")
+        page.Contents = pdf.make_stream(content)
+        fonts = page.Resources.get("/Font", {})
+        if "/F1" in fonts and b"/F1 " not in content:
+            del fonts["/F1"]
     pdf.save(str(pdf_path))
 
 
@@ -257,23 +276,32 @@ def find_japan_color_profile() -> str | None:
     return None
 
 
-def write_preview(cmyk_pdf: Path) -> Path:
-    preview = OUTPUT / "meishi_mesukemo_preview.png"
+def write_preview(cmyk_pdf: Path) -> tuple[Path, Path]:
+    previews = (
+        OUTPUT / "meishi_mesukemo_preview_front.png",
+        OUTPUT / "meishi_mesukemo_preview_back.png",
+    )
+    old_preview = OUTPUT / "meishi_mesukemo_preview.png"
+    if old_preview.exists():
+        old_preview.unlink()
     gs = shutil.which("gs") or shutil.which("gswin64c") or shutil.which("gswin32c")
     if gs:
-        run(
-            [
-                gs,
-                "-dSAFER",
-                "-dBATCH",
-                "-dNOPAUSE",
-                "-sDEVICE=png16m",
-                "-r350",
-                f"-sOutputFile={preview}",
-                str(cmyk_pdf),
-            ]
-        )
-        return preview
+        for page_number, preview in enumerate(previews, start=1):
+            run(
+                [
+                    gs,
+                    "-dSAFER",
+                    "-dBATCH",
+                    "-dNOPAUSE",
+                    "-sDEVICE=png16m",
+                    "-r350",
+                    f"-dFirstPage={page_number}",
+                    f"-dLastPage={page_number}",
+                    f"-sOutputFile={preview}",
+                    str(cmyk_pdf),
+                ]
+            )
+        return previews
 
     try:
         import fitz
@@ -281,21 +309,25 @@ def write_preview(cmyk_pdf: Path) -> Path:
         raise RuntimeError("Ghostscript was not found. Install `pymupdf` to render the preview fallback.") from exc
 
     doc = fitz.open(str(cmyk_pdf))
-    pix = doc[0].get_pixmap(matrix=fitz.Matrix(PREVIEW_DPI / 72.0, PREVIEW_DPI / 72.0), alpha=False)
-    pix.save(str(preview))
-    return preview
+    for page_index, preview in enumerate(previews):
+        pix = doc[page_index].get_pixmap(matrix=fitz.Matrix(PREVIEW_DPI / 72.0, PREVIEW_DPI / 72.0), alpha=False)
+        pix.save(str(preview))
+    return previews
 
 
 def check_page_size(pdf_path: Path) -> None:
     reader = PdfReader(str(pdf_path))
-    if len(reader.pages) != 1:
-        raise RuntimeError(f"{pdf_path.name} must be 1 page, got {len(reader.pages)}.")
-    box = reader.pages[0].mediabox
-    width_mm = float(box.width) / 72.0 * 25.4
-    height_mm = float(box.height) / 72.0 * 25.4
-    if abs(width_mm - PAGE_MM[0]) > 0.05 or abs(height_mm - PAGE_MM[1]) > 0.05:
-        raise RuntimeError(f"{pdf_path.name} page size is {width_mm:.2f}x{height_mm:.2f}mm, expected 97x61mm.")
-    print(f"{pdf_path.name} page size: {width_mm:.2f} x {height_mm:.2f} mm")
+    if len(reader.pages) != 2:
+        raise RuntimeError(f"{pdf_path.name} must be 2 pages, got {len(reader.pages)}.")
+    for index, page in enumerate(reader.pages, start=1):
+        box = page.mediabox
+        width_mm = float(box.width) / 72.0 * 25.4
+        height_mm = float(box.height) / 72.0 * 25.4
+        if abs(width_mm - PAGE_MM[0]) > 0.05 or abs(height_mm - PAGE_MM[1]) > 0.05:
+            raise RuntimeError(
+                f"{pdf_path.name} page {index} size is {width_mm:.2f}x{height_mm:.2f}mm, expected 97x61mm."
+            )
+        print(f"{pdf_path.name} page {index} size: {width_mm:.2f} x {height_mm:.2f} mm")
 
 
 def main() -> int:

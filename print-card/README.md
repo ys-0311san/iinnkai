@@ -27,9 +27,10 @@ python build.py
 
 - `output/meishi_mesukemo_rgb.pdf`: 確認用 RGB PDF
 - `output/meishi_mesukemo_cmyk.pdf`: 入稿用 CMYK PDF
-- `output/meishi_mesukemo_preview.png`: CMYK PDF から 350dpi で書き出した確認 PNG
+- `output/meishi_mesukemo_preview_front.png`: CMYK PDF 1ページ目から 350dpi で書き出した表面確認 PNG
+- `output/meishi_mesukemo_preview_back.png`: CMYK PDF 2ページ目から 350dpi で書き出した裏面確認 PNG
 
-`meishi_mesukemo_rgb.pdf` は HTML/CSS を WeasyPrint で書き出します。`meishi_mesukemo_cmyk.pdf` は同じ寸法、素材、座標を使って ReportLab で直接 CMYK PDF として生成します。Ghostscript 10.02 が WeasyPrint PDF のテキストを落とす環境があったため、入稿用は直接 CMYK 生成にしています。
+`meishi_mesukemo_rgb.pdf` は HTML/CSS を WeasyPrint で書き出します。`meishi_mesukemo_cmyk.pdf` は同じ寸法、素材、座標を使って ReportLab で直接 CMYK PDF として生成します。どちらも1ページ目が表面、2ページ目が裏面です。Ghostscript 10.02 が WeasyPrint PDF のテキストを落とす環境があったため、入稿用は直接 CMYK 生成にしています。
 
 ## 印刷メモ
 
@@ -58,7 +59,7 @@ python build.py
 
 `python build.py` は以下を検査します。
 
-- PDF が1ページであること
-- ページサイズが 97mm x 61mm であること
+- PDF が2ページであること
+- 各ページのサイズが 97mm x 61mm であること
 - ロゴ表示サイズでの実効dpiが350dpi以上であること
-- PNG プレビューを RGB PDF ではなく CMYK PDF から作成すること
+- 表裏の PNG プレビューを RGB PDF ではなく CMYK PDF から作成すること

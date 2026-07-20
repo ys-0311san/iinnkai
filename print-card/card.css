@@ -34,7 +34,6 @@
 html,
 body {
   width: 97mm;
-  height: 61mm;
   margin: 0;
 }
 
@@ -48,7 +47,19 @@ body {
   width: 97mm;
   height: 61mm;
   overflow: hidden;
-  background: #8b6f47 url("assets/card-bg.png") 0 0 / 97mm 61mm no-repeat;
+  break-after: page;
+}
+
+.card:last-child {
+  break-after: auto;
+}
+
+.card-front {
+  background: #0d0a08 url("assets/card-bg-front.png") 0 0 / 97mm 61mm no-repeat;
+}
+
+.card-back {
+  background: #8b6f47 url("assets/card-bg-back.png") 0 0 / 97mm 61mm no-repeat;
 }
 
 .safe-area {
@@ -57,6 +68,37 @@ body {
   top: 6mm;
   width: 85mm;
   height: 49mm;
+}
+
+.front-person {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  width: 46mm;
+  height: 15mm;
+  align-items: center;
+  justify-content: center;
+}
+
+.name {
+  position: relative;
+  margin: 0;
+  color: #f5f3ed;
+  font-family: "Noto Serif JP Local", serif;
+  font-size: 18.3pt;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.65), 0 -1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.banner-logo {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 31mm;
+  height: auto;
+  object-fit: contain;
 }
 
 .identity {
@@ -71,15 +113,6 @@ body {
   position: absolute;
   left: 24mm;
   top: 2.4mm;
-}
-
-.logo {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 20mm;
-  height: 20mm;
-  object-fit: contain;
 }
 
 .organization {
@@ -99,28 +132,6 @@ body {
   font-size: 7.4pt;
   font-weight: 700;
   line-height: 1;
-}
-
-.person {
-  position: absolute;
-  left: 0;
-  top: 36mm;
-  display: flex;
-  width: 42mm;
-  height: 13mm;
-  align-items: center;
-  justify-content: center;
-}
-
-.name {
-  position: relative;
-  margin: 0;
-  color: #f5f3ed;
-  font-family: "Noto Serif JP Local", serif;
-  font-size: 17.2pt;
-  font-weight: 700;
-  line-height: 1;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6), 0 -1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .links {

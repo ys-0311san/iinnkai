@@ -39,14 +39,29 @@ def mirror_tile(source: Image.Image, size: tuple[int, int]) -> Image.Image:
     return tiled
 
 
-def color_grade_wood(img: Image.Image) -> Image.Image:
-    img = ImageEnhance.Color(img).enhance(0.72)
-    img = ImageEnhance.Contrast(img).enhance(1.16)
-    img = ImageEnhance.Brightness(img).enhance(0.64)
+def color_grade_wood(img: Image.Image, mode: str = "back") -> Image.Image:
+    if mode == "front":
+        img = ImageEnhance.Color(img).enhance(0.34)
+        img = ImageEnhance.Contrast(img).enhance(1.28)
+        img = ImageEnhance.Brightness(img).enhance(0.42)
+        shadow_color = "#0d0a08"
+        light_color = "#1a1310"
+        glow_strength = 22
+        vignette_strength = 132
+        dark_color = "#070504"
+    else:
+        img = ImageEnhance.Color(img).enhance(0.72)
+        img = ImageEnhance.Contrast(img).enhance(1.16)
+        img = ImageEnhance.Brightness(img).enhance(0.64)
+        shadow_color = "#4a3028"
+        light_color = "#8b6f47"
+        glow_strength = 34
+        vignette_strength = 118
+        dark_color = "#1f1512"
 
-    brown = Image.new("RGB", img.size, "#4a3028")
-    cedar = Image.new("RGB", img.size, "#8b6f47")
-    img = Image.blend(ImageChops.multiply(img, brown), ImageChops.overlay(img, cedar), 0.44)
+    shadow_tone = Image.new("RGB", img.size, shadow_color)
+    light_tone = Image.new("RGB", img.size, light_color)
+    img = Image.blend(ImageChops.multiply(img, shadow_tone), ImageChops.overlay(img, light_tone), 0.44)
 
     vignette = Image.new("L", img.size, 0)
     px = vignette.load()
@@ -56,8 +71,8 @@ def color_grade_wood(img: Image.Image) -> Image.Image:
     for y in range(img.size[1]):
         for x in range(img.size[0]):
             dist = math.hypot(x - center_x, y - center_y) / max_dist
-            px[x, y] = max(0, min(118, round((dist**1.65) * 118)))
-    dark = Image.new("RGB", img.size, "#1f1512")
+            px[x, y] = max(0, min(vignette_strength, round((dist**1.65) * vignette_strength)))
+    dark = Image.new("RGB", img.size, dark_color)
     img = Image.composite(dark, img, vignette.filter(ImageFilter.GaussianBlur(mm(3.5))))
 
     glow = Image.new("L", img.size, 0)
@@ -69,8 +84,8 @@ def color_grade_wood(img: Image.Image) -> Image.Image:
             dx = (x - center_x) / glow_rx
             dy = (y - center_y) / glow_ry
             amount = max(0.0, 1.0 - math.sqrt(dx * dx + dy * dy))
-            gpx[x, y] = round((amount**1.8) * 34)
-    warm_light = Image.new("RGB", img.size, "#8b6f47")
+            gpx[x, y] = round((amount**1.8) * glow_strength)
+    warm_light = Image.new("RGB", img.size, light_color)
     return Image.composite(warm_light, img, glow.filter(ImageFilter.GaussianBlur(mm(6.0))))
 
 
@@ -153,8 +168,8 @@ def draw_frame(img: Image.Image) -> None:
     img.alpha_composite(overlay)
 
 
-def make_name_plate(source: Image.Image) -> Image.Image:
-    w, h = mm(42.0), mm(13.0)
+def make_name_plate(source: Image.Image, width_mm: float = 42.0, height_mm: float = 13.0) -> Image.Image:
+    w, h = mm(width_mm), mm(height_mm)
     plate = mirror_tile(source.crop((0, 0, min(source.width, w), min(source.height, h))), (w, h))
     plate = ImageEnhance.Color(plate).enhance(0.22)
     plate = ImageOps.grayscale(plate).convert("RGB")
@@ -183,26 +198,36 @@ def make_name_plate(source: Image.Image) -> Image.Image:
     return canvas
 
 
+def make_common_background(wood: Image.Image, mode: str) -> Image.Image:
+    base = mirror_tile(wood, (WIDTH, HEIGHT))
+    base = color_grade_wood(base, mode=mode).convert("RGBA")
+    draw_kumiko(base)
+    return base
+
+
+def save_rgb_and_cmyk(img: Image.Image, rgb_name: str, cmyk_name: str) -> None:
+    rgb = img.convert("RGB")
+    rgb.save(ASSETS / rgb_name, optimize=True)
+    rgb.convert("CMYK").save(ASSETS / cmyk_name, quality=96, subsampling=0)
+
+
 def build_backgrounds() -> None:
     ASSETS.mkdir(parents=True, exist_ok=True)
     wood = Image.open(WOOD_TEXTURE).convert("RGB")
-    base = mirror_tile(wood, (WIDTH, HEIGHT))
-    base = color_grade_wood(base).convert("RGBA")
-    draw_kumiko(base)
 
-    plate = make_name_plate(wood)
-    base.alpha_composite(plate, (mm(5.3), mm(41.55)))
-    draw_frame(base)
+    front = make_common_background(wood, "front")
+    plate = make_name_plate(wood, 46.0, 15.0)
+    front.alpha_composite(plate, (mm(5.3), mm(5.55)))
+    draw_frame(front)
+    save_rgb_and_cmyk(front, "card-bg-front.png", "card-bg-front-cmyk.jpg")
 
-    rgb = base.convert("RGB")
-    rgb.save(ASSETS / "card-bg.png", optimize=True)
-
+    back = make_common_background(wood, "back")
     logo = Image.open(LOGO).convert("RGBA")
     logo_size = mm(20.0)
     logo = logo.resize((logo_size, logo_size), Image.Resampling.LANCZOS)
-    cmyk_source = base.copy()
-    cmyk_source.alpha_composite(logo, (mm(6.0), mm(6.0)))
-    cmyk_source.convert("RGB").convert("CMYK").save(ASSETS / "card-bg-logo-cmyk.jpg", quality=96, subsampling=0)
+    back.alpha_composite(logo, (mm(6.0), mm(6.0)))
+    draw_frame(back)
+    save_rgb_and_cmyk(back, "card-bg-back.png", "card-bg-back-cmyk.jpg")
 
 
 if __name__ == "__main__":
