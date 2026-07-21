@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>名刺ジェネレーター</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #241c18;
+      background: #f6f1e8;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 32px 16px;
+      box-sizing: border-box;
+    }
+    main {
+      width: min(100%, 920px);
+      background: #fffdfa;
+      border: 1px solid #d9cbb8;
+      border-radius: 8px;
+      padding: 28px;
+      box-shadow: 0 16px 40px rgba(55, 38, 24, 0.12);
+      box-sizing: border-box;
+    }
+    h1 {
+      margin: 0 0 22px;
+      font-size: 22px;
+      line-height: 1.35;
+    }
+    form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(240px, 305px);
+      gap: 18px;
+    }
+    .fields {
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+    .preview-panel {
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+    .preview-panel p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #6c5a4a;
+    }
+    .canvas-wrap {
+      width: 100%;
+      max-width: 305px;
+      aspect-ratio: 61 / 97;
+      background: #211916;
+      border: 1px solid #cdbda9;
+      border-radius: 6px;
+      overflow: hidden;
+      touch-action: none;
+    }
+    #cardPreview {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+    #cardPreview.dragging {
+      cursor: grabbing;
+    }
+    .zoom-control,
+    .catchphrase-control {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .zoom-control input[type="range"],
+    .catchphrase-control input[type="range"] {
+      width: 100%;
+    }
+    .segmented-control {
+      display: flex;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .segmented-control span {
+      min-width: 4.5em;
+    }
+    .segmented-control label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 700;
+    }
+    .segmented-control input {
+      width: auto;
+    }
+    .logo-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .logo-toggle input {
+      width: auto;
+    }
+    label {
+      display: grid;
+      gap: 8px;
+      font-weight: 700;
+    }
+    input,
+    textarea,
+    button {
+      font: inherit;
+    }
+    input,
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #cdbda9;
+      border-radius: 6px;
+      padding: 11px 12px;
+      background: #ffffff;
+      color: #241c18;
+    }
+    textarea {
+      min-height: 96px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+    button {
+      border: 0;
+      border-radius: 6px;
+      padding: 12px 16px;
+      background: #2f211b;
+      color: #fffaf0;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #432f27;
+    }
+    .error {
+      margin: 0 0 18px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      background: #fff0ed;
+      color: #9a2a1a;
+      border: 1px solid #e8b9ae;
+    }
+    @media (max-width: 760px) {
+      main {
+        width: min(100%, 560px);
+      }
+      form {
+        grid-template-columns: 1fr;
+      }
+      .preview-panel {
+        order: -1;
+      }
+      .canvas-wrap {
+        max-width: 244px;
+        justify-self: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>名刺ジェネレーター</h1>
+    {% if error %}
+      <p class="error">{{ error }}</p>
+    {% endif %}
+    <form action="/generate" method="post" enctype="multipart/form-data">
+      <div class="fields">
+        <label>
+          写真
+          <input id="photoInput" type="file" name="photo" accept="image/*" required>
+        </label>
+        <label>
+          フォント（任意）
+          <input id="fontInput" type="file" name="font" accept=".ttf,.otf">
+        </label>
+        <label>
+          セリフ
+          <textarea id="catchphraseInput" name="catchphrase" required>{{ values.get("catchphrase", "") }}</textarea>
+        </label>
+        <label>
+          名前
+          <input id="nameInput" type="text" name="name" value="{{ values.get('name', '') }}" required>
+        </label>
+        <label>
+          Xアカウント
+          <input id="xHandleInput" type="text" name="x_handle" value="{{ values.get('x_handle', '') }}" placeholder="@example" required>
+        </label>
+        <input type="hidden" id="photoOffsetXInput" name="photo_offset_x_mm">
+        <input type="hidden" id="photoOffsetYInput" name="photo_offset_y_mm">
+        <input type="hidden" id="photoScaleInput" name="photo_scale">
+        <input type="hidden" id="nameXInput" name="name_x_mm">
+        <input type="hidden" id="nameYInput" name="name_y_mm">
+        <input type="hidden" id="catchphraseXInput" name="catchphrase_x_mm">
+        <input type="hidden" id="catchphraseYInput" name="catchphrase_y_mm">
+        <input type="hidden" id="catchphraseOrientationInput" name="catchphrase_orientation" value="vertical">
+        <input type="hidden" id="catchphraseRotationInput" name="catchphrase_rotation_deg" value="0">
+        <input type="hidden" id="catchphraseSizeFactorInput" name="catchphrase_size_factor" value="1">
+        <input type="hidden" id="catchphraseStrokeFactorInput" name="catchphrase_stroke_factor" value="1">
+        <input type="hidden" id="catchphraseFillColorInput" name="catchphrase_fill_color" value="white">
+        <button type="submit">CMYK PDFを生成</button>
+      </div>
+      <section class="preview-panel" aria-label="名刺プレビュー">
+        <div class="canvas-wrap">
+          <canvas id="cardPreview" width="610" height="970"></canvas>
+        </div>
+        <label class="zoom-control">
+          寄り引き
+          <input type="range" id="zoomSlider" min="100" max="250" value="100" step="1">
+        </label>
+        <div class="segmented-control" role="radiogroup" aria-label="セリフの書字方向">
+          <span>書字方向</span>
+          <label><input type="radio" name="catchphrase_orientation_ui" value="vertical" checked>縦書き</label>
+          <label><input type="radio" name="catchphrase_orientation_ui" value="horizontal">横書き</label>
+        </div>
+        <label class="catchphrase-control">
+          回転
+          <input type="range" id="catchphraseRotationSlider" min="-45" max="45" value="0" step="1">
+        </label>
+        <label class="catchphrase-control">
+          セリフサイズ
+          <input type="range" id="catchphraseSizeSlider" min="60" max="180" value="100" step="1">
+        </label>
+        <label class="catchphrase-control">
+          縁取り
+          <input type="range" id="catchphraseStrokeSlider" min="0" max="200" value="100" step="1">
+        </label>
+        <div class="segmented-control" role="radiogroup" aria-label="セリフの文字色">
+          <span>文字色</span>
+          <label><input type="radio" name="catchphrase_fill_color_ui" value="white" checked>白</label>
+          <label><input type="radio" name="catchphrase_fill_color_ui" value="black">黒</label>
+        </div>
+        <label class="logo-toggle">
+          <input type="checkbox" id="logoToggle" name="show_logo" checked>
+          左下ロゴを表示
+        </label>
+        <p>写真・名前・セリフはプレビュー上でドラッグできます。写真はスライダーで寄り引きできます。</p>
+      </section>
+    </form>
+  </main>
+  <script src="{{ url_for('static', filename='generator.js') }}"></script>
+</body>
+</html>

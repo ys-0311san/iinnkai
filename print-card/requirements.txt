@@ -8,3 +8,4 @@ pikepdf
 reportlab
 pymupdf
 opencv-contrib-python-headless
+Flask
