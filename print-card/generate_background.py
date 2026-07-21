@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import math
+import shutil
 from pathlib import Path
 
+import cv2
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter, ImageOps
 
 
@@ -11,7 +13,7 @@ ROOT = Path(__file__).resolve().parent
 REPO_ROOT = ROOT.parent
 ASSETS = ROOT / "assets"
 
-PAGE_MM = (97.0, 61.0)
+PAGE_MM = (61.0, 97.0)
 DPI = 635
 WIDTH = round(PAGE_MM[0] / 25.4 * DPI)
 HEIGHT = round(PAGE_MM[1] / 25.4 * DPI)
@@ -19,6 +21,10 @@ SCALE = DPI / 25.4
 
 WOOD_TEXTURE = REPO_ROOT / "images" / "wood-texture.jpg"
 LOGO = REPO_ROOT / "images" / "card-logo.png"
+FRONT_PHOTO_SOURCE = Path("/mnt/e/picture2/ee381eef14057097.png")
+FRONT_PHOTO_ASSET = ASSETS / "front-photo-source.png"
+HEADER_BANNER_SOURCE = REPO_ROOT / "images" / "header-banner.png"
+HEADER_BANNER_CLEAN_ASSET = ASSETS / "header-banner-clean.png"
 
 
 def mm(value: float) -> int:
@@ -152,8 +158,8 @@ def draw_frame(img: Image.Image) -> None:
     overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(overlay)
     draw.rectangle([0, 0, img.size[0] - 1, img.size[1] - 1], outline=(70, 45, 34, 255), width=mm(2.7))
-    draw_gradient_rect(draw, [mm(3.0), mm(3.0), img.size[0] - mm(3.0), img.size[1] - mm(3.0)], mm(0.55))
-    draw_gradient_rect(draw, [mm(4.6), mm(4.6), img.size[0] - mm(4.6), img.size[1] - mm(4.6)], mm(0.35))
+    draw_gradient_rect(draw, [mm(4.0), mm(4.0), img.size[0] - mm(4.0), img.size[1] - mm(4.0)], mm(0.68))
+    draw_gradient_rect(draw, [mm(5.4), mm(5.4), img.size[0] - mm(5.4), img.size[1] - mm(5.4)], mm(0.42))
 
     cx_positions = (mm(4.85), img.size[0] - mm(4.85))
     cy_positions = (mm(4.85), img.size[1] - mm(4.85))
@@ -206,6 +212,96 @@ def make_common_background(wood: Image.Image, mode: str, include_kumiko: bool = 
     return base
 
 
+def copy_front_source() -> None:
+    if not FRONT_PHOTO_SOURCE.exists():
+        raise FileNotFoundError(f"Front photo source was not found: {FRONT_PHOTO_SOURCE}")
+    if not FRONT_PHOTO_ASSET.exists() or FRONT_PHOTO_ASSET.stat().st_mtime < FRONT_PHOTO_SOURCE.stat().st_mtime:
+        shutil.copyfile(FRONT_PHOTO_SOURCE, FRONT_PHOTO_ASSET)
+
+
+def clean_banner_source() -> Path:
+    if (
+        HEADER_BANNER_CLEAN_ASSET.exists()
+        and HEADER_BANNER_CLEAN_ASSET.stat().st_mtime >= HEADER_BANNER_SOURCE.stat().st_mtime
+    ):
+        return HEADER_BANNER_CLEAN_ASSET
+
+    source = cv2.imread(str(HEADER_BANNER_SOURCE))
+    h, w = source.shape[:2]
+    upscaled = cv2.resize(source, (w * 2, h * 2), interpolation=cv2.INTER_LANCZOS4)
+    denoised = cv2.fastNlMeansDenoisingColored(
+        upscaled, None, h=8, hColor=8, templateWindowSize=7, searchWindowSize=21
+    )
+    ASSETS.mkdir(parents=True, exist_ok=True)
+    cv2.imwrite(str(HEADER_BANNER_CLEAN_ASSET), denoised)
+    return HEADER_BANNER_CLEAN_ASSET
+
+
+def find_banner_crop_y(photo: Image.Image) -> int:
+    width, height = photo.size
+    scan_start = max(0, height - 260)
+    first_banner_y: int | None = None
+    for y in range(height - 1, scan_start - 1, -1):
+        row = photo.crop((0, y, width, y + 1)).getdata()
+        pink_pixels = 0
+        for r, g, b in row:
+            if r > 180 and b > 135 and g < 120 and max(r, g, b) - min(r, g, b) > 80:
+                pink_pixels += 1
+        if pink_pixels / width > 0.005:
+            first_banner_y = y if first_banner_y is None else min(first_banner_y, y)
+
+    if first_banner_y is None:
+        return height
+    return max(1, first_banner_y - 42)
+
+
+def cover_image(source: Image.Image, size: tuple[int, int], x_bias: float = 0.38, y_bias: float = 0.0) -> Image.Image:
+    target_w, target_h = size
+    scale = max(target_w / source.width, target_h / source.height)
+    resized_w = math.ceil(source.width * scale)
+    resized_h = math.ceil(source.height * scale)
+    resized = source.resize((resized_w, resized_h), Image.Resampling.LANCZOS)
+    max_x = max(0, resized_w - target_w)
+    max_y = max(0, resized_h - target_h)
+    left = round(max_x * x_bias)
+    top = round(max_y * y_bias)
+    return resized.crop((left, top, left + target_w, top + target_h))
+
+
+def add_bottom_scrim(img: Image.Image) -> None:
+    scrim_h = mm(19.0)
+    overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(overlay)
+    top = img.height - scrim_h
+    for y in range(top, img.height):
+        t = (y - top) / max(1, scrim_h - 1)
+        alpha = round((t**1.4) * 178)
+        draw.line([(0, y), (img.width, y)], fill=(0, 0, 0, alpha))
+    img.alpha_composite(overlay)
+
+
+def lift_shadows(img: Image.Image, gamma: float = 1.12) -> Image.Image:
+    lut = [round(255 * ((i / 255) ** (1 / gamma))) for i in range(256)]
+    return img.point(lut * 3)
+
+
+def build_front_from_photo() -> Image.Image:
+    copy_front_source()
+    photo = Image.open(FRONT_PHOTO_ASSET).convert("RGB")
+    crop_y = find_banner_crop_y(photo)
+    photo = photo.crop((0, 0, photo.width, crop_y))
+    photo = lift_shadows(photo)
+    front = cover_image(photo, (WIDTH, HEIGHT), x_bias=0.40).convert("RGBA")
+    add_bottom_scrim(front)
+    logo_size = mm(14.0)
+    logo = Image.open(LOGO).convert("RGBA")
+    logo = logo.resize((logo_size, logo_size), Image.Resampling.LANCZOS)
+    alpha = logo.getchannel("A").point(lambda value: round(value * 0.75))
+    logo.putalpha(alpha)
+    front.alpha_composite(logo, (mm(6.0), HEIGHT - mm(6.0) - logo_size))
+    return front
+
+
 def save_rgb_and_cmyk(img: Image.Image, rgb_name: str, cmyk_name: str) -> None:
     rgb = img.convert("RGB")
     rgb.save(ASSETS / rgb_name, optimize=True)
@@ -215,18 +311,16 @@ def save_rgb_and_cmyk(img: Image.Image, rgb_name: str, cmyk_name: str) -> None:
 def build_backgrounds() -> None:
     ASSETS.mkdir(parents=True, exist_ok=True)
     wood = Image.open(WOOD_TEXTURE).convert("RGB")
+    clean_banner_source()
 
-    front = make_common_background(wood, "front", include_kumiko=False)
-    plate = make_name_plate(wood, 46.0, 15.0)
-    front.alpha_composite(plate, (mm(5.3), mm(5.55)))
-    draw_frame(front)
+    front = build_front_from_photo()
     save_rgb_and_cmyk(front, "card-bg-front.png", "card-bg-front-cmyk.jpg")
 
     back = make_common_background(wood, "back")
     logo = Image.open(LOGO).convert("RGBA")
-    logo_size = mm(20.0)
+    logo_size = mm(24.0)
     logo = logo.resize((logo_size, logo_size), Image.Resampling.LANCZOS)
-    back.alpha_composite(logo, (mm(6.0), mm(6.0)))
+    back.alpha_composite(logo, ((WIDTH - logo_size) // 2, mm(9.0)))
     draw_frame(back)
     save_rgb_and_cmyk(back, "card-bg-back.png", "card-bg-back-cmyk.jpg")
 

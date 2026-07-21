@@ -23,7 +23,7 @@
 }
 
 @page {
-  size: 97mm 61mm;
+  size: 61mm 97mm;
   margin: 0;
 }
 
@@ -33,7 +33,8 @@
 
 html,
 body {
-  width: 97mm;
+  width: 61mm;
+  height: 97mm;
   margin: 0;
 }
 
@@ -44,8 +45,8 @@ body {
 
 .card {
   position: relative;
-  width: 97mm;
-  height: 61mm;
+  width: 61mm;
+  height: 97mm;
   overflow: hidden;
   break-after: page;
 }
@@ -55,138 +56,127 @@ body {
 }
 
 .card-front {
-  background: #0d0a08 url("assets/card-bg-front.png") 0 0 / 97mm 61mm no-repeat;
+  background: #0d0a08 url("assets/card-bg-front.png") 0 0 / 61mm 97mm no-repeat;
 }
 
 .card-back {
-  background: #8b6f47 url("assets/card-bg-back.png") 0 0 / 97mm 61mm no-repeat;
+  background: #8b6f47 url("assets/card-bg-back.png") 0 0 / 61mm 97mm no-repeat;
 }
 
 .safe-area {
   position: absolute;
   left: 6mm;
   top: 6mm;
-  width: 85mm;
-  height: 49mm;
+  width: 49mm;
+  height: 85mm;
 }
 
-.front-person {
+.front-footer {
   position: absolute;
-  left: 0;
-  top: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
-  width: 46mm;
-  height: 15mm;
-  align-items: center;
-  justify-content: center;
+  width: auto;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 1mm;
 }
 
 .name {
-  position: relative;
   margin: 0;
   color: #f5f3ed;
   font-family: "Noto Serif JP Local", serif;
-  font-size: 18.3pt;
+  font-size: 12pt;
   font-weight: 700;
   line-height: 1;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.65), 0 -1px 0 rgba(255, 255, 255, 0.14);
+  text-align: right;
+  text-shadow:
+    0 0.32mm 0.4mm rgba(0, 0, 0, 0.82),
+    0 -0.12mm 0 rgba(255, 255, 255, 0.2);
 }
 
-.banner-logo {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 31mm;
-  height: auto;
-  object-fit: contain;
-}
-
-.character-photo {
-  position: absolute;
-  left: 49mm;
-  top: 4mm;
-  display: block;
-  width: 34mm;
-  height: 41mm;
-  border: 0.45mm solid #d4af37;
-  filter: drop-shadow(0.65mm 0.8mm 0.55mm rgba(0, 0, 0, 0.55));
-  object-fit: cover;
-  object-position: center;
+.handle {
+  margin: 0;
+  color: #f5f3ed;
+  font-family: "Noto Serif JP Local", serif;
+  font-size: 7pt;
+  font-weight: 700;
+  line-height: 1;
+  text-align: right;
+  text-shadow:
+    0 0.32mm 0.4mm rgba(0, 0, 0, 0.82),
+    0 -0.12mm 0 rgba(255, 255, 255, 0.2);
 }
 
 .identity {
   position: absolute;
   left: 0;
-  top: 0;
-  width: 61mm;
-  height: 24mm;
+  top: 31.5mm;
+  width: 49mm;
+  text-align: center;
 }
 
 .identity > div {
-  position: absolute;
-  left: 24mm;
-  top: 2.4mm;
+  width: 49mm;
 }
 
-.organization {
-  margin: 0;
-  color: #f5f3ed;
-  font-family: "Noto Serif JP Local", serif;
-  font-size: 12.5pt;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  line-height: 1.18;
-  white-space: nowrap;
-}
-
-.site {
-  margin: 1.6mm 0 0;
-  color: #d4af37; /* Process CMYK conversion will dull this; metallic gloss is not reproducible in four-color printing. */
-  font-size: 7.4pt;
-  font-weight: 700;
-  line-height: 1;
+.back-banner {
+  display: inline-block;
+  width: 34mm;
+  height: auto;
+  object-fit: contain;
 }
 
 .links {
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 24mm;
-  height: 49mm;
+  left: 0;
+  top: 48.5mm;
+  width: 49mm;
+  text-align: center;
 }
 
 .link-list {
-  position: absolute;
-  top: 9mm;
-  right: 0;
-  width: 24mm;
+  width: 49mm;
 }
 
 .link-list p {
-  margin: 0 0 2.2mm;
+  margin: 0;
   color: #f5f3ed;
-  font-size: 7.2pt;
+  font-size: 8pt;
   font-weight: 700;
   line-height: 1.18;
-  text-align: right;
+  text-align: center;
   white-space: nowrap;
 }
 
 .link-list span {
   display: inline-block;
-  min-width: 5mm;
-  margin-right: 1.2mm;
+  margin-right: 1.6mm;
   color: #d4af37;
   font-family: "Noto Serif JP Local", serif;
 }
 
+.link-list p.link-label {
+  margin: 0 0 0.6mm;
+  color: #f2e08c;
+  font-size: 6.5pt;
+  letter-spacing: 0.18em;
+}
+
+.link-list p.website-label {
+  margin: 1.6mm 0 0;
+  color: #f2e08c;
+  font-size: 6pt;
+  letter-spacing: 0.18em;
+}
+
 .qr {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 22mm;
-  height: 22mm;
-  padding: 1.7mm;
+  left: 11mm;
+  bottom: 2mm;
+  width: 27mm;
+  height: 27mm;
+  padding: 1.0mm;
   background: #f5f3ed;
   object-fit: contain;
 }

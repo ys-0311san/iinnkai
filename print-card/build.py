@@ -30,11 +30,11 @@ OUTPUT = ROOT / "output"
 ASSETS = ROOT / "assets"
 FONTS = ROOT / "fonts"
 
-PAGE_MM = (97.0, 61.0)
-FINISH_MM = (91.0, 55.0)
-SAFE_MM = (85.0, 49.0)
-LOGO_DISPLAY_MM = 20.0
-HEADER_BANNER_DISPLAY_MM = 31.0
+PAGE_MM = (61.0, 97.0)
+FINISH_MM = (55.0, 91.0)
+SAFE_MM = (49.0, 85.0)
+LOGO_DISPLAY_MM = 24.0
+BACK_BANNER_DISPLAY_MM = 34.0
 MIN_EFFECTIVE_DPI = 350.0
 QR_URL = "https://mesukemo.uk"
 PREVIEW_DPI = 350
@@ -68,7 +68,9 @@ def download_fonts() -> None:
     bold_ttf = FONTS / "NotoSerifJP-Bold.ttf"
     if not bold_ttf.exists():
         variable_font = FontToolsTTFont(str(FONTS / "NotoSerifJP.ttf"))
-        bold_font = instancer.instantiateVariableFont(variable_font, {"wght": 700}, inplace=False)
+        bold_font = instancer.instantiateVariableFont(
+            variable_font, {"wght": 700}, inplace=False, updateFontNames=True
+        )
         bold_font.save(str(bold_ttf))
 
 
@@ -78,7 +80,7 @@ def build_qr() -> None:
         version=None,
         error_correction=qrcode.constants.ERROR_CORRECT_M,
         box_size=24,
-        border=4,
+        border=2,
     )
     qr.add_data(QR_URL)
     qr.make(fit=True)
@@ -91,7 +93,7 @@ def build_background() -> None:
     build_backgrounds()
 
     Image.open(ASSETS / "qr-mesukemo.png").convert("CMYK").save(ASSETS / "qr-mesukemo-cmyk.jpg", quality=95)
-    Image.open(REPO_ROOT / "images" / "header-banner.png").convert("CMYK").save(
+    Image.open(ASSETS / "header-banner-clean.png").convert("CMYK").save(
         ASSETS / "header-banner-cmyk.jpg", quality=96, subsampling=0
     )
 
@@ -167,81 +169,74 @@ def write_cmyk_pdf_direct() -> Path:
     c.setTitle("メスケモ推進委員会 名刺")
 
     offwhite = CMYKColor(0.0, 0.0, 0.035, 0.04)
-    gold = CMYKColor(0.20, 0.35, 0.75, 0.10)
+    gold = CMYKColor(0.05, 0.12, 0.45, 0.0)
 
     c.drawImage(str(ASSETS / "card-bg-front-cmyk.jpg"), 0, 0, width=page_w, height=page_h)
 
-    name_band_x = mm_to_pt(6.0)
-    name_band_top = mm_to_pt(6.0)
-    name_band_w = mm_to_pt(46.0)
-    name_band_h = mm_to_pt(15.0)
-    name_band_y = page_h - name_band_top - name_band_h
-
     name = "yuki__san"
-    name_size = 18.3
+    name_size = 12.0
+    signature_right = mm_to_pt(6.0)
+    signature_bottom = mm_to_pt(6.0)
+    signature_x = page_w - signature_right
+    name_y = signature_bottom
     name_w = pdfmetrics.stringWidth(name, "NotoSerifJP", name_size)
-    ascent = pdfmetrics.getAscent("NotoSerifJP", name_size)
-    descent = pdfmetrics.getDescent("NotoSerifJP", name_size)
-    name_x = name_band_x + (name_band_w - name_w) / 2
-    name_y = name_band_y + (name_band_h - (ascent - descent)) / 2 - descent
+    name_x = signature_x - name_w
     c.setFont("NotoSerifJP", name_size)
-    c.setFillColor(CMYKColor(0.0, 0.0, 0.0, 0.78))
-    c.drawString(name_x, name_y - mm_to_pt(0.22), name)
-    c.setFillColor(CMYKColor(0.0, 0.0, 0.0, 0.0, alpha=0.18))
-    c.drawString(name_x, name_y + mm_to_pt(0.22), name)
+    c.setFillColor(CMYKColor(0.0, 0.0, 0.0, 0.92, alpha=0.72))
+    c.drawString(name_x + mm_to_pt(0.28), name_y - mm_to_pt(0.32), name)
+    c.setFillColor(CMYKColor(0.0, 0.0, 0.0, 0.0, alpha=0.22))
+    c.drawString(name_x - mm_to_pt(0.12), name_y + mm_to_pt(0.14), name)
     c.setFillColor(offwhite)
     c.drawString(name_x, name_y, name)
 
-    photo_x = mm_to_pt(55.0)
-    photo_y = mm_to_pt(10.0)
-    photo_w = mm_to_pt(34.0)
-    photo_h = mm_to_pt(41.0)
-    c.saveState()
-    c.setFillColor(CMYKColor(0.0, 0.0, 0.0, 0.70, alpha=0.36))
-    c.rect(photo_x + mm_to_pt(0.65), photo_y - mm_to_pt(0.8), photo_w, photo_h, stroke=0, fill=1)
-    c.restoreState()
-    c.drawImage(str(ASSETS / "character-photo-cmyk.jpg"), photo_x, photo_y, width=photo_w, height=photo_h)
-    c.setStrokeColor(gold)
-    c.setLineWidth(mm_to_pt(0.45))
-    c.rect(photo_x, photo_y, photo_w, photo_h, stroke=1, fill=0)
-
-    banner_w = mm_to_pt(HEADER_BANNER_DISPLAY_MM)
-    banner_h = banner_w * 179.0 / 960.0
-    c.drawImage(str(ASSETS / "header-banner-cmyk.jpg"), mm_to_pt(6.0), mm_to_pt(6.0), width=banner_w, height=banner_h)
+    handle = "@shumiaka_yuki"
+    handle_size = 7.0
+    handle_y = name_y + mm_to_pt(5.5)
+    handle_w = pdfmetrics.stringWidth(handle, "NotoSerifJP", handle_size)
+    handle_x = signature_x - handle_w
+    c.setFont("NotoSerifJP", handle_size)
+    c.setFillColor(CMYKColor(0.0, 0.0, 0.0, 0.92, alpha=0.72))
+    c.drawString(handle_x + mm_to_pt(0.2), handle_y - mm_to_pt(0.24), handle)
+    c.setFillColor(CMYKColor(0.0, 0.0, 0.0, 0.0, alpha=0.22))
+    c.drawString(handle_x - mm_to_pt(0.1), handle_y + mm_to_pt(0.1), handle)
+    c.setFillColor(offwhite)
+    c.drawString(handle_x, handle_y, handle)
 
     c.showPage()
 
     c.drawImage(str(ASSETS / "card-bg-back-cmyk.jpg"), 0, 0, width=page_w, height=page_h)
 
-    left_x = mm_to_pt(30.0)
-    c.setFillColor(offwhite)
-    organization = c.beginText(left_x, page_h - mm_to_pt(12.8))
-    organization.setFont("NotoSerifJP", 12.5)
-    organization.setFillColor(offwhite)
-    organization.setCharSpace(1.0)
-    organization.textLine("メスケモ推進委員会")
-    organization.setCharSpace(0)
-    c.drawText(organization)
+    back_banner_w = mm_to_pt(BACK_BANNER_DISPLAY_MM)
+    back_banner_h = back_banner_w * 179.0 / 960.0
+    back_banner_center_y = page_h - mm_to_pt(37.5)
+    c.drawImage(
+        str(ASSETS / "header-banner-cmyk.jpg"),
+        (page_w - back_banner_w) / 2,
+        back_banner_center_y - back_banner_h / 2,
+        width=back_banner_w,
+        height=back_banner_h,
+    )
+
+    link_label_size = 6.5
+    c.setFont("ZenMaruGothic", link_label_size)
     c.setFillColor(gold)
-    c.setFont("ZenMaruGothic", 7.4)
-    c.drawString(left_x, page_h - mm_to_pt(17.2), "mesukemo.uk")
+    c.drawCentredString(page_w / 2, page_h - mm_to_pt(53.5), "<LINK>")
 
-    right_edge = mm_to_pt(91.0)
-    link_size = 7.2
+    link_size = 8.0
+    link = "X  @mesukemo_ya"
     c.setFont("ZenMaruGothic", link_size)
-    for idx, (label, value) in enumerate([("X", "@mesukemo_ya")]):
-        y = page_h - mm_to_pt(17.2 + idx * 4.1)
-        value_w = pdfmetrics.stringWidth(value, "ZenMaruGothic", link_size)
-        label_w = pdfmetrics.stringWidth(label, "ZenMaruGothic", link_size)
-        c.setFillColor(gold)
-        c.drawString(right_edge - value_w - label_w - mm_to_pt(1.2), y, label)
-        c.setFillColor(offwhite)
-        c.drawString(right_edge - value_w, y, value)
+    c.setFillColor(offwhite)
+    c.drawCentredString(page_w / 2, page_h - mm_to_pt(57.0), link)
 
-    qr_box_size = mm_to_pt(22.0)
-    qr_padding = mm_to_pt(1.7)
-    qr_x = mm_to_pt(69.0)
-    qr_y = page_h - mm_to_pt(55.0)
+    website_label_size = 6.0
+    c.setFont("ZenMaruGothic", website_label_size)
+    c.setFillColor(gold)
+    c.drawCentredString(page_w / 2, page_h - mm_to_pt(60.2), "<WEBSITE>")
+
+    qr_box_size = mm_to_pt(27.0)
+    qr_padding = mm_to_pt(1.0)
+    qr_x = (page_w - qr_box_size) / 2
+    qr_y = mm_to_pt(8.0)
     c.setFillColor(offwhite)
     c.rect(qr_x, qr_y, qr_box_size, qr_box_size, stroke=0, fill=1)
     qr_size = qr_box_size - qr_padding * 2
@@ -338,7 +333,7 @@ def check_page_size(pdf_path: Path) -> None:
         height_mm = float(box.height) / 72.0 * 25.4
         if abs(width_mm - PAGE_MM[0]) > 0.05 or abs(height_mm - PAGE_MM[1]) > 0.05:
             raise RuntimeError(
-                f"{pdf_path.name} page {index} size is {width_mm:.2f}x{height_mm:.2f}mm, expected 97x61mm."
+                f"{pdf_path.name} page {index} size is {width_mm:.2f}x{height_mm:.2f}mm, expected 61x97mm."
             )
         print(f"{pdf_path.name} page {index} size: {width_mm:.2f} x {height_mm:.2f} mm")
 

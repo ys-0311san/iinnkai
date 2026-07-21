@@ -4,6 +4,7 @@ tools/
 # 名刺印刷データのビルド用フォント一式（容量大・build.pyが自動取得）
 print-card/fonts/
 print-card/.venv/
+print-card/__pycache__/
 
 # OS生成ファイル
 .DS_Store
