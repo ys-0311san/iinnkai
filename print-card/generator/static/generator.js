@@ -93,6 +93,13 @@
       };
     }),
   };
+  const submission = {
+    form: document.querySelector('form[action="/generate"]'),
+    button: document.getElementById('generateSubmitBtn'),
+    status: document.getElementById('generateStatus'),
+    error: document.getElementById('generateError'),
+  };
+  let isGenerating = false;
 
   const state = {
     photo: null,
@@ -396,6 +403,76 @@
       if (input.scale) input.scale.value = slot.scalePercent.toFixed(1);
       if (input.rotation) input.rotation.value = slot.rotationDeg.toFixed(3);
     });
+  }
+
+  function setGenerateLoading(isLoading) {
+    if (!submission.button) return;
+    if (!submission.button.dataset.originalText) {
+      submission.button.dataset.originalText = submission.button.textContent;
+    }
+    submission.button.disabled = isLoading;
+    submission.button.textContent = isLoading ? '生成中...' : submission.button.dataset.originalText;
+    if (submission.status) submission.status.hidden = !isLoading;
+  }
+
+  function setGenerateError(message) {
+    if (!submission.error) return;
+    submission.error.textContent = message || '';
+    submission.error.hidden = !message;
+  }
+
+  function filenameFromDisposition(disposition) {
+    if (!disposition) return 'meishi.pdf';
+    const encoded = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+    if (encoded) {
+      try {
+        return decodeURIComponent(encoded[1].replace(/"/g, ''));
+      } catch (error) {
+        return encoded[1].replace(/"/g, '') || 'meishi.pdf';
+      }
+    }
+    const plain = disposition.match(/filename="?([^";]+)"?/i);
+    return plain?.[1] || 'meishi.pdf';
+  }
+
+  function downloadBlob(response, blob) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filenameFromDisposition(response.headers.get('Content-Disposition'));
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleGenerateSubmit(event) {
+    event.preventDefault();
+    if (isGenerating || !submission.form) return;
+
+    isGenerating = true;
+    setGenerateError('');
+    setGenerateLoading(true);
+    updateHiddenInputs();
+
+    try {
+      const response = await fetch('/generate', {
+        method: 'POST',
+        body: new FormData(submission.form),
+      });
+
+      if (!response.ok) {
+        throw new Error('PDF generation failed');
+      }
+
+      const blob = await response.blob();
+      downloadBlob(response, blob);
+    } catch (error) {
+      setGenerateError('生成に失敗しました。写真・名前・Xアカウントを確認してください。');
+    } finally {
+      isGenerating = false;
+      setGenerateLoading(false);
+    }
   }
 
   function resetPhotoPosition() {
@@ -859,6 +936,7 @@
   [inputs.catchphrase, inputs.name, inputs.xHandle].forEach(input => {
     input?.addEventListener('input', drawPreview);
   });
+  submission.form?.addEventListener('submit', handleGenerateSubmit);
 
   canvas.addEventListener('mousedown', beginDrag);
   window.addEventListener('mousemove', moveDrag);

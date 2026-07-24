@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>名刺ジェネレーター 起動準備中</title>
+  <style>
+    :root {
+      --ink-black: #1a1a1a;
+      --charcoal: #2d2d2d;
+      --wood-brown: #5c4033;
+      --cedar: #8b6f47;
+      --gold-accent: #d4af37;
+      --paper-white: #f5f3ed;
+      --cream: #ebe6d9;
+      --shadow: rgba(0, 0, 0, 0.3);
+      color-scheme: light;
+      font-family: "Zen Maru Gothic", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink-black);
+      background: var(--paper-white);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: clamp(24px, 6vw, 56px) 16px;
+      background:
+        linear-gradient(135deg, rgba(26, 26, 26, 0.88), rgba(92, 64, 51, 0.82)),
+        var(--paper-white);
+    }
+
+    main {
+      width: min(100%, 560px);
+      padding: clamp(24px, 6vw, 44px);
+      border: 1px solid rgba(212, 175, 55, 0.42);
+      border-radius: 8px;
+      background: linear-gradient(180deg, #fffdfa, var(--cream));
+      box-shadow: 0 20px 56px rgba(0, 0, 0, 0.28);
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--cedar);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--charcoal);
+      font-family: "Noto Serif JP", "Yu Mincho", serif;
+      font-size: clamp(24px, 7vw, 34px);
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      margin: 18px 0 0;
+      color: var(--wood-brown);
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .status {
+      margin-top: 26px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .progress {
+      position: relative;
+      height: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(139, 111, 71, 0.34);
+      border-radius: 999px;
+      background: rgba(92, 64, 51, 0.14);
+    }
+
+    .progress::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 -42%;
+      width: 42%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, transparent, var(--gold-accent), transparent);
+      animation: progressSlide 1.35s ease-in-out infinite;
+    }
+
+    .status-text {
+      min-height: 1.6em;
+      margin: 0;
+      color: var(--charcoal);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.6;
+    }
+
+    .manual-link {
+      margin: 18px 0 0;
+    }
+
+    .manual-link a {
+      display: inline-flex;
+      background: transparent;
+      color: var(--cedar);
+      border: 1px solid rgba(139, 111, 71, 0.5);
+      font-weight: 700;
+      font-size: 13px;
+      min-height: auto;
+      padding: 8px 14px;
+    }
+
+    .fallback {
+      display: none;
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(139, 111, 71, 0.28);
+    }
+
+    .fallback.is-visible {
+      display: block;
+    }
+
+    .fallback p {
+      margin: 0 0 14px;
+      color: var(--wood-brown);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 10px 16px;
+      border-radius: 6px;
+      background: var(--charcoal);
+      color: var(--paper-white);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    a:focus-visible {
+      outline: 3px solid var(--gold-accent);
+      outline-offset: 3px;
+    }
+
+    @keyframes progressSlide {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(340%);
+      }
+    }
+
+    @media (max-width: 480px) {
+      main {
+        padding: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main aria-live="polite">
+    <p class="eyebrow">名刺ジェネレーター</p>
+    <h1>しばらくお待ちください</h1>
+    <p class="lead">起動準備中です。準備ができ次第、自動で名刺ジェネレーターへ移動します。</p>
+
+    <div class="status" aria-label="起動状態">
+      <div class="progress" aria-hidden="true"></div>
+      <p class="status-text" id="statusText">サーバーを起こしています...</p>
+    </div>
+
+    <p class="manual-link">
+      <a id="manualLink" href="https://REPLACE_WITH_RENDER_URL.onrender.com/">今すぐ直接アクセスする（待たずに確認）</a>
+    </p>
+
+    <div class="fallback" id="fallback">
+      <p>起動に時間がかかっています。もう一度お試しいただくか、直接リンクからアクセスしてください。</p>
+      <a id="directLink" href="https://REPLACE_WITH_RENDER_URL.onrender.com/">直接アクセスする</a>
+    </div>
+  </main>
+
+  <script>
+    const RENDER_APP_URL = "https://REPLACE_WITH_RENDER_URL.onrender.com/";
+    const PING_INTERVAL_MS = 3000;
+    const FETCH_TIMEOUT_MS = 2500;
+    // no-cors フェッチはHTTPステータスに関わらず応答があった時点で成功扱いになり、
+    // Render側のロードバランサーがアプリ起動前に即応答するケースで誤判定してしまう。
+    // そのため「起きたかどうか」では判定せず、最低この時間は待ってから遷移する。
+    const MIN_DISPLAY_MS = 30000;
+
+    const statusText = document.getElementById("statusText");
+    const fallback = document.getElementById("fallback");
+    const directLink = document.getElementById("directLink");
+    const manualLink = document.getElementById("manualLink");
+    const startedAt = Date.now();
+    let attempt = 0;
+    let redirected = false;
+
+    directLink.href = RENDER_APP_URL;
+    manualLink.href = RENDER_APP_URL;
+
+    // RENDER_APP_URLがまだ実際のURLに差し替えられていない間は、
+    // 存在しないURLへの自動遷移・ping送信を止めてデザイン確認用のプレビュー状態にする。
+    // デプロイ後にRENDER_APP_URLを実URLへ書き換えれば、通常の起こし動作が有効になる。
+    const isPlaceholder = RENDER_APP_URL.includes("REPLACE_WITH_RENDER_URL");
+    if (isPlaceholder) {
+      statusText.textContent = "（プレビュー: RENDER_APP_URL未設定のため自動遷移は無効です）";
+      manualLink.setAttribute("aria-disabled", "true");
+      manualLink.addEventListener("click", event => event.preventDefault());
+    }
+
+    function goToApp() {
+      if (redirected) return;
+      redirected = true;
+      window.location.href = RENDER_APP_URL;
+    }
+
+    // 裏で定期的にpingを送ってRenderのコンテナ起動をトリガーし続ける。
+    // 応答の成否は判定に使わない（no-corsでは信頼できないため）。
+    function pingRenderApp() {
+      attempt += 1;
+      statusText.textContent = `サーバーを起こしています...（${attempt}回目）`;
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+      fetch(RENDER_APP_URL, {
+        mode: "no-cors",
+        cache: "no-store",
+        signal: controller.signal,
+      })
+        .catch(() => {})
+        .finally(() => {
+          window.clearTimeout(timeoutId);
+          if (!redirected) {
+            window.setTimeout(pingRenderApp, PING_INTERVAL_MS);
+          }
+        });
+    }
+
+    if (!isPlaceholder) {
+      pingRenderApp();
+      window.setTimeout(goToApp, MIN_DISPLAY_MS);
+
+      // それでも何らかの理由で遷移できない場合の手動フォールバック導線
+      window.setTimeout(() => {
+        if (!redirected) {
+          fallback.classList.add("is-visible");
+        }
+      }, MIN_DISPLAY_MS + 5000);
+    }
+  </script>
+</body>
+</html>

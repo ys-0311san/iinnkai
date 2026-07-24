@@ -16,6 +16,13 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: #241c18;
       background: #f6f1e8;
+      --ink-black: #1a1a1a;
+      --charcoal: #2d2d2d;
+      --wood-brown: #5c4033;
+      --cedar: #8b6f47;
+      --gold-accent: #d4af37;
+      --paper-white: #f5f3ed;
+      --cream: #ebe6d9;
     }
     body {
       margin: 0;
@@ -211,9 +218,62 @@
       color: #fffaf0;
       font-weight: 700;
       cursor: pointer;
+      transition: opacity 0.2s ease, background 0.2s ease;
     }
     button:hover {
       background: #432f27;
+    }
+    button:disabled {
+      cursor: progress;
+      opacity: 0.72;
+    }
+    button:disabled:hover {
+      background: #2f211b;
+    }
+    .generate-actions {
+      display: grid;
+      gap: 10px;
+    }
+    .generate-status {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      border-radius: 6px;
+      background: var(--cream);
+    }
+    .generate-progress {
+      position: relative;
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(92, 64, 51, 0.16);
+    }
+    .generate-progress::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 -40%;
+      width: 40%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, transparent, var(--gold-accent), transparent);
+      animation: generateProgressSlide 1.2s ease-in-out infinite;
+    }
+    .generate-status p,
+    .generate-error {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .generate-status p {
+      color: var(--wood-brown);
+      font-weight: 700;
+    }
+    .generate-error {
+      margin-top: -2px;
+    }
+    @keyframes generateProgressSlide {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(350%); }
     }
     .error {
       margin: 0 0 18px;
@@ -405,7 +465,14 @@
         <input type="hidden" id="catchphraseSizeFactorInput" name="catchphrase_size_factor" value="1">
         <input type="hidden" id="catchphraseStrokeFactorInput" name="catchphrase_stroke_factor" value="1">
         <input type="hidden" id="catchphraseFillColorInput" name="catchphrase_fill_color" value="white">
-        <button type="submit">CMYK PDFを生成</button>
+        <div class="generate-actions">
+          <button type="submit" id="generateSubmitBtn">CMYK PDFを生成</button>
+          <div class="generate-status" id="generateStatus" role="status" aria-live="polite" hidden>
+            <div class="generate-progress" aria-hidden="true"></div>
+            <p>PDFを生成中です。しばらくお待ちください。</p>
+          </div>
+          <p class="error generate-error" id="generateError" role="alert" hidden></p>
+        </div>
       </div>
       <section class="preview-panel" aria-label="名刺プレビュー">
         <div class="canvas-wrap">
