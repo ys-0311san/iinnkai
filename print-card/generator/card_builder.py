@@ -5,7 +5,7 @@ import re
 import sys
 import tempfile
 import math
-import uuid
+import threading
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageEnhance, ImageFont
@@ -18,32 +18,22 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from build import (  # noqa: E402
+from print_assets import (  # noqa: E402
     ASSETS,
     BACK_BANNER_DISPLAY_MM,
     FONTS,
-    QR_URL,
-    build_qr,
-    download_fonts,
-    mm_to_pt,
-    remove_unused_reportlab_default_font,
-)
-from generate_background import (  # noqa: E402
     HEIGHT,
     LOGO,
     PAGE_MM,
+    QR_URL,
     WIDTH,
     add_bottom_scrim,
-    color_grade_wood,
+    build_qr,
     cover_image,
-    draw_frame,
-    draw_gradient_rect,
-    draw_kumiko,
-    foil_color,
-    make_common_background,
-    mirror_tile,
+    download_fonts,
     mm,
-    save_rgb_and_cmyk,
+    mm_to_pt,
+    remove_unused_reportlab_default_font,
 )
 
 
@@ -51,7 +41,17 @@ SAFE_MARGIN = mm(6.0)
 TEXT_SAFE_MARGIN_MM = 5.0
 NAME_FONT_SIZE_PT = 12.0
 NAME_TEXT_HEIGHT_MM = 4.9
-CUSTOM_FONT_NAME = "CustomCardFont"
+EXTRA_BASE_MM = 22.0
+FONT_PRESETS = {
+    "noto-serif-jp": {"file": "NotoSerifJP-Bold.ttf", "pdf_name": "NotoSerifJP"},
+    "zen-maru-gothic": {"file": "ZenMaruGothic-Bold.ttf", "pdf_name": "ZenMaruGothic"},
+    "zen-kaku-gothic-new": {"file": "ZenKakuGothicNew-Bold.ttf", "pdf_name": "ZenKakuGothicNew"},
+    "kaisei-decol": {"file": "KaiseiDecol-Bold.ttf", "pdf_name": "KaiseiDecol"},
+    "yuji-syuku": {"file": "YujiSyuku-Regular.ttf", "pdf_name": "YujiSyuku"},
+}
+DEFAULT_FONT_KEY = "noto-serif-jp"
+_PRESET_FONTS_REGISTERED = False
+_PRESET_FONTS_REGISTER_LOCK = threading.Lock()
 
 
 def _ensure_assets() -> None:
@@ -83,36 +83,44 @@ def _catchphrase_lines(text: str) -> list[str]:
     return [compact[i : i + 6] for i in range(0, len(compact), 6)]
 
 
-def _default_font_path() -> Path:
-    font_path = FONTS / "NotoSerifJP-Bold.ttf"
-    if not font_path.exists():
+def _resolve_font_key(font_key: str | None) -> str:
+    return font_key if font_key in FONT_PRESETS else DEFAULT_FONT_KEY
+
+
+def _font_file_path(font_key: str) -> Path:
+    return FONTS / FONT_PRESETS[_resolve_font_key(font_key)]["file"]
+
+
+def _font_pdf_name(font_key: str) -> str:
+    return FONT_PRESETS[_resolve_font_key(font_key)]["pdf_name"]
+
+
+def _register_all_preset_fonts() -> None:
+    for preset in FONT_PRESETS.values():
+        pdfmetrics.registerFont(TTFont(preset["pdf_name"], str(FONTS / preset["file"])))
+
+
+def _ensure_preset_fonts_registered() -> None:
+    global _PRESET_FONTS_REGISTERED
+    if _PRESET_FONTS_REGISTERED:
+        return
+    with _PRESET_FONTS_REGISTER_LOCK:
+        if _PRESET_FONTS_REGISTERED:
+            return
         download_fonts()
-    return font_path
+        _register_all_preset_fonts()
+        _PRESET_FONTS_REGISTERED = True
+
+
+_ensure_preset_fonts_registered()
 
 
 def _load_catchphrase_font(size: int, font_path: Path | None = None) -> ImageFont.FreeTypeFont:
-    selected_path = font_path or _default_font_path()
+    selected_path = font_path or _font_file_path(DEFAULT_FONT_KEY)
     try:
         return ImageFont.truetype(str(selected_path), size=size)
     except Exception:
-        return ImageFont.truetype(str(_default_font_path()), size=size)
-
-
-def _register_custom_font(font_path: Path | None) -> str:
-    if font_path is None:
-        return "NotoSerifJP"
-    # ReportLab's font registry is a process-wide cache keyed by name: once a
-    # name is registered, re-registering it with a different file is silently
-    # ignored (the first upload "wins" for the life of the server process).
-    # Since app.py keeps one long-running process across requests, each
-    # upload must get its own unique name to avoid leaking a stale font from
-    # an earlier request onto a later one.
-    unique_name = f"{CUSTOM_FONT_NAME}-{uuid.uuid4().hex}"
-    try:
-        pdfmetrics.registerFont(TTFont(unique_name, str(font_path)))
-    except Exception:
-        return "NotoSerifJP"
-    return unique_name
+        return ImageFont.truetype(str(_font_file_path(DEFAULT_FONT_KEY)), size=size)
 
 
 def _clamp(value: float, minimum: float, maximum: float) -> float:
@@ -133,8 +141,35 @@ def _clamp_rotation_deg(rotation_deg: float) -> float:
     return _clamp(rotation_deg, -45.0, 45.0)
 
 
+def _clamp_photo_rotation_deg(rotation_deg: float) -> float:
+    return _clamp(rotation_deg, -15.0, 15.0)
+
+
 def _clamp_factor(value: float, minimum: float, maximum: float) -> float:
     return _clamp(value, minimum, maximum)
+
+
+def _draw_extra_images(front: Image.Image, extra_images: list[dict | None]) -> None:
+    for extra in extra_images:
+        if extra is None:
+            continue
+        scale_factor = _clamp_factor(float(extra.get("scale_factor", 1.0)), 0.3, 2.5)
+        rotation_deg = _clamp(float(extra.get("rotation_deg", 0.0)), -180.0, 180.0)
+        with Image.open(extra["path"]) as source:
+            img = source.convert("RGBA")
+        contain_px = mm(EXTRA_BASE_MM * scale_factor)
+        ratio = min(contain_px / img.width, contain_px / img.height)
+        w = max(1, round(img.width * ratio))
+        h = max(1, round(img.height * ratio))
+        resized = img.resize((w, h), Image.Resampling.LANCZOS)
+        # PIL rotates counter-clockwise for positive values; Canvas rotates
+        # clockwise in screen coordinates, so invert the sign to match preview.
+        rotated = resized.rotate(-rotation_deg, expand=True, resample=Image.Resampling.BICUBIC)
+        cx = mm(float(extra.get("x_mm", PAGE_MM[0] / 2)))
+        cy = mm(float(extra.get("y_mm", PAGE_MM[1] / 2)))
+        paste_x = round(cx - rotated.width / 2)
+        paste_y = round(cy - rotated.height / 2)
+        front.alpha_composite(rotated, (paste_x, paste_y))
 
 
 def _rotated_aabb_half_mm(width_mm: float, height_mm: float, rotation_deg: float) -> tuple[float, float]:
@@ -369,9 +404,11 @@ def draw_vertical_catchphrase(
     draw_catchphrase(img, text, pos_mm=pos_mm, orientation="vertical")
 
 
-def _lift_shadows(img: Image.Image, gamma: float = 1.12) -> Image.Image:
-    lut = [round(255 * ((i / 255) ** (1 / gamma))) for i in range(256)]
-    return img.point(lut * 3)
+def _required_cover_size(target_w: float, target_h: float, rotation_deg: float) -> tuple[float, float]:
+    theta = math.radians(rotation_deg)
+    req_w = abs(target_w * math.cos(theta)) + abs(target_h * math.sin(theta))
+    req_h = abs(target_w * math.sin(theta)) + abs(target_h * math.cos(theta))
+    return req_w, req_h
 
 
 def _cover_image_with_offset(
@@ -379,9 +416,24 @@ def _cover_image_with_offset(
     size: tuple[int, int],
     offset_mm: tuple[float, float] | None = None,
     scale_factor: float = 1.0,
+    rotation_deg: float = 0.0,
+    brightness_factor: float = 1.0,
 ) -> Image.Image:
+    rotation_deg = _clamp_photo_rotation_deg(rotation_deg)
+    if brightness_factor != 1.0:
+        source = ImageEnhance.Brightness(source).enhance(brightness_factor)
+
     if offset_mm is None:
-        return cover_image(source, size, x_bias=0.5, y_bias=0.3)
+        if rotation_deg == 0.0:
+            return cover_image(source, size, x_bias=0.5, y_bias=0.3)
+        target_w, target_h = size
+        req_w, req_h = _required_cover_size(target_w, target_h, rotation_deg)
+        base_scale = max(req_w / source.width, req_h / source.height)
+        scaled_w = source.width * base_scale
+        scaled_h = source.height * base_scale
+        left = -(scaled_w - target_w) * 0.5
+        top = -(scaled_h - target_h) * 0.3
+        offset_mm = (left / mm(1.0), top / mm(1.0))
 
     # photo_offset_*_mm is the resized cover image's top-left point, measured
     # from the card's top-left in page millimeters. Negative values mean the
@@ -389,16 +441,39 @@ def _cover_image_with_offset(
     # of the base "cover" scale (1.0 = just covers the page, matching the
     # browser preview's zoom slider which starts at 100%).
     target_w, target_h = size
-    base_scale = max(target_w / source.width, target_h / source.height)
+    theta = math.radians(rotation_deg)
+    req_w, req_h = _required_cover_size(target_w, target_h, rotation_deg)
+    base_scale = max(req_w / source.width, req_h / source.height)
     scale = base_scale * max(1.0, scale_factor)
     resized_w = math.ceil(source.width * scale)
     resized_h = math.ceil(source.height * scale)
     resized = source.resize((resized_w, resized_h), Image.Resampling.LANCZOS)
-    left = round(_clamp(mm(offset_mm[0]), target_w - resized_w, 0))
-    top = round(_clamp(mm(offset_mm[1]), target_h - resized_h, 0))
-    front = Image.new("RGB", size)
-    front.paste(resized, (left, top))
-    return front
+    req_left = target_w / 2 + req_w / 2 - resized_w
+    req_right = target_w / 2 - req_w / 2
+    req_top = target_h / 2 + req_h / 2 - resized_h
+    req_bottom = target_h / 2 - req_h / 2
+    left = _clamp(mm(offset_mm[0]), req_left, req_right)
+    top = _clamp(mm(offset_mm[1]), req_top, req_bottom)
+
+    if rotation_deg == 0.0:
+        front = Image.new("RGB", size)
+        front.paste(resized, (round(left), round(top)))
+        return front
+
+    cos_t, sin_t = math.cos(theta), math.sin(theta)
+    cw, ch = target_w / 2, target_h / 2
+    a, b = cos_t, sin_t
+    c = cw * (1 - cos_t) - sin_t * ch - left
+    d, e = -sin_t, cos_t
+    f = sin_t * cw + ch * (1 - cos_t) - top
+
+    return resized.transform(
+        size,
+        Image.AFFINE,
+        (a, b, c, d, e, f),
+        resample=Image.Resampling.BICUBIC,
+        fillcolor=(0, 0, 0),
+    )
 
 
 def build_custom_front(
@@ -413,14 +488,24 @@ def build_custom_front(
     catchphrase_size_factor: float = 1.0,
     catchphrase_stroke_factor: float = 1.0,
     catchphrase_fill_color: str = "white",
-    font_path: Path | None = None,
+    catchphrase_font_path: Path | None = None,
     photo_scale: float = 1.0,
+    photo_rotation_deg: float = 0.0,
+    photo_brightness_factor: float = 1.0,
     show_logo: bool = True,
+    extra_images: list[dict | None] | None = None,
 ) -> Image.Image:
     photo = Image.open(photo_path).convert("RGB")
-    photo = _lift_shadows(photo)
-    front = _cover_image_with_offset(photo, (WIDTH, HEIGHT), photo_offset, photo_scale).convert("RGBA")
+    front = _cover_image_with_offset(
+        photo,
+        (WIDTH, HEIGHT),
+        photo_offset,
+        photo_scale,
+        rotation_deg=photo_rotation_deg,
+        brightness_factor=photo_brightness_factor,
+    ).convert("RGBA")
     add_bottom_scrim(front)
+    _draw_extra_images(front, extra_images or [])
     draw_catchphrase(
         front,
         catchphrase,
@@ -430,7 +515,7 @@ def build_custom_front(
         size_factor=catchphrase_size_factor,
         stroke_factor=catchphrase_stroke_factor,
         fill_color=catchphrase_fill_color,
-        font_path=font_path,
+        font_path=catchphrase_font_path,
     )
 
     if show_logo:
@@ -443,9 +528,14 @@ def build_custom_front(
     return front
 
 
-def _clamp_name_pos_mm(name: str, pos_mm: tuple[float, float], font_name: str = "NotoSerifJP") -> tuple[float, float]:
-    name_w_mm = pdfmetrics.stringWidth(name, font_name, NAME_FONT_SIZE_PT) / mm_to_pt(1.0)
-    return _clamp_text_box_mm(pos_mm, name_w_mm, NAME_TEXT_HEIGHT_MM)
+def _clamp_name_pos_mm(
+    name: str,
+    pos_mm: tuple[float, float],
+    font_name: str = "NotoSerifJP",
+    size_factor: float = 1.0,
+) -> tuple[float, float]:
+    name_w_mm = pdfmetrics.stringWidth(name, font_name, NAME_FONT_SIZE_PT * size_factor) / mm_to_pt(1.0)
+    return _clamp_text_box_mm(pos_mm, name_w_mm, NAME_TEXT_HEIGHT_MM * size_factor)
 
 
 def _draw_front_signature(
@@ -456,10 +546,11 @@ def _draw_front_signature(
     x_handle: str,
     name_pos_mm: tuple[float, float] | None = None,
     font_name: str = "NotoSerifJP",
+    size_factor: float = 1.0,
 ) -> None:
     offwhite = CMYKColor(0.0, 0.0, 0.035, 0.04)
 
-    name_size = NAME_FONT_SIZE_PT
+    name_size = NAME_FONT_SIZE_PT * size_factor
     signature_right = mm_to_pt(6.0)
     signature_bottom = mm_to_pt(6.0)
     name_w = pdfmetrics.stringWidth(name, font_name, name_size)
@@ -468,9 +559,9 @@ def _draw_front_signature(
         name_y = signature_bottom
         name_x = signature_x - name_w
     else:
-        name_x_mm, name_y_mm = _clamp_name_pos_mm(name, name_pos_mm, font_name)
+        name_x_mm, name_y_mm = _clamp_name_pos_mm(name, name_pos_mm, font_name, size_factor)
         name_x = mm_to_pt(name_x_mm)
-        name_y = page_h - mm_to_pt(name_y_mm + NAME_TEXT_HEIGHT_MM)
+        name_y = page_h - mm_to_pt(name_y_mm + NAME_TEXT_HEIGHT_MM * size_factor)
         signature_x = name_x + name_w
     c.setFont(font_name, name_size)
     c.setFillColor(CMYKColor(0.0, 0.0, 0.0, 0.92, alpha=0.72))
@@ -480,8 +571,8 @@ def _draw_front_signature(
     c.setFillColor(offwhite)
     c.drawString(name_x, name_y, name)
 
-    handle_size = 7.0
-    handle_y = name_y + mm_to_pt(5.5)
+    handle_size = 7.0 * size_factor
+    handle_y = name_y + mm_to_pt(5.5 * size_factor)
     handle_w = pdfmetrics.stringWidth(x_handle, font_name, handle_size)
     handle_x = signature_x - handle_w
     c.setFont(font_name, handle_size)
@@ -493,9 +584,29 @@ def _draw_front_signature(
     c.drawString(handle_x, handle_y, x_handle)
 
 
+def _draw_engraved_centered_text(
+    c: canvas.Canvas,
+    center_x: float,
+    y: float,
+    text: str,
+    font_name: str,
+    font_size: float,
+    base_color: CMYKColor,
+) -> None:
+    shadow_offset = mm_to_pt(0.14)
+    highlight_offset = mm_to_pt(0.07)
+    c.setFont(font_name, font_size)
+    c.setFillColor(CMYKColor(0.0, 0.0, 0.0, 0.85, alpha=0.6))
+    c.drawCentredString(center_x + shadow_offset, y - shadow_offset, text)
+    c.setFillColor(CMYKColor(0.0, 0.05, 0.15, 0.0, alpha=0.35))
+    c.drawCentredString(center_x - highlight_offset, y + highlight_offset, text)
+    c.setFillColor(base_color)
+    c.drawCentredString(center_x, y, text)
+
+
 def _draw_back(c: canvas.Canvas, page_w: float, page_h: float) -> None:
     offwhite = CMYKColor(0.0, 0.0, 0.035, 0.04)
-    gold = CMYKColor(0.05, 0.12, 0.45, 0.0)
+    gold = CMYKColor(0.08, 0.28, 0.75, 0.10)
 
     c.drawImage(str(ASSETS / "card-bg-back-cmyk.jpg"), 0, 0, width=page_w, height=page_h)
 
@@ -510,17 +621,13 @@ def _draw_back(c: canvas.Canvas, page_w: float, page_h: float) -> None:
         height=back_banner_h,
     )
 
-    c.setFont("ZenMaruGothic", 6.5)
-    c.setFillColor(gold)
-    c.drawCentredString(page_w / 2, page_h - mm_to_pt(53.5), "<LINK>")
+    _draw_engraved_centered_text(c, page_w / 2, page_h - mm_to_pt(53.5), "<LINK>", "ZenMaruGothic", 6.5, gold)
 
     c.setFont("ZenMaruGothic", 8.0)
     c.setFillColor(offwhite)
     c.drawCentredString(page_w / 2, page_h - mm_to_pt(57.0), "X  @mesukemo_ya")
 
-    c.setFont("ZenMaruGothic", 6.0)
-    c.setFillColor(gold)
-    c.drawCentredString(page_w / 2, page_h - mm_to_pt(60.2), "<WEBSITE>")
+    _draw_engraved_centered_text(c, page_w / 2, page_h - mm_to_pt(60.2), "<WEBSITE>", "ZenMaruGothic", 6.0, gold)
 
     qr_box_size = mm_to_pt(27.0)
     qr_padding = mm_to_pt(1.0)
@@ -564,27 +671,36 @@ def generate_pdf(
     catchphrase_size_factor: float = 1.0,
     catchphrase_stroke_factor: float = 1.0,
     catchphrase_fill_color: str = "white",
-    font_path: Path | None = None,
+    catchphrase_font_key: str = DEFAULT_FONT_KEY,
+    name_font_key: str = DEFAULT_FONT_KEY,
+    name_size_factor: float = 1.0,
     photo_scale: float = 1.0,
+    photo_rotation_deg: float = 0.0,
+    photo_brightness_factor: float = 1.0,
     show_logo: bool = True,
+    extra_images: list[dict | None] | None = None,
 ) -> Path:
     _ensure_assets()
     x_handle = normalize_x_handle(x_handle)
     page_w = mm_to_pt(PAGE_MM[0])
     page_h = mm_to_pt(PAGE_MM[1])
 
-    pdfmetrics.registerFont(TTFont("NotoSerifJP", str(FONTS / "NotoSerifJP-Bold.ttf")))
-    pdfmetrics.registerFont(TTFont("ZenMaruGothic", str(FONTS / "ZenMaruGothic-Bold.ttf")))
-    front_font_name = _register_custom_font(font_path)
-    front_font_path = font_path if front_font_name.startswith(CUSTOM_FONT_NAME) else None
+    _ensure_preset_fonts_registered()
+    catchphrase_font_key = _resolve_font_key(catchphrase_font_key)
+    name_font_key = _resolve_font_key(name_font_key)
+    front_font_name = _font_pdf_name(name_font_key)
+    front_font_path = _font_file_path(catchphrase_font_key)
+    name_size_factor = _clamp_factor(name_size_factor, 0.7, 1.5)
     catchphrase_orientation = "horizontal" if catchphrase_orientation == "horizontal" else "vertical"
     catchphrase_rotation_deg = _clamp_rotation_deg(catchphrase_rotation_deg)
     catchphrase_size_factor = _clamp_factor(catchphrase_size_factor, 0.6, 1.8)
     catchphrase_stroke_factor = _clamp_factor(catchphrase_stroke_factor, 0.0, 2.0)
     catchphrase_fill_color = "black" if catchphrase_fill_color == "black" else "white"
+    photo_rotation_deg = _clamp_photo_rotation_deg(photo_rotation_deg)
+    photo_brightness_factor = _clamp_factor(photo_brightness_factor, 0.5, 1.5)
 
     if name_pos_mm is not None:
-        name_pos_mm = _clamp_name_pos_mm(name.strip(), name_pos_mm, front_font_name)
+        name_pos_mm = _clamp_name_pos_mm(name.strip(), name_pos_mm, front_font_name, size_factor=name_size_factor)
     if catchphrase_pos_mm is not None:
         catchphrase_pos_mm = _clamp_catchphrase_pos_mm(
             catchphrase,
@@ -607,9 +723,12 @@ def generate_pdf(
         catchphrase_size_factor=catchphrase_size_factor,
         catchphrase_stroke_factor=catchphrase_stroke_factor,
         catchphrase_fill_color=catchphrase_fill_color,
-        font_path=front_font_path,
+        catchphrase_font_path=front_font_path,
         photo_scale=photo_scale,
+        photo_rotation_deg=photo_rotation_deg,
+        photo_brightness_factor=photo_brightness_factor,
         show_logo=show_logo,
+        extra_images=extra_images,
     )
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile(suffix="-front-cmyk.jpg", delete=False) as front_file:
@@ -620,7 +739,16 @@ def generate_pdf(
         c = canvas.Canvas(str(output_path), pagesize=(page_w, page_h), pageCompression=1)
         c.setTitle("メスケモ推進委員会 名刺")
         c.drawImage(str(front_path), 0, 0, width=page_w, height=page_h)
-        _draw_front_signature(c, page_w, page_h, name.strip(), x_handle, name_pos_mm=name_pos_mm, font_name=front_font_name)
+        _draw_front_signature(
+            c,
+            page_w,
+            page_h,
+            name.strip(),
+            x_handle,
+            name_pos_mm=name_pos_mm,
+            font_name=front_font_name,
+            size_factor=name_size_factor,
+        )
         c.showPage()
         _draw_back(c, page_w, page_h)
         c.showPage()

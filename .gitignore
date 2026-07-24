@@ -2,10 +2,22 @@
 tools/
 
 # 名刺印刷データのビルド用フォント一式（容量大・build.pyが自動取得）
-print-card/fonts/
+# ただし名刺ジェネレーター(generator/)がRenderコールドスタート時に毎回ダウンロード
+# ＋Bold書体生成するのを避けるため、実際に使う6ファイルだけはコミット対象にする
+print-card/fonts/*
+!print-card/fonts/NotoSerifJP.ttf
+!print-card/fonts/NotoSerifJP-Bold.ttf
+!print-card/fonts/ZenMaruGothic-Bold.ttf
+!print-card/fonts/ZenKakuGothicNew-Bold.ttf
+!print-card/fonts/KaiseiDecol-Bold.ttf
+!print-card/fonts/YujiSyuku-Regular.ttf
 print-card/.venv/
 print-card/__pycache__/
 print-card/generator/__pycache__/
+
+# 名刺ジェネレーターの.exe化(PyInstaller)ビルド成果物
+print-card/generator/build/
+print-card/generator/dist/
 
 # OS生成ファイル
 .DS_Store

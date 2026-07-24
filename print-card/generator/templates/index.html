@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>名刺ジェネレーター</title>
   <style>
+    @font-face { font-family: "Noto Serif JP"; src: url("/assets/fonts/NotoSerifJP-Bold.ttf") format("truetype"); font-weight: 700; }
+    @font-face { font-family: "Zen Maru Gothic"; src: url("/assets/fonts/ZenMaruGothic-Bold.ttf") format("truetype"); font-weight: 700; }
+    @font-face { font-family: "Zen Kaku Gothic New"; src: url("/assets/fonts/ZenKakuGothicNew-Bold.ttf") format("truetype"); font-weight: 700; }
+    @font-face { font-family: "Kaisei Decol"; src: url("/assets/fonts/KaiseiDecol-Bold.ttf") format("truetype"); font-weight: 700; }
+    @font-face { font-family: "Yuji Syuku"; src: url("/assets/fonts/YujiSyuku-Regular.ttf") format("truetype"); font-weight: 400; }
+
     :root {
       color-scheme: light;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -54,6 +60,52 @@
       line-height: 1.5;
       color: #6c5a4a;
     }
+    .accordion-section {
+      border: 1px solid #e2d6c4;
+      border-radius: 8px;
+      background: #fffdfa;
+      overflow: hidden;
+    }
+    .accordion-section > summary {
+      cursor: pointer;
+      padding: 12px 14px;
+      font-weight: 700;
+      font-size: 14px;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8f1e4;
+    }
+    .accordion-section > summary::-webkit-details-marker {
+      display: none;
+    }
+    .accordion-section > summary::after {
+      content: "+";
+      font-weight: 700;
+      color: #6c5a4a;
+    }
+    .accordion-section[open] > summary::after {
+      content: "−";
+    }
+    .accordion-section > summary:hover {
+      background: #f1e6d2;
+    }
+    .accordion-body {
+      padding: 14px;
+      display: grid;
+      gap: 14px;
+    }
+    .section-reset-btn {
+      justify-self: start;
+      background: #efe6d6;
+      color: #2f211b;
+      font-size: 13px;
+      padding: 8px 14px;
+    }
+    .section-reset-btn:hover {
+      background: #e4d7bd;
+    }
     .canvas-wrap {
       width: 100%;
       max-width: 305px;
@@ -85,6 +137,16 @@
     .zoom-control input[type="range"],
     .catchphrase-control input[type="range"] {
       width: 100%;
+    }
+    .extra-image-block {
+      border-top: 1px solid #eee5d8;
+      padding-top: 12px;
+      display: grid;
+      gap: 8px;
+    }
+    .extra-image-block:first-of-type {
+      border-top: 0;
+      padding-top: 0;
     }
     .segmented-control {
       display: flex;
@@ -121,11 +183,13 @@
     }
     input,
     textarea,
+    select,
     button {
       font: inherit;
     }
     input,
-    textarea {
+    textarea,
+    select {
       width: 100%;
       box-sizing: border-box;
       border: 1px solid #cdbda9;
@@ -184,29 +248,154 @@
     {% endif %}
     <form action="/generate" method="post" enctype="multipart/form-data">
       <div class="fields">
-        <label>
-          写真
-          <input id="photoInput" type="file" name="photo" accept="image/*" required>
-        </label>
-        <label>
-          フォント（任意）
-          <input id="fontInput" type="file" name="font" accept=".ttf,.otf">
-        </label>
-        <label>
-          セリフ
-          <textarea id="catchphraseInput" name="catchphrase" required>{{ values.get("catchphrase", "") }}</textarea>
-        </label>
-        <label>
-          名前
-          <input id="nameInput" type="text" name="name" value="{{ values.get('name', '') }}" required>
-        </label>
-        <label>
-          Xアカウント
-          <input id="xHandleInput" type="text" name="x_handle" value="{{ values.get('x_handle', '') }}" placeholder="@example" required>
-        </label>
+        <details class="accordion-section" id="photoSection" open>
+          <summary>写真</summary>
+          <div class="accordion-body">
+            <label>
+              写真
+              <input id="photoInput" type="file" name="photo" accept="image/*" required>
+            </label>
+            <label class="zoom-control">
+              寄り引き
+              <input type="range" id="zoomSlider" min="100" max="250" value="100" step="1">
+            </label>
+            <label class="zoom-control">
+              背景の回転
+              <input type="range" id="photoRotationSlider" min="-15" max="15" value="0" step="1">
+            </label>
+            <label class="zoom-control">
+              背景の明るさ <span id="photoBrightnessValue">100%</span>
+              <input type="range" id="photoBrightnessSlider" min="50" max="150" value="100" step="1">
+            </label>
+            <button type="button" class="section-reset-btn" id="photoResetBtn">写真の調整をリセット</button>
+          </div>
+        </details>
+
+        <details class="accordion-section" id="fontSection">
+          <summary>フォント</summary>
+          <div class="accordion-body">
+            <label>
+              フォント
+              <select id="fontSelect" name="font_key_select">
+                <option value="noto-serif-jp" selected>明朝（Noto Serif JP）</option>
+                <option value="zen-maru-gothic">丸ゴシック（Zen Maru Gothic）</option>
+                <option value="zen-kaku-gothic-new">角ゴシック（Zen Kaku Gothic New）</option>
+                <option value="kaisei-decol">装飾明朝（Kaisei Decol）</option>
+                <option value="yuji-syuku">筆文字（Yuji Syuku）</option>
+              </select>
+            </label>
+            <button type="button" class="section-reset-btn" id="fontResetBtn">フォントをリセット</button>
+          </div>
+        </details>
+
+        <details class="accordion-section" id="extraImagesSection">
+          <summary>追加画像（最大3枚・任意）</summary>
+          <div class="accordion-body">
+            <div class="extra-image-block">
+              <label>追加画像1<input type="file" id="extra1Input" name="extra1_image" accept="image/*"></label>
+              <label class="catchphrase-control">サイズ<input type="range" id="extra1ScaleSlider" min="30" max="250" value="100" step="1"></label>
+              <label class="catchphrase-control">回転<input type="range" id="extra1RotationSlider" min="-180" max="180" value="0" step="1"></label>
+              <button type="button" id="extra1ClearBtn">この画像を削除</button>
+              <input type="hidden" id="extra1XInput" name="extra1_x_mm">
+              <input type="hidden" id="extra1YInput" name="extra1_y_mm">
+              <input type="hidden" id="extra1ScaleInput" name="extra1_scale">
+              <input type="hidden" id="extra1RotationInput" name="extra1_rotation_deg">
+            </div>
+
+            <div class="extra-image-block">
+              <label>追加画像2<input type="file" id="extra2Input" name="extra2_image" accept="image/*"></label>
+              <label class="catchphrase-control">サイズ<input type="range" id="extra2ScaleSlider" min="30" max="250" value="100" step="1"></label>
+              <label class="catchphrase-control">回転<input type="range" id="extra2RotationSlider" min="-180" max="180" value="0" step="1"></label>
+              <button type="button" id="extra2ClearBtn">この画像を削除</button>
+              <input type="hidden" id="extra2XInput" name="extra2_x_mm">
+              <input type="hidden" id="extra2YInput" name="extra2_y_mm">
+              <input type="hidden" id="extra2ScaleInput" name="extra2_scale">
+              <input type="hidden" id="extra2RotationInput" name="extra2_rotation_deg">
+            </div>
+
+            <div class="extra-image-block">
+              <label>追加画像3<input type="file" id="extra3Input" name="extra3_image" accept="image/*"></label>
+              <label class="catchphrase-control">サイズ<input type="range" id="extra3ScaleSlider" min="30" max="250" value="100" step="1"></label>
+              <label class="catchphrase-control">回転<input type="range" id="extra3RotationSlider" min="-180" max="180" value="0" step="1"></label>
+              <button type="button" id="extra3ClearBtn">この画像を削除</button>
+              <input type="hidden" id="extra3XInput" name="extra3_x_mm">
+              <input type="hidden" id="extra3YInput" name="extra3_y_mm">
+              <input type="hidden" id="extra3ScaleInput" name="extra3_scale">
+              <input type="hidden" id="extra3RotationInput" name="extra3_rotation_deg">
+            </div>
+          </div>
+        </details>
+
+        <details class="accordion-section" id="catchphraseSection">
+          <summary>セリフ</summary>
+          <div class="accordion-body">
+            <label>
+              セリフ
+              <textarea id="catchphraseInput" name="catchphrase">{{ values.get("catchphrase", "") }}</textarea>
+            </label>
+            <div class="segmented-control" role="radiogroup" aria-label="セリフの書字方向">
+              <span>書字方向</span>
+              <label><input type="radio" name="catchphrase_orientation_ui" value="vertical" checked>縦書き</label>
+              <label><input type="radio" name="catchphrase_orientation_ui" value="horizontal">横書き</label>
+            </div>
+            <label class="catchphrase-control">
+              回転
+              <input type="range" id="catchphraseRotationSlider" min="-45" max="45" value="0" step="1">
+            </label>
+            <label class="catchphrase-control">
+              セリフサイズ
+              <input type="range" id="catchphraseSizeSlider" min="60" max="180" value="100" step="1">
+            </label>
+            <label class="catchphrase-control">
+              縁取り
+              <input type="range" id="catchphraseStrokeSlider" min="0" max="200" value="100" step="1">
+            </label>
+            <div class="segmented-control" role="radiogroup" aria-label="セリフの文字色">
+              <span>文字色</span>
+              <label><input type="radio" name="catchphrase_fill_color_ui" value="white" checked>白</label>
+              <label><input type="radio" name="catchphrase_fill_color_ui" value="black">黒</label>
+            </div>
+            <button type="button" class="section-reset-btn" id="catchphraseResetBtn">セリフの見た目をリセット</button>
+          </div>
+        </details>
+
+        <details class="accordion-section" id="nameSection" open>
+          <summary>名前・X ID</summary>
+          <div class="accordion-body">
+            <label>
+              名前
+              <input id="nameInput" type="text" name="name" value="{{ values.get('name', '') }}" required>
+            </label>
+            <label class="catchphrase-control">
+              名前・X IDの文字サイズ
+              <input type="range" id="nameSizeSlider" min="70" max="150" value="100" step="1">
+            </label>
+            <label>
+              Xアカウント
+              <input id="xHandleInput" type="text" name="x_handle" value="{{ values.get('x_handle', '') }}" placeholder="@example" required>
+            </label>
+            <button type="button" class="section-reset-btn" id="nameResetBtn">名前・X IDの見た目をリセット</button>
+          </div>
+        </details>
+
+        <details class="accordion-section" id="logoSection">
+          <summary>ロゴ</summary>
+          <div class="accordion-body">
+            <label class="logo-toggle">
+              <input type="checkbox" id="logoToggle" name="show_logo" checked>
+              左下ロゴを表示
+            </label>
+            <button type="button" class="section-reset-btn" id="logoResetBtn">ロゴ表示をリセット</button>
+          </div>
+        </details>
+
         <input type="hidden" id="photoOffsetXInput" name="photo_offset_x_mm">
         <input type="hidden" id="photoOffsetYInput" name="photo_offset_y_mm">
         <input type="hidden" id="photoScaleInput" name="photo_scale">
+        <input type="hidden" id="photoRotationInput" name="photo_rotation_deg" value="0">
+        <input type="hidden" id="photoBrightnessInput" name="photo_brightness" value="100">
+        <input type="hidden" id="fontKeyInput" name="font_key" value="noto-serif-jp">
+        <input type="hidden" id="nameSizeFactorInput" name="name_size_factor" value="1">
         <input type="hidden" id="nameXInput" name="name_x_mm">
         <input type="hidden" id="nameYInput" name="name_y_mm">
         <input type="hidden" id="catchphraseXInput" name="catchphrase_x_mm">
@@ -222,37 +411,7 @@
         <div class="canvas-wrap">
           <canvas id="cardPreview" width="610" height="970"></canvas>
         </div>
-        <label class="zoom-control">
-          寄り引き
-          <input type="range" id="zoomSlider" min="100" max="250" value="100" step="1">
-        </label>
-        <div class="segmented-control" role="radiogroup" aria-label="セリフの書字方向">
-          <span>書字方向</span>
-          <label><input type="radio" name="catchphrase_orientation_ui" value="vertical" checked>縦書き</label>
-          <label><input type="radio" name="catchphrase_orientation_ui" value="horizontal">横書き</label>
-        </div>
-        <label class="catchphrase-control">
-          回転
-          <input type="range" id="catchphraseRotationSlider" min="-45" max="45" value="0" step="1">
-        </label>
-        <label class="catchphrase-control">
-          セリフサイズ
-          <input type="range" id="catchphraseSizeSlider" min="60" max="180" value="100" step="1">
-        </label>
-        <label class="catchphrase-control">
-          縁取り
-          <input type="range" id="catchphraseStrokeSlider" min="0" max="200" value="100" step="1">
-        </label>
-        <div class="segmented-control" role="radiogroup" aria-label="セリフの文字色">
-          <span>文字色</span>
-          <label><input type="radio" name="catchphrase_fill_color_ui" value="white" checked>白</label>
-          <label><input type="radio" name="catchphrase_fill_color_ui" value="black">黒</label>
-        </div>
-        <label class="logo-toggle">
-          <input type="checkbox" id="logoToggle" name="show_logo" checked>
-          左下ロゴを表示
-        </label>
-        <p>写真・名前・セリフはプレビュー上でドラッグできます。写真はスライダーで寄り引きできます。</p>
+        <p>写真・名前・セリフ・追加画像はプレビュー上でドラッグできます。写真はスライダーで寄り引きできます。</p>
       </section>
     </form>
   </main>

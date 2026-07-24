@@ -7,6 +7,25 @@
   const CANVAS_W = 610;
   const CANVAS_H = 970;
   const PX_PER_MM = CANVAS_W / PAGE_W_MM;
+  const FONT_PRESETS = {
+    'noto-serif-jp': '"Noto Serif JP", "Yu Mincho", serif',
+    'zen-maru-gothic': '"Zen Maru Gothic", sans-serif',
+    'zen-kaku-gothic-new': '"Zen Kaku Gothic New", sans-serif',
+    'kaisei-decol': '"Kaisei Decol", serif',
+    'yuji-syuku': '"Yuji Syuku", cursive',
+  };
+  const DEFAULT_FONT_KEY = 'noto-serif-jp';
+  const NAME_FONT_SIZE_MM = 4.23;
+  const NAME_TEXT_HEIGHT_MM = 4.9;
+  const HANDLE_FONT_SIZE_MM = 2.47;
+  const HANDLE_GAP_MM = 5.5;
+  const EXTRA_IMAGE_COUNT = 3;
+  const EXTRA_BASE_MM = 22.0;
+  const EXTRA_DEFAULT_POS_MM = [
+    { x: 14, y: 14 },
+    { x: 47, y: 14 },
+    { x: 30.5, y: 88 },
+  ];
 
   const DEFAULTS = {
     nameX: 39.9,
@@ -29,14 +48,22 @@
 
   const inputs = {
     photo: document.getElementById('photoInput'),
-    font: document.getElementById('fontInput'),
+    fontSelect: document.getElementById('fontSelect'),
     catchphrase: document.getElementById('catchphraseInput'),
     name: document.getElementById('nameInput'),
     xHandle: document.getElementById('xHandleInput'),
     photoOffsetX: document.getElementById('photoOffsetXInput'),
     photoOffsetY: document.getElementById('photoOffsetYInput'),
     photoScale: document.getElementById('photoScaleInput'),
+    photoRotation: document.getElementById('photoRotationInput'),
+    photoBrightness: document.getElementById('photoBrightnessInput'),
+    fontKey: document.getElementById('fontKeyInput'),
+    nameSizeFactor: document.getElementById('nameSizeFactorInput'),
     zoomSlider: document.getElementById('zoomSlider'),
+    photoRotationSlider: document.getElementById('photoRotationSlider'),
+    photoBrightnessSlider: document.getElementById('photoBrightnessSlider'),
+    photoBrightnessValue: document.getElementById('photoBrightnessValue'),
+    nameSizeSlider: document.getElementById('nameSizeSlider'),
     logoToggle: document.getElementById('logoToggle'),
     nameX: document.getElementById('nameXInput'),
     nameY: document.getElementById('nameYInput'),
@@ -52,6 +79,19 @@
     catchphraseRotationSlider: document.getElementById('catchphraseRotationSlider'),
     catchphraseSizeSlider: document.getElementById('catchphraseSizeSlider'),
     catchphraseStrokeSlider: document.getElementById('catchphraseStrokeSlider'),
+    extraImages: Array.from({ length: EXTRA_IMAGE_COUNT }, (_, i) => {
+      const idx = i + 1;
+      return {
+        file: document.getElementById(`extra${idx}Input`),
+        scaleSlider: document.getElementById(`extra${idx}ScaleSlider`),
+        rotationSlider: document.getElementById(`extra${idx}RotationSlider`),
+        clearBtn: document.getElementById(`extra${idx}ClearBtn`),
+        x: document.getElementById(`extra${idx}XInput`),
+        y: document.getElementById(`extra${idx}YInput`),
+        scale: document.getElementById(`extra${idx}ScaleInput`),
+        rotation: document.getElementById(`extra${idx}RotationInput`),
+      };
+    }),
   };
 
   const state = {
@@ -61,6 +101,8 @@
     photoScale: 1,
     photoX: 0,
     photoY: 0,
+    photoRotationDeg: 0,
+    photoBrightness: 100,
     nameX: DEFAULTS.nameX,
     nameY: DEFAULTS.nameY,
     catchphraseX: DEFAULTS.catchphraseTopLeftX,
@@ -70,14 +112,23 @@
     catchphraseSizeFactor: 1,
     catchphraseStrokeFactor: 1,
     catchphraseFillColor: 'white',
-    customFontFamily: null,
-    fontLoadToken: 0,
+    fontKey: DEFAULT_FONT_KEY,
+    nameSizeFactor: 1,
     nameMoved: false,
     catchphraseMoved: false,
+    extraImages: Array.from({ length: EXTRA_IMAGE_COUNT }, (_, i) => ({
+      image: null,
+      xMm: EXTRA_DEFAULT_POS_MM[i].x,
+      yMm: EXTRA_DEFAULT_POS_MM[i].y,
+      scalePercent: 100,
+      rotationDeg: 0,
+      moved: false,
+    })),
     drag: null,
     bounds: {
       name: null,
       catchphrase: null,
+      extraImages: Array.from({ length: EXTRA_IMAGE_COUNT }, () => null),
       photo: { x: 0, y: 0, w: CANVAS_W, h: CANVAS_H },
     },
   };
@@ -95,13 +146,21 @@
     return Math.min(max, Math.max(min, value));
   }
 
+  function requiredCoverSize(rotationDeg) {
+    const theta = rotationDeg * Math.PI / 180;
+    return {
+      w: CANVAS_W * Math.abs(Math.cos(theta)) + CANVAS_H * Math.abs(Math.sin(theta)),
+      h: CANVAS_W * Math.abs(Math.sin(theta)) + CANVAS_H * Math.abs(Math.cos(theta)),
+    };
+  }
+
   function normalizedHandle() {
     const value = inputs.xHandle?.value.trim() || '@example';
     return value.startsWith('@') ? value : `@${value}`;
   }
 
   function activeFontFamily() {
-    return state.customFontFamily || '"Noto Serif JP", "Yu Mincho", serif';
+    return FONT_PRESETS[state.fontKey] || FONT_PRESETS[DEFAULT_FONT_KEY];
   }
 
   function selectedRadioValue(controls, fallback) {
@@ -242,15 +301,16 @@
 
   function nameMetrics() {
     const text = inputs.name?.value || '';
+    const fontPx = mmToPx(NAME_FONT_SIZE_MM * state.nameSizeFactor);
     ctx.save();
-    ctx.font = `bold ${mmToPx(4.23)}px ${activeFontFamily()}`;
+    ctx.font = `bold ${fontPx}px ${activeFontFamily()}`;
     const measured = ctx.measureText(text || '名前');
     ctx.restore();
     return {
       text,
       w: measured.width,
-      h: mmToPx(4.9),
-      fontPx: mmToPx(4.23),
+      h: mmToPx(NAME_TEXT_HEIGHT_MM * state.nameSizeFactor),
+      fontPx,
     };
   }
 
@@ -315,6 +375,10 @@
     inputs.photoOffsetX.value = pxToMm(state.photoX).toFixed(3);
     inputs.photoOffsetY.value = pxToMm(state.photoY).toFixed(3);
     if (inputs.photoScale) inputs.photoScale.value = state.zoomFactor.toFixed(3);
+    if (inputs.photoRotation) inputs.photoRotation.value = state.photoRotationDeg.toFixed(3);
+    if (inputs.photoBrightness) inputs.photoBrightness.value = state.photoBrightness.toFixed(0);
+    if (inputs.fontKey) inputs.fontKey.value = state.fontKey;
+    if (inputs.nameSizeFactor) inputs.nameSizeFactor.value = state.nameSizeFactor.toFixed(3);
     inputs.nameX.value = state.nameX.toFixed(3);
     inputs.nameY.value = state.nameY.toFixed(3);
     inputs.catchphraseX.value = state.catchphraseX.toFixed(3);
@@ -324,34 +388,60 @@
     inputs.catchphraseSizeFactor.value = state.catchphraseSizeFactor.toFixed(3);
     inputs.catchphraseStrokeFactor.value = state.catchphraseStrokeFactor.toFixed(3);
     inputs.catchphraseFillColor.value = state.catchphraseFillColor;
+    state.extraImages.forEach((slot, i) => {
+      const input = inputs.extraImages[i];
+      if (!input) return;
+      if (input.x) input.x.value = slot.xMm.toFixed(3);
+      if (input.y) input.y.value = slot.yMm.toFixed(3);
+      if (input.scale) input.scale.value = slot.scalePercent.toFixed(1);
+      if (input.rotation) input.rotation.value = slot.rotationDeg.toFixed(3);
+    });
   }
 
   function resetPhotoPosition() {
+    state.photoRotationDeg = 0;
+    state.photoBrightness = 100;
+    if (inputs.photoRotationSlider) inputs.photoRotationSlider.value = 0;
+    if (inputs.photoBrightnessSlider) inputs.photoBrightnessSlider.value = 100;
+    if (inputs.photoBrightnessValue) inputs.photoBrightnessValue.textContent = '100%';
+
     if (!state.photo) {
       state.photoX = 0;
       state.photoY = 0;
       state.baseScale = 1;
       state.zoomFactor = 1;
       state.photoScale = 1;
+      if (inputs.zoomSlider) inputs.zoomSlider.value = 100;
       return;
     }
 
-    state.baseScale = Math.max(CANVAS_W / state.photo.width, CANVAS_H / state.photo.height);
+    const req = requiredCoverSize(state.photoRotationDeg);
+    state.baseScale = Math.max(req.w / state.photo.width, req.h / state.photo.height);
     state.zoomFactor = 1;
     if (inputs.zoomSlider) inputs.zoomSlider.value = 100;
     state.photoScale = state.baseScale * state.zoomFactor;
     const scaledW = state.photo.width * state.photoScale;
     const scaledH = state.photo.height * state.photoScale;
-    state.photoX = -Math.max(0, scaledW - CANVAS_W) * 0.5;
-    state.photoY = -Math.max(0, scaledH - CANVAS_H) * 0.3;
+    const minX = CANVAS_W / 2 + req.w / 2 - scaledW;
+    const maxX = CANVAS_W / 2 - req.w / 2;
+    const minY = CANVAS_H / 2 + req.h / 2 - scaledH;
+    const maxY = CANVAS_H / 2 - req.h / 2;
+    state.photoX = maxX + (minX - maxX) * 0.5;
+    state.photoY = maxY + (minY - maxY) * 0.3;
+    clampPhotoPosition();
   }
 
   function clampPhotoPosition() {
     if (!state.photo) return;
     const scaledW = state.photo.width * state.photoScale;
     const scaledH = state.photo.height * state.photoScale;
-    state.photoX = clamp(state.photoX, CANVAS_W - scaledW, 0);
-    state.photoY = clamp(state.photoY, CANVAS_H - scaledH, 0);
+    const req = requiredCoverSize(state.photoRotationDeg);
+    const minX = CANVAS_W / 2 + req.w / 2 - scaledW;
+    const maxX = CANVAS_W / 2 - req.w / 2;
+    const minY = CANVAS_H / 2 + req.h / 2 - scaledH;
+    const maxY = CANVAS_H / 2 - req.h / 2;
+    state.photoX = maxX < minX ? (minX + maxX) / 2 : clamp(state.photoX, minX, maxX);
+    state.photoY = maxY < minY ? (minY + maxY) / 2 : clamp(state.photoY, minY, maxY);
   }
 
   function applyZoom(zoomFactor) {
@@ -382,7 +472,13 @@
     const scaledW = state.photo.width * state.photoScale;
     const scaledH = state.photo.height * state.photoScale;
     state.bounds.photo = { x: state.photoX, y: state.photoY, w: scaledW, h: scaledH };
+    ctx.save();
+    ctx.filter = `brightness(${state.photoBrightness}%)`;
+    ctx.translate(CANVAS_W / 2, CANVAS_H / 2);
+    ctx.rotate(state.photoRotationDeg * Math.PI / 180);
+    ctx.translate(-CANVAS_W / 2, -CANVAS_H / 2);
     ctx.drawImage(state.photo, state.photoX, state.photoY, scaledW, scaledH);
+    ctx.restore();
   }
 
   function drawScrim() {
@@ -392,6 +488,26 @@
     grad.addColorStop(1, 'rgba(0,0,0,0.70)');
     ctx.fillStyle = grad;
     ctx.fillRect(0, top, CANVAS_W, CANVAS_H - top);
+  }
+
+  function drawExtraImages() {
+    state.extraImages.forEach((slot, i) => {
+      state.bounds.extraImages[i] = null;
+      if (!slot.image) return;
+      const containPx = mmToPx(EXTRA_BASE_MM * slot.scalePercent / 100);
+      const ratio = Math.min(containPx / slot.image.width, containPx / slot.image.height);
+      const w = slot.image.width * ratio;
+      const h = slot.image.height * ratio;
+      const cx = mmToPx(slot.xMm);
+      const cy = mmToPx(slot.yMm);
+      state.bounds.extraImages[i] = { cx, cy, w, h, rotationDeg: slot.rotationDeg };
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(slot.rotationDeg * Math.PI / 180);
+      ctx.drawImage(slot.image, -w / 2, -h / 2, w, h);
+      ctx.restore();
+    });
   }
 
   function drawCatchphrase() {
@@ -476,10 +592,10 @@
     ctx.fillText(name.text || '名前', x, y);
 
     const handle = normalizedHandle();
-    ctx.font = `bold ${mmToPx(2.47)}px ${activeFontFamily()}`;
+    ctx.font = `bold ${mmToPx(HANDLE_FONT_SIZE_MM * state.nameSizeFactor)}px ${activeFontFamily()}`;
     const handleW = ctx.measureText(handle).width;
     const handleX = Math.max(mmToPx(5), x + name.w - handleW);
-    const handleY = y - mmToPx(5.5);
+    const handleY = y - mmToPx(HANDLE_GAP_MM * state.nameSizeFactor);
     ctx.lineWidth = Math.max(1, mmToPx(0.14));
     ctx.strokeText(handle, handleX, handleY);
     ctx.fillText(handle, handleX, handleY);
@@ -503,6 +619,7 @@
     ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
     drawBackground();
     drawScrim();
+    drawExtraImages();
     drawCatchphrase();
     drawLogo();
     drawSignature();
@@ -537,6 +654,9 @@
   function pickTarget(point) {
     if (contains(state.bounds.name, point)) return 'name';
     if (contains(state.bounds.catchphrase, point)) return 'catchphrase';
+    for (let i = state.bounds.extraImages.length - 1; i >= 0; i--) {
+      if (contains(state.bounds.extraImages[i], point)) return `extra${i}`;
+    }
     if (contains({ x: 0, y: 0, w: CANVAS_W, h: CANVAS_H }, point)) return 'photo';
     return null;
   }
@@ -558,6 +678,11 @@
       catchphraseX: state.catchphraseX,
       catchphraseY: state.catchphraseY,
     };
+    if (target.startsWith('extra')) {
+      const i = Number(target.slice(5));
+      state.drag.extraXMm = state.extraImages[i].xMm;
+      state.drag.extraYMm = state.extraImages[i].yMm;
+    }
   }
 
   function moveDrag(event) {
@@ -587,6 +712,12 @@
       state.catchphraseMoved = true;
       state.catchphraseX = pos.x;
       state.catchphraseY = pos.y;
+    } else if (state.drag.target.startsWith('extra')) {
+      const i = Number(state.drag.target.slice(5));
+      const slot = state.extraImages[i];
+      slot.xMm = state.drag.extraXMm + dxMm;
+      slot.yMm = state.drag.extraYMm + dyMm;
+      slot.moved = true;
     }
 
     drawPreview();
@@ -614,39 +745,97 @@
     reader.readAsDataURL(file);
   }
 
-  function loadCustomFont(file) {
-    const token = ++state.fontLoadToken;
-    state.customFontFamily = null;
-    if (!file || !window.FontFace) {
-      drawPreview();
-      return;
-    }
+  function loadExtraImage(i, file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const image = new Image();
+      image.onload = () => {
+        state.extraImages[i].image = image;
+        drawPreview();
+      };
+      image.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
 
-    file.arrayBuffer()
-      .then(buffer => {
-        const font = new FontFace('CustomCardFont', buffer);
-        return font.load();
-      })
-      .then(font => {
-        if (token !== state.fontLoadToken) return;
-        document.fonts.add(font);
-        state.customFontFamily = '"CustomCardFont", "Noto Serif JP", "Yu Mincho", serif';
-        drawPreview();
-      })
-      .catch(() => {
-        if (token !== state.fontLoadToken) return;
-        state.customFontFamily = null;
-        drawPreview();
-      });
+  function clearExtraImage(i) {
+    state.extraImages[i] = {
+      image: null,
+      xMm: EXTRA_DEFAULT_POS_MM[i].x,
+      yMm: EXTRA_DEFAULT_POS_MM[i].y,
+      scalePercent: 100,
+      rotationDeg: 0,
+      moved: false,
+    };
+    const input = inputs.extraImages[i];
+    if (input?.file) input.file.value = '';
+    if (input?.scaleSlider) input.scaleSlider.value = 100;
+    if (input?.rotationSlider) input.rotationSlider.value = 0;
+    updateHiddenInputs();
+    drawPreview();
   }
 
   inputs.photo?.addEventListener('change', event => loadPhoto(event.target.files[0]));
-  inputs.font?.addEventListener('change', event => loadCustomFont(event.target.files[0]));
+  document.getElementById('photoResetBtn')?.addEventListener('click', () => {
+    resetPhotoPosition();
+    drawPreview();
+  });
+  inputs.fontSelect?.addEventListener('change', event => {
+    state.fontKey = event.target.value;
+    drawPreview();
+    document.fonts?.load(`bold 24px ${activeFontFamily()}`).then(drawPreview).catch(() => {});
+  });
+  document.getElementById('fontResetBtn')?.addEventListener('click', () => {
+    state.fontKey = DEFAULT_FONT_KEY;
+    if (inputs.fontSelect) inputs.fontSelect.value = DEFAULT_FONT_KEY;
+    drawPreview();
+  });
+  inputs.nameSizeSlider?.addEventListener('input', event => {
+    state.nameSizeFactor = clamp(Number(event.target.value) / 100, 0.7, 1.5);
+    drawPreview();
+  });
+  document.getElementById('nameResetBtn')?.addEventListener('click', () => {
+    state.nameSizeFactor = 1;
+    if (inputs.nameSizeSlider) inputs.nameSizeSlider.value = 100;
+    state.nameMoved = false;
+    drawPreview();
+  });
+  inputs.extraImages.forEach((input, i) => {
+    input.file?.addEventListener('change', event => loadExtraImage(i, event.target.files[0]));
+    input.scaleSlider?.addEventListener('input', event => {
+      state.extraImages[i].scalePercent = Number(event.target.value);
+      drawPreview();
+    });
+    input.rotationSlider?.addEventListener('input', event => {
+      state.extraImages[i].rotationDeg = Number(event.target.value);
+      drawPreview();
+    });
+    input.clearBtn?.addEventListener('click', () => clearExtraImage(i));
+  });
   inputs.zoomSlider?.addEventListener('input', event => {
     applyZoom(Number(event.target.value) / 100);
     drawPreview();
   });
+  inputs.photoRotationSlider?.addEventListener('input', event => {
+    state.photoRotationDeg = clamp(Number(event.target.value), -15, 15);
+    if (state.photo) {
+      const req = requiredCoverSize(state.photoRotationDeg);
+      state.baseScale = Math.max(req.w / state.photo.width, req.h / state.photo.height);
+      applyZoom(state.zoomFactor);
+    }
+    drawPreview();
+  });
+  inputs.photoBrightnessSlider?.addEventListener('input', event => {
+    state.photoBrightness = clamp(Number(event.target.value), 50, 150);
+    if (inputs.photoBrightnessValue) inputs.photoBrightnessValue.textContent = `${state.photoBrightness}%`;
+    drawPreview();
+  });
   inputs.logoToggle?.addEventListener('change', drawPreview);
+  document.getElementById('logoResetBtn')?.addEventListener('click', () => {
+    if (inputs.logoToggle) inputs.logoToggle.checked = true;
+    drawPreview();
+  });
   inputs.catchphraseOrientationControls.forEach(input => input.addEventListener('change', drawPreview));
   inputs.catchphraseFillControls.forEach(input => input.addEventListener('change', drawPreview));
   [
@@ -655,6 +844,17 @@
     inputs.catchphraseStrokeSlider,
   ].forEach(input => {
     input?.addEventListener('input', drawPreview);
+  });
+  document.getElementById('catchphraseResetBtn')?.addEventListener('click', () => {
+    const orientationDefault = document.querySelector('input[name="catchphrase_orientation_ui"][value="vertical"]');
+    if (orientationDefault) orientationDefault.checked = true;
+    const fillDefault = document.querySelector('input[name="catchphrase_fill_color_ui"][value="white"]');
+    if (fillDefault) fillDefault.checked = true;
+    if (inputs.catchphraseRotationSlider) inputs.catchphraseRotationSlider.value = 0;
+    if (inputs.catchphraseSizeSlider) inputs.catchphraseSizeSlider.value = 100;
+    if (inputs.catchphraseStrokeSlider) inputs.catchphraseStrokeSlider.value = 100;
+    state.catchphraseMoved = false;
+    drawPreview();
   });
   [inputs.catchphrase, inputs.name, inputs.xHandle].forEach(input => {
     input?.addEventListener('input', drawPreview);
