@@ -20,6 +20,7 @@ from card_builder import (
     normalize_x_handle,
     safe_download_name,
 )
+from card_v5_builder import generate_pop_pdf
 from print_assets import FONTS, LOGO, STATIC_DIR, TEMPLATES_DIR, download_fonts
 
 
@@ -97,8 +98,84 @@ def font_asset(filename: str):
     return send_file(FONTS / filename)
 
 
+def _generate_pop():
+    """横型ポップ名刺（card_v5_pop）の表裏2ページCMYK PDFを生成して返す。"""
+    name = request.form.get("name", "").strip()
+    x_handle = request.form.get("x_handle", "").strip()
+    url = request.form.get("url", "").strip()
+    style = _parse_choice("pop_style", {"pop", "pastel_slot", "pastel_transparent"}, "pop")
+    accent = _parse_choice("accent", {"mustard", "coral"}, "mustard")
+    show_qr = request.form.get("pop_show_qr") is not None
+    use_photo = request.form.get("pop_use_photo") is not None
+    font_key = request.form.get("font_key") or "zen-kaku-gothic-new"
+    if font_key not in FONT_PRESETS:
+        font_key = "zen-kaku-gothic-new"
+    subtitle = request.form.get("pop_subtitle", "VRChat Creator\nUnity Developer")
+    photo_scale = _clamp(_parse_float("pop_photo_scale", 100.0), 100.0, 250.0) / 100.0
+    photo_rotation_deg = _clamp(_parse_float("pop_photo_rotation_deg", 0.0), -15.0, 15.0)
+    photo_brightness = _clamp(_parse_float("pop_photo_brightness", 100.0), 50.0, 150.0) / 100.0
+    values = {"name": name, "x_handle": x_handle, "url": url}
+
+    if not name:
+        return render_template("index.html", error="名前を入力してください。", values=values), 400
+    if not x_handle:
+        return render_template("index.html", error="Xアカウントを入力してください。", values=values), 400
+
+    temp_dir = Path(tempfile.mkdtemp(prefix="meishi-pop-"))
+    output_path = temp_dir / "meishi_pop_cmyk.pdf"
+    photo_path: Path | None = None
+    photo = request.files.get("photo")
+    if use_photo and photo is not None and photo.filename != "":
+        suffix = Path(secure_filename(photo.filename)).suffix or ".png"
+        photo_path = temp_dir / f"photo{suffix}"
+        photo.save(photo_path)
+    extra_images = _parse_extra_images(temp_dir)
+
+    def _cleanup():
+        extra_paths = [ex["path"] for ex in extra_images if ex is not None]
+        for path in (photo_path, output_path, *extra_paths):
+            if path is not None:
+                path.unlink(missing_ok=True)
+        temp_dir.rmdir()
+
+    try:
+        normalized_handle = normalize_x_handle(x_handle)
+        generate_pop_pdf(
+            output_path,
+            style=style,
+            accent_name=accent,
+            photo=photo_path,
+            show_qr=show_qr,
+            url=url,
+            name=name,
+            x_handle=normalized_handle,
+            font_key=font_key,
+            subtitle=subtitle,
+            photo_scale=photo_scale,
+            photo_rotation_deg=photo_rotation_deg,
+            photo_brightness=photo_brightness,
+            extra_images=extra_images,
+        )
+    except Exception:
+        _cleanup()
+        raise
+
+    pdf_bytes = output_path.read_bytes()
+    _cleanup()
+
+    return send_file(
+        io.BytesIO(pdf_bytes),
+        as_attachment=True,
+        download_name=f"meishi_pop_{safe_download_name(name)}_cmyk.pdf",
+        mimetype="application/pdf",
+    )
+
+
 @app.post("/generate")
 def generate():
+    if request.form.get("template", "vertical") == "pop":
+        return _generate_pop()
+
     photo = request.files.get("photo")
     catchphrase = request.form.get("catchphrase", "").strip()
     name = request.form.get("name", "").strip()

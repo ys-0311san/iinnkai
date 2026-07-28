@@ -33,7 +33,7 @@
       box-sizing: border-box;
     }
     main {
-      width: min(100%, 920px);
+      width: min(100%, 820px);
       background: #fffdfa;
       border: 1px solid #d9cbb8;
       border-radius: 8px;
@@ -48,8 +48,9 @@
     }
     form {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(240px, 305px);
-      gap: 18px;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      align-items: start;
     }
     .fields {
       display: grid;
@@ -60,6 +61,32 @@
       display: grid;
       gap: 10px;
       align-content: start;
+      justify-items: center;
+      order: -1;
+    }
+    /* 広い画面：フォームは左・プレビューは画面右中央に固定して大きく表示 */
+    @media (min-width: 1200px) {
+      main {
+        justify-self: start;
+        width: min(500px, 40vw);
+      }
+      .preview-panel {
+        position: fixed;
+        top: 50%;
+        right: max(24px, 3vw);
+        transform: translateY(-50%);
+        width: min(52vw, 860px);
+        order: 0;
+        margin: 0;
+        z-index: 5;
+      }
+      .pop-canvas-wrap {
+        max-width: 100%;
+      }
+      .canvas-wrap {
+        max-width: 100%;
+        max-height: 88vh;
+      }
     }
     .preview-panel p {
       margin: 0;
@@ -115,7 +142,7 @@
     }
     .canvas-wrap {
       width: 100%;
-      max-width: 305px;
+      max-width: 460px;
       aspect-ratio: 61 / 97;
       background: #211916;
       border: 1px solid #cdbda9;
@@ -128,6 +155,15 @@
       width: 100%;
       height: 100%;
       cursor: grab;
+    }
+    .pop-canvas-wrap {
+      aspect-ratio: 97 / 61;
+      max-width: 720px;
+    }
+    #popPreview {
+      display: block;
+      width: 100%;
+      height: 100%;
     }
     #cardPreview.dragging {
       cursor: grabbing;
@@ -285,17 +321,21 @@
     }
     @media (max-width: 760px) {
       main {
-        width: min(100%, 560px);
+        width: min(100%, 620px);
       }
       form {
         grid-template-columns: 1fr;
       }
       .preview-panel {
         order: -1;
+        position: static;
       }
       .canvas-wrap {
-        max-width: 244px;
+        max-width: 300px;
         justify-self: center;
+      }
+      .pop-canvas-wrap {
+        max-width: 100%;
       }
     }
   </style>
@@ -308,6 +348,12 @@
     {% endif %}
     <form action="/generate" method="post" enctype="multipart/form-data">
       <div class="fields">
+        <div class="segmented-control" role="radiogroup" aria-label="デザイン" id="templateSelector">
+          <span>デザイン</span>
+          <label><input type="radio" name="template" value="vertical" checked>縦型（従来）</label>
+          <label><input type="radio" name="template" value="pop">横型ポップ</label>
+        </div>
+        <div id="verticalFields">
         <details class="accordion-section" id="photoSection" open>
           <summary>写真</summary>
           <div class="accordion-body">
@@ -465,6 +511,105 @@
         <input type="hidden" id="catchphraseSizeFactorInput" name="catchphrase_size_factor" value="1">
         <input type="hidden" id="catchphraseStrokeFactorInput" name="catchphrase_stroke_factor" value="1">
         <input type="hidden" id="catchphraseFillColorInput" name="catchphrase_fill_color" value="white">
+        </div><!-- /#verticalFields -->
+
+        <div id="popFields" hidden>
+          <details class="accordion-section" id="popSection" open>
+            <summary>横型ポップの内容</summary>
+            <div class="accordion-body">
+              <div class="segmented-control" role="radiogroup" aria-label="スタイル" id="popStyleRow" style="flex-wrap:wrap">
+                <span>スタイル</span>
+                <label><input type="radio" name="pop_style" value="pop" checked>ダークネイビー</label>
+                <label><input type="radio" name="pop_style" value="pastel_slot">パステル（写真枠）</label>
+                <label><input type="radio" name="pop_style" value="pastel_transparent">パステル（透過キャラ）</label>
+              </div>
+              <label>名前
+                <input type="text" id="popNameInput" name="name" value="{{ values.get('name', '') }}" placeholder="Yuuya">
+              </label>
+              <label>Xアカウント
+                <input type="text" id="popXHandleInput" name="x_handle" value="{{ values.get('x_handle', '') }}" placeholder="@example">
+              </label>
+              <label>サイトURL（QRを自動生成）
+                <input type="text" id="popUrlInput" name="url" value="{{ values.get('url', '') }}" placeholder="mesukemo.uk">
+              </label>
+              <div class="segmented-control" role="radiogroup" aria-label="アクセント色" id="popAccentRow">
+                <span>アクセント色</span>
+                <label><input type="radio" name="accent" value="mustard" checked>マスタード</label>
+                <label><input type="radio" name="accent" value="coral">コーラル</label>
+              </div>
+              <label class="logo-toggle">
+                <input type="checkbox" id="popUsePhotoToggle" name="pop_use_photo" checked>
+                写真・画像を使う
+              </label>
+              <label id="popPhotoRow">写真
+                <input type="file" id="popPhotoInput" name="photo" accept="image/*">
+              </label>
+              <p id="popTransNote" hidden style="margin:0;font-size:12px;color:#9a2a1a;line-height:1.5">
+                透過キャラスタイルは<b>背景が透明なPNG</b>を入れてください。背景付きの画像だと余白がそのまま出ます。
+              </p>
+              <label class="logo-toggle">
+                <input type="checkbox" id="popShowQrToggle" name="pop_show_qr" checked>
+                QRを表示
+              </label>
+              <label>名前・サブタイトルのフォント
+                <select name="font_key" id="popFontSelect">
+                  <option value="zen-kaku-gothic-new" selected>角ゴシック（Zen Kaku Gothic New）</option>
+                  <option value="noto-serif-jp">明朝（Noto Serif JP）</option>
+                  <option value="zen-maru-gothic">丸ゴシック（Zen Maru Gothic）</option>
+                  <option value="kaisei-decol">装飾明朝（Kaisei Decol）</option>
+                  <option value="yuji-syuku">筆文字（Yuji Syuku）</option>
+                </select>
+              </label>
+              <label>サブタイトル（最大2行）
+                <textarea id="popSubtitleInput" name="pop_subtitle" rows="2" style="min-height:56px">VRChat Creator
+Unity Developer</textarea>
+              </label>
+              <label class="zoom-control">写真の寄り引き
+                <input type="range" id="popPhotoScale" name="pop_photo_scale" min="100" max="250" value="100" step="1">
+              </label>
+              <label class="zoom-control">写真の回転
+                <input type="range" id="popPhotoRotation" name="pop_photo_rotation_deg" min="-15" max="15" value="0" step="1">
+              </label>
+              <label class="zoom-control">写真の明るさ
+                <input type="range" id="popPhotoBrightness" name="pop_photo_brightness" min="50" max="150" value="100" step="1">
+              </label>
+              <p style="margin:0;font-size:12px;color:#6c5a4a;line-height:1.5">
+                サブタイトルは自由入力（空欄で非表示）。表面QRは入力URL、裏面QRは組織サイト（mesukemo.uk）になります。
+              </p>
+            </div>
+          </details>
+
+          <details class="accordion-section" id="popExtraSection">
+            <summary>追加画像（最大3枚・任意／プレビュー上でドラッグ）</summary>
+            <div class="accordion-body">
+              <div class="extra-image-block">
+                <label>追加画像1<input type="file" id="popExtra1Input" name="extra1_image" accept="image/*"></label>
+                <label class="catchphrase-control">サイズ<input type="range" id="popExtra1Scale" name="extra1_scale" min="30" max="250" value="100" step="1"></label>
+                <label class="catchphrase-control">回転<input type="range" id="popExtra1Rotation" name="extra1_rotation_deg" min="-180" max="180" value="0" step="1"></label>
+                <button type="button" id="popExtra1Clear">この画像を削除</button>
+                <input type="hidden" id="popExtra1X" name="extra1_x_mm">
+                <input type="hidden" id="popExtra1Y" name="extra1_y_mm">
+              </div>
+              <div class="extra-image-block">
+                <label>追加画像2<input type="file" id="popExtra2Input" name="extra2_image" accept="image/*"></label>
+                <label class="catchphrase-control">サイズ<input type="range" id="popExtra2Scale" name="extra2_scale" min="30" max="250" value="100" step="1"></label>
+                <label class="catchphrase-control">回転<input type="range" id="popExtra2Rotation" name="extra2_rotation_deg" min="-180" max="180" value="0" step="1"></label>
+                <button type="button" id="popExtra2Clear">この画像を削除</button>
+                <input type="hidden" id="popExtra2X" name="extra2_x_mm">
+                <input type="hidden" id="popExtra2Y" name="extra2_y_mm">
+              </div>
+              <div class="extra-image-block">
+                <label>追加画像3<input type="file" id="popExtra3Input" name="extra3_image" accept="image/*"></label>
+                <label class="catchphrase-control">サイズ<input type="range" id="popExtra3Scale" name="extra3_scale" min="30" max="250" value="100" step="1"></label>
+                <label class="catchphrase-control">回転<input type="range" id="popExtra3Rotation" name="extra3_rotation_deg" min="-180" max="180" value="0" step="1"></label>
+                <button type="button" id="popExtra3Clear">この画像を削除</button>
+                <input type="hidden" id="popExtra3X" name="extra3_x_mm">
+                <input type="hidden" id="popExtra3Y" name="extra3_y_mm">
+              </div>
+            </div>
+          </details>
+        </div>
+
         <div class="generate-actions">
           <button type="submit" id="generateSubmitBtn">CMYK PDFを生成</button>
           <div class="generate-status" id="generateStatus" role="status" aria-live="polite" hidden>
@@ -475,10 +620,18 @@
         </div>
       </div>
       <section class="preview-panel" aria-label="名刺プレビュー">
-        <div class="canvas-wrap">
-          <canvas id="cardPreview" width="610" height="970"></canvas>
+        <div id="verticalPreviewWrap">
+          <div class="canvas-wrap">
+            <canvas id="cardPreview" width="610" height="970"></canvas>
+          </div>
+          <p>写真・名前・セリフ・追加画像はプレビュー上でドラッグできます。写真はスライダーで寄り引きできます。</p>
         </div>
-        <p>写真・名前・セリフ・追加画像はプレビュー上でドラッグできます。写真はスライダーで寄り引きできます。</p>
+        <div id="popPreviewWrap" hidden>
+          <div class="canvas-wrap pop-canvas-wrap">
+            <canvas id="popPreview" width="970" height="610"></canvas>
+          </div>
+          <p>入力に応じた完成イメージ（表面）です。QRはプレビューでは枠のみで、実物PDFには実QRが入ります。</p>
+        </div>
       </section>
     </form>
   </main>

@@ -953,3 +953,443 @@
     drawPreview();
   }
 })();
+
+// ===== 横型ポップ（card_v5_pop）: デザイン切り替え＋簡易プレビュー =====
+(() => {
+  const templateRadios = Array.from(document.querySelectorAll('input[name="template"]'));
+  const verticalFields = document.getElementById('verticalFields');
+  const popFields = document.getElementById('popFields');
+  const verticalPreview = document.getElementById('verticalPreviewWrap');
+  const popPreview = document.getElementById('popPreviewWrap');
+  const canvas = document.getElementById('popPreview');
+  if (!templateRadios.length || !popFields || !canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  const S = 10; // px / mm（canvas 970x610 = 97x61mm）
+  const ptpx = (pt) => pt * 0.352778 * S; // ptあたりpx = pt * 0.352778mm * S
+  const mm = (v) => v * S;
+
+  const C = {
+    bg: '#060a14', navy: '#0c152b', border: '#223052', silver: '#b8c7c1',
+    off: '#ececE4', sub: '#96a2bc', white: '#eeeee7',
+    phBg: '#141e37', phDash: '#465478', phIcon: '#5a688c', phLabel: '#7886a8',
+  };
+  const ACCENT = { mustard: '#dba02e', coral: '#e95b5c' };
+  const FONT = 'Helvetica, Arial, "Helvetica Neue", sans-serif';
+  const FONT_MAP = {
+    'zen-kaku-gothic-new': '"Zen Kaku Gothic New"',
+    'noto-serif-jp': '"Noto Serif JP"',
+    'zen-maru-gothic': '"Zen Maru Gothic"',
+    'kaisei-decol': '"Kaisei Decol"',
+    'yuji-syuku': '"Yuji Syuku"',
+  };
+  const popFontSelect = document.getElementById('popFontSelect');
+  const popSubtitleInput = document.getElementById('popSubtitleInput');
+  const popPhotoScale = document.getElementById('popPhotoScale');
+  const popPhotoRotation = document.getElementById('popPhotoRotation');
+  const popPhotoBrightness = document.getElementById('popPhotoBrightness');
+  const nameFontFamily = () => (FONT_MAP[popFontSelect?.value] || FONT_MAP['zen-kaku-gothic-new']) + ', ' + FONT;
+  const subtitleLines = () => (popSubtitleInput?.value || '').split('\n').map((s) => s.trim()).filter(Boolean).slice(0, 2);
+  const photoOpts = () => ({
+    scale: parseFloat(popPhotoScale?.value) || 100,
+    rotation: parseFloat(popPhotoRotation?.value) || 0,
+    brightness: parseFloat(popPhotoBrightness?.value) || 100,
+  });
+
+  function drawName(x, yb, name, maxMM, basePt, color) {
+    const fam = nameFontFamily();
+    let size = ptpx(basePt);
+    ctx.font = `bold ${size}px ${fam}`;
+    while (size > ptpx(basePt * 0.6) && ctx.measureText(name).width > mm(maxMM)) {
+      size -= 1;
+      ctx.font = `bold ${size}px ${fam}`;
+    }
+    ctx.fillStyle = color;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(name, mm(x), mm(yb));
+  }
+
+  const popNameInput = document.getElementById('popNameInput');
+  const popXHandleInput = document.getElementById('popXHandleInput');
+  const popUrlInput = document.getElementById('popUrlInput');
+  const popUsePhoto = document.getElementById('popUsePhotoToggle');
+  const popShowQr = document.getElementById('popShowQrToggle');
+  const popPhotoInput = document.getElementById('popPhotoInput');
+  let popPhotoImg = null;
+
+  // パステルスタイル
+  const PASTEL = { ink: '#342e48', ink2: '#786e78', gold: '#a8844a', white: '#faf6ee' };
+  const popStyleRadios = Array.from(document.querySelectorAll('input[name="pop_style"]'));
+  const popAccentRow = document.getElementById('popAccentRow');
+  const popTransNote = document.getElementById('popTransNote');
+  const bgImgs = {};
+  ['pastel_slot', 'pastel_transparent'].forEach((k) => {
+    const im = new Image();
+    im.onload = () => { bgImgs[k] = im; drawPopPreview(); };
+    im.src = k === 'pastel_slot' ? '/static/pop_bg_slot.png' : '/static/pop_bg_transparent.png';
+  });
+  const currentStyle = () => {
+    const r = popStyleRadios.find((x) => x.checked);
+    return r ? r.value : 'pop';
+  };
+
+  function accentColor() {
+    const r = document.querySelector('input[name="accent"]:checked');
+    return ACCENT[r ? r.value : 'mustard'] || ACCENT.mustard;
+  }
+  function urlLabel(u) {
+    return (u || '').trim()
+      .replace(/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//, '')
+      .replace(/^www\./, '')
+      .replace(/\/+$/, '');
+  }
+  function rr(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.roundRect(mm(x), mm(y), mm(w), mm(h), mm(r));
+  }
+
+  // 四隅が内側に抉れた（凹コーナー）矩形パス。装飾額縁の開口部形状。
+  function concavePath(x, y, w, h, r) {
+    const x0 = mm(x), x1 = mm(x + w), y0 = mm(y), y1 = mm(y + h), R = mm(r);
+    ctx.beginPath();
+    ctx.moveTo(x0 + R, y0);
+    ctx.lineTo(x1 - R, y0);
+    ctx.arc(x1, y0, R, Math.PI, Math.PI / 2, true);
+    ctx.lineTo(x1, y1 - R);
+    ctx.arc(x1, y1, R, -Math.PI / 2, -Math.PI, true);
+    ctx.lineTo(x0 + R, y1);
+    ctx.arc(x0, y1, R, 0, -Math.PI / 2, true);
+    ctx.lineTo(x0, y0 + R);
+    ctx.arc(x0, y0, R, Math.PI / 2, 0, true);
+    ctx.closePath();
+  }
+
+  function drawCover(img, x, y, w, h, xb, yb, opts) {
+    opts = opts || {};
+    const zoom = Math.max(1, (opts.scale || 100) / 100);
+    const rot = ((opts.rotation || 0) * Math.PI) / 180;
+    const bright = (opts.brightness || 100) / 100;
+    const tw = mm(w), th = mm(h);
+    const s = Math.max(tw / img.width, th / img.height) * zoom;
+    const rw = img.width * s, rh = img.height * s;
+    const dx = mm(x) - (rw - tw) * xb;
+    const dy = mm(y) - (rh - th) * yb;
+    const cx = mm(x) + tw / 2, cy = mm(y) + th / 2;
+    ctx.save();
+    if (bright !== 1) ctx.filter = `brightness(${bright})`;
+    if (rot) { ctx.translate(cx, cy); ctx.rotate(rot); ctx.translate(-cx, -cy); }
+    ctx.drawImage(img, dx, dy, rw, rh);
+    ctx.restore();
+  }
+
+  function drawFrame(accent) {
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = C.silver;
+    ctx.lineWidth = mm(0.5);
+    const seg = [[12, 6.5, 85, 6.5], [12, 54.5, 85, 54.5], [6.5, 12, 6.5, 49], [90.5, 12, 90.5, 49]];
+    seg.forEach(([x1, y1, x2, y2]) => {
+      ctx.beginPath(); ctx.moveTo(mm(x1), mm(y1)); ctx.lineTo(mm(x2), mm(y2)); ctx.stroke();
+    });
+    ctx.fillStyle = accent;
+    rr(6.5 - 1.5, 6.5 - 1.5, 3, 3, 0.9); ctx.fill();
+    rr(90.5 - 1.5, 54.5 - 1.5, 3, 3, 0.9); ctx.fill();
+    ctx.strokeStyle = C.silver; ctx.lineWidth = mm(0.45);
+    [[90.5, 6.5], [6.5, 54.5]].forEach(([cx, cy]) => {
+      ctx.beginPath(); ctx.arc(mm(cx), mm(cy), mm(1.6), 0, Math.PI * 2); ctx.stroke();
+    });
+  }
+
+  function drawPlaceholder(x, y, w, h) {
+    ctx.fillStyle = C.phBg; rr(x, y, w, h, 3.2); ctx.fill();
+    const cx = x + w / 2, cy = y + h / 2;
+    ctx.save();
+    ctx.setLineDash([mm(1.6), mm(1.6)]);
+    ctx.strokeStyle = C.phDash; ctx.lineWidth = mm(0.4);
+    rr(x + 3.5, y + 3.5, w - 7, h - 7, 2.2); ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = C.phIcon;
+    ctx.beginPath(); ctx.arc(mm(cx), mm(cy - 2.5), mm(3.6), 0, Math.PI * 2); ctx.fill();
+    rr(cx - 5.5, cy + 1.5, 11, 7, 3.5); ctx.fill();
+    ctx.fillStyle = C.phLabel;
+    ctx.font = `bold ${ptpx(7.5)}px ${FONT}`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText('PHOTO', mm(cx), mm(cy + 17));
+    ctx.textAlign = 'left';
+  }
+
+  function drawDark() {
+    if (!ctx.roundRect) return;
+    const accent = accentColor();
+    const name = (popNameInput?.value || '').trim() || 'Yuuya';
+    let handle = (popXHandleInput?.value || '').trim() || '@yuuya';
+    if (!handle.startsWith('@')) handle = '@' + handle;
+    const showQr = popShowQr?.checked;
+    const usePhoto = popUsePhoto?.checked;
+    let label = urlLabel(popUrlInput?.value) || 'mesukemo.uk';
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = C.bg; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 写真パネル
+    const px = 9.5, py = 9.5, pw = 38, ph = 42, pr = 3.2;
+    if (usePhoto && popPhotoImg) {
+      ctx.save(); rr(px, py, pw, ph, pr); ctx.clip();
+      drawCover(popPhotoImg, px, py, pw, ph, 0.52, 0.05, photoOpts());
+      ctx.restore();
+    } else {
+      drawPlaceholder(px, py, pw, ph);
+    }
+    ctx.strokeStyle = C.border; ctx.lineWidth = mm(0.4);
+    rr(px, py, pw, ph, pr); ctx.stroke();
+
+    // インフォカード
+    const cx = 50, cy = 19, cw = 38, ch = 33, cr = 3.5;
+    ctx.fillStyle = C.navy; rr(cx, cy, cw, ch, cr); ctx.fill();
+    ctx.save(); rr(cx, cy, cw, ch, cr); ctx.clip();
+    ctx.strokeStyle = accent;
+    [[8, 0.5, 0.55], [11, 0.4, 0.35]].forEach(([rad, lw, a]) => {
+      ctx.globalAlpha = a; ctx.lineWidth = mm(lw);
+      ctx.beginPath(); ctx.arc(mm(cx + cw), mm(cy), mm(rad), 0, Math.PI * 2); ctx.stroke();
+    });
+    ctx.globalAlpha = 1; ctx.restore();
+    ctx.strokeStyle = C.border; ctx.lineWidth = mm(0.35);
+    rr(cx, cy, cw, ch, cr); ctx.stroke();
+
+    drawExtras();
+
+    // テキスト
+    const nameX = 55, subX = 58;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    drawName(nameX, 28, name, 29, 19, C.off);
+    ctx.fillStyle = accent; rr(nameX, 30.5, 1.3, 9, 0.65); ctx.fill();
+    ctx.fillStyle = C.sub;
+    subtitleLines().forEach((ln, i) => {
+      ctx.font = `${ptpx(7.5)}px ${nameFontFamily()}`;
+      ctx.fillText(ln, mm(subX), mm(33.6 + i * 4.0));
+    });
+    ctx.fillStyle = accent; ctx.font = `bold ${ptpx(11)}px ${FONT}`;
+    ctx.fillText(handle, mm(nameX), mm(44));
+    const handleW = ctx.measureText(handle).width;
+
+    const qx = 75, qy = 39.5, qs = 11;
+    if (showQr) {
+      ctx.strokeStyle = accent; ctx.lineWidth = mm(0.5);
+      ctx.beginPath(); ctx.moveTo(mm(nameX) + handleW + mm(1.5), mm(43.2)); ctx.lineTo(mm(qx), mm(43.2)); ctx.stroke();
+    }
+
+    // URLラベル（幅に応じ縮小→ドメインのみ）
+    const labelMax = mm((showQr ? qx - 1.5 : 90.5 - 3.0) - nameX);
+    let size = ptpx(8);
+    const fits = (t, s) => { ctx.font = `bold ${s}px ${FONT}`; return ctx.measureText(t).width <= labelMax; };
+    if (!fits(label, size)) {
+      while (size > ptpx(6) && !fits(label, size)) size -= 1;
+      if (!fits(label, size)) { label = label.split('/')[0]; size = ptpx(8); while (size > ptpx(6) && !fits(label, size)) size -= 1; }
+    }
+    ctx.fillStyle = accent; ctx.font = `bold ${size}px ${FONT}`;
+    ctx.fillText(label, mm(nameX), mm(49.2));
+
+    // QRプレースホルダー
+    if (showQr) {
+      ctx.fillStyle = C.white; rr(qx, qy, qs, qs, 1.4); ctx.fill();
+      ctx.fillStyle = '#8892a6'; ctx.textAlign = 'center';
+      ctx.font = `bold ${ptpx(6)}px ${FONT}`;
+      ctx.fillText('QR', mm(qx + qs / 2), mm(qy + qs / 2 + 1.2));
+      ctx.textAlign = 'left';
+    }
+
+    drawFrame(accent);
+  }
+
+  function drawPastel(style) {
+    if (!ctx.roundRect) return;
+    const bg = bgImgs[style];
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (bg) ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+    else { ctx.fillStyle = '#e6ddec'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+
+    if (popUsePhoto?.checked && popPhotoImg) {
+      if (style === 'pastel_slot') {
+        ctx.save(); concavePath(13.3, 12.0, 29.6, 38.6, 3); ctx.clip();
+        drawCover(popPhotoImg, 13.3, 12.0, 29.6, 38.6, 0.52, 0.06, photoOpts()); ctx.restore();
+      } else {
+        const o = photoOpts();
+        const zoom = Math.max(1, o.scale / 100);
+        const s = Math.min(mm(44) / popPhotoImg.width, mm(55) / popPhotoImg.height) * zoom;
+        const w = popPhotoImg.width * s, h = popPhotoImg.height * s;
+        const bx = mm(26), by = mm(59) - h / 2;
+        ctx.save();
+        if (o.brightness !== 100) ctx.filter = `brightness(${o.brightness / 100})`;
+        ctx.translate(bx, by); ctx.rotate((o.rotation * Math.PI) / 180);
+        ctx.drawImage(popPhotoImg, -w / 2, -h / 2, w, h);
+        ctx.restore();
+      }
+    }
+
+    drawExtras();
+
+    const name = (popNameInput?.value || '').trim() || 'Yuuya';
+    let handle = (popXHandleInput?.value || '').trim() || '@yuuya';
+    if (!handle.startsWith('@')) handle = '@' + handle;
+    const showQr = popShowQr?.checked;
+    let label = urlLabel(popUrlInput?.value) || 'mesukemo.uk';
+    const nx = 53;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    drawName(nx, 27.5, name, 35, 20, PASTEL.ink);
+    ctx.fillStyle = PASTEL.gold; rr(nx, 30.5, 1.2, 8.5, 0.6); ctx.fill();
+    ctx.fillStyle = PASTEL.ink2;
+    subtitleLines().forEach((ln, i) => {
+      ctx.font = `${ptpx(7.5)}px ${nameFontFamily()}`;
+      ctx.fillText(ln, mm(nx + 3), mm(33.2 + i * 4.0));
+    });
+    ctx.fillStyle = PASTEL.gold; ctx.font = `bold ${ptpx(11)}px ${FONT}`;
+    ctx.fillText(handle, mm(nx), mm(44));
+    const labelMax = mm((showQr ? 74 - 1.5 : 90) - nx);
+    let size = ptpx(8);
+    const fits = (t, s) => { ctx.font = `bold ${s}px ${FONT}`; return ctx.measureText(t).width <= labelMax; };
+    if (!fits(label, size)) {
+      while (size > ptpx(6) && !fits(label, size)) size -= 1;
+      if (!fits(label, size)) { label = label.split('/')[0]; size = ptpx(8); while (size > ptpx(6) && !fits(label, size)) size -= 1; }
+    }
+    ctx.fillStyle = PASTEL.gold; ctx.font = `bold ${size}px ${FONT}`;
+    ctx.fillText(label, mm(nx), mm(49.2));
+    if (showQr) {
+      ctx.fillStyle = PASTEL.white; rr(74, 39, 11.5, 11.5, 1.5); ctx.fill();
+      ctx.fillStyle = '#8892a6'; ctx.textAlign = 'center';
+      ctx.font = `bold ${ptpx(6)}px ${FONT}`;
+      ctx.fillText('QR', mm(74 + 5.75), mm(39 + 5.75 + 1.2)); ctx.textAlign = 'left';
+    }
+  }
+
+  function drawPopPreview() {
+    const s = currentStyle();
+    if (s === 'pop') drawDark(); else drawPastel(s);
+  }
+
+  function applyPopStyle() {
+    const s = currentStyle();
+    if (popAccentRow) popAccentRow.hidden = (s !== 'pop');
+    if (popTransNote) popTransNote.hidden = (s !== 'pastel_transparent');
+    drawPopPreview();
+  }
+
+  function setGroupDisabled(container, disabled) {
+    if (!container) return;
+    container.querySelectorAll('input, select, textarea, button').forEach((el) => { el.disabled = disabled; });
+  }
+
+  function applyTemplate() {
+    const checked = templateRadios.find((r) => r.checked);
+    const isPop = checked && checked.value === 'pop';
+    if (verticalFields) verticalFields.hidden = isPop;
+    if (popFields) popFields.hidden = !isPop;
+    if (verticalPreview) verticalPreview.hidden = isPop;
+    if (popPreview) popPreview.hidden = !isPop;
+    setGroupDisabled(verticalFields, isPop);
+    setGroupDisabled(popFields, !isPop);
+    if (isPop) drawPopPreview();
+  }
+
+  // 追加画像（任意位置・プレビュー上でドラッグ）
+  const popExtras = [];
+  for (let i = 1; i <= 3; i++) {
+    const ex = {
+      fileEl: document.getElementById(`popExtra${i}Input`),
+      scaleEl: document.getElementById(`popExtra${i}Scale`),
+      rotEl: document.getElementById(`popExtra${i}Rotation`),
+      clearEl: document.getElementById(`popExtra${i}Clear`),
+      xEl: document.getElementById(`popExtra${i}X`),
+      yEl: document.getElementById(`popExtra${i}Y`),
+      img: null, x_mm: 24, y_mm: 12 + i * 5,
+    };
+    popExtras.push(ex);
+    if (ex.fileEl) ex.fileEl.addEventListener('change', () => {
+      const f = ex.fileEl.files && ex.fileEl.files[0];
+      if (!f) { ex.img = null; drawPopPreview(); return; }
+      const im = new Image();
+      im.onload = () => { ex.img = im; syncExtra(ex); drawPopPreview(); };
+      im.src = URL.createObjectURL(f);
+    });
+    if (ex.scaleEl) ex.scaleEl.addEventListener('input', drawPopPreview);
+    if (ex.rotEl) ex.rotEl.addEventListener('input', drawPopPreview);
+    if (ex.clearEl) ex.clearEl.addEventListener('click', () => { if (ex.fileEl) ex.fileEl.value = ''; ex.img = null; drawPopPreview(); });
+  }
+  function syncExtra(ex) {
+    if (ex.xEl) ex.xEl.value = ex.x_mm.toFixed(1);
+    if (ex.yEl) ex.yEl.value = ex.y_mm.toFixed(1);
+  }
+  function drawExtras() {
+    popExtras.forEach((ex) => {
+      if (!ex.img) return;
+      const baseMM = 22 * ((parseFloat(ex.scaleEl?.value) || 100) / 100);
+      const r = Math.min(mm(baseMM) / ex.img.width, mm(baseMM) / ex.img.height);
+      const w = ex.img.width * r, h = ex.img.height * r;
+      const rot = ((parseFloat(ex.rotEl?.value) || 0) * Math.PI) / 180;
+      ctx.save();
+      ctx.translate(mm(ex.x_mm), mm(ex.y_mm)); ctx.rotate(rot);
+      ctx.drawImage(ex.img, -w / 2, -h / 2, w, h);
+      ctx.restore();
+    });
+  }
+  function canvasPointMM(e) {
+    const rect = canvas.getBoundingClientRect();
+    const p = e.touches ? e.touches[0] : e;
+    return {
+      x: (p.clientX - rect.left) * (canvas.width / rect.width) / S,
+      y: (p.clientY - rect.top) * (canvas.height / rect.height) / S,
+    };
+  }
+  let dragEx = null;
+  const dragOff = { x: 0, y: 0 };
+  function extraAt(mx, my) {
+    for (let k = popExtras.length - 1; k >= 0; k--) {
+      const ex = popExtras[k];
+      if (!ex.img) continue;
+      const baseMM = 22 * ((parseFloat(ex.scaleEl?.value) || 100) / 100);
+      const r = Math.min(baseMM / ex.img.width, baseMM / ex.img.height);
+      if (Math.abs(mx - ex.x_mm) <= ex.img.width * r / 2 && Math.abs(my - ex.y_mm) <= ex.img.height * r / 2) return ex;
+    }
+    return null;
+  }
+  function onExtraDown(e) {
+    if (!popExtras.some((x) => x.img)) return;
+    const p = canvasPointMM(e);
+    const ex = extraAt(p.x, p.y);
+    if (ex) { dragEx = ex; dragOff.x = p.x - ex.x_mm; dragOff.y = p.y - ex.y_mm; e.preventDefault(); }
+  }
+  function onExtraMove(e) {
+    if (!dragEx) return;
+    const p = canvasPointMM(e);
+    dragEx.x_mm = Math.max(0, Math.min(97, p.x - dragOff.x));
+    dragEx.y_mm = Math.max(0, Math.min(61, p.y - dragOff.y));
+    syncExtra(dragEx); drawPopPreview(); e.preventDefault();
+  }
+  const onExtraUp = () => { dragEx = null; };
+  canvas.addEventListener('mousedown', onExtraDown);
+  window.addEventListener('mousemove', onExtraMove);
+  window.addEventListener('mouseup', onExtraUp);
+  canvas.addEventListener('touchstart', onExtraDown, { passive: false });
+  window.addEventListener('touchmove', onExtraMove, { passive: false });
+  window.addEventListener('touchend', onExtraUp);
+
+  templateRadios.forEach((r) => r.addEventListener('change', applyTemplate));
+  popStyleRadios.forEach((r) => r.addEventListener('change', applyPopStyle));
+  [popNameInput, popXHandleInput, popUrlInput].forEach((el) => el && el.addEventListener('input', drawPopPreview));
+  [popUsePhoto, popShowQr].forEach((el) => el && el.addEventListener('change', drawPopPreview));
+  document.querySelectorAll('input[name="accent"]').forEach((el) => el.addEventListener('change', drawPopPreview));
+  if (popFontSelect) popFontSelect.addEventListener('change', drawPopPreview);
+  [popSubtitleInput, popPhotoScale, popPhotoRotation, popPhotoBrightness].forEach((el) => el && el.addEventListener('input', drawPopPreview));
+  if (popPhotoInput) {
+    popPhotoInput.addEventListener('change', () => {
+      const file = popPhotoInput.files && popPhotoInput.files[0];
+      if (!file) { popPhotoImg = null; drawPopPreview(); return; }
+      const img = new Image();
+      img.onload = () => { popPhotoImg = img; drawPopPreview(); };
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
+  applyTemplate();
+  applyPopStyle();
+  if (document.fonts?.ready) document.fonts.ready.then(drawPopPreview);
+})();
